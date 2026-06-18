@@ -43,3 +43,13 @@ npm run merchant:list
 ```
 
 The API key plaintext must not be committed or pasted into docs.
+
+## Sprint 2 Smoke Validation
+
+With DB tunnel active and `TEKNOS_INTERNAL_API_KEY` in ignored `.env.local`:
+
+```bash
+npm run smoke:api
+```
+
+Expected result: rates 200, first booking 201, duplicate booking 200 with `idempotent: true`, tracking 200.

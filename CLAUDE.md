@@ -129,6 +129,7 @@ src/
 |---|---|---|
 | Sprint 00 | Platform readiness | Done - bootstrap + `/init-project` guardrails |
 | Sprint 01 | Database and seed MVP | Done - migration `20260618021957_init` applied, merchant `teknos` seeded, local API key generated, mock rates/booking validated |
+| Sprint 02 | Core merchant API | Done - explicit DTO responses, idempotent booking by `merchantId + externalOrderId`, smoke rates/booking/tracking validated |
 
 ---
 
