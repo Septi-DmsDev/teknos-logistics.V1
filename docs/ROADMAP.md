@@ -28,7 +28,7 @@ Source spec: `docs/superpowers/specs/2026-06-17-teknos-logistics-platform-design
 | Sprint 3 | JNE production adapter | Done - safe error mapping, per-operation config guard, timeout, redacted logging, and tariff-only JNE smoke passed with 7 rates | Done |
 | Sprint 4 | Webhook ingress lifecycle | Done - migration applied, timing-safe token check, normalized event key idempotency, monotonic lifecycle, synthetic replay smoke passed | Done |
 | Sprint 5 | Merchant webhook relay | Done - HMAC-signed outbound relay worker, retry/backoff/dead-letter behavior, unique relay queue index, local relay smoke passed | Done |
-| Sprint 6 | `teknos.id` staging integration | In progress - OpenAPI contract plus `docs/TEKNOS_ID_HANDOFF.md` client/receiver handoff added; parent `teknos.id` remains read-only until separately approved | In Progress |
+| Sprint 6 | `teknos.id` staging integration | In progress - OpenAPI contract, parent handoff, and `npm run sprint6:readiness` gate added; parent `teknos.id` remains read-only until separately approved | In Progress |
 | Sprint 7 | Admin ops MVP | Merchant/API key/webhook endpoint management and shipment/relay visibility | Planned |
 | Sprint 8 | Reliability and security hardening | Rate limiting, audit logs, health/readiness, Semgrep/Gitleaks/Trivy gates, deploy runbook | Planned |
 | Sprint 9 | Multi-courier foundation | JNT/SAP skeletons, provider capability matrix, per-courier normalizers | Planned |

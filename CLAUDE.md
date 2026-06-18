@@ -215,6 +215,8 @@ Sprint 6 is a contract-first bridge. `teknos-logistics` owns public API contract
 ### Sprint 6 Parent Handoff
 `docs/TEKNOS_ID_HANDOFF.md` is the copy-ready integration package for a future parent `teknos.id` task. It documents server-only env, HTTP client usage, HMAC webhook receiver behavior, staging cutover, and rollback while preserving parent read-only boundary.
 
+`npm run sprint6:readiness` is the read-only readiness gate for contract/docs/boundary checks before any parent-repo implementation begins.
+
 ---
 
 ## Yang TIDAK Boleh Dilakukan

@@ -11,6 +11,7 @@ This document is the copy-ready handoff for the future parent `teknos.id` integr
 - All API keys and webhook secrets are server-only.
 - Rates and tracking are safe read flows; JNE shipment booking can create a real AWB/resi and requires explicit operator approval.
 - The current machine-readable contract is available from `GET /openapi.json` and checked by `npm run contract:check`.
+- Before opening a parent-repo implementation task, run `npm run sprint6:readiness` in `teknos-logistics`.
 
 ## Required Parent Environment
 
@@ -168,13 +169,14 @@ export async function POST(request: Request) {
 1. Deploy `teknos-logistics` with `LOGISTICS_PROVIDER=mock` first.
 2. Generate a dedicated merchant API key for parent `teknos.id` staging.
 3. Configure parent env values server-side only.
-4. Add rates integration behind `LOGISTICS_ENABLED=false` feature flag.
-5. Validate `POST /v1/rates` from staging checkout context.
-6. Validate mock `POST /v1/shipments` from admin-only staging flow.
-7. Validate `GET /v1/shipments/:id/tracking` after mock booking.
-8. Configure merchant webhook endpoint and secret.
-9. Validate synthetic merchant relay and receiver signature verification.
-10. Switch provider-specific JNE booking only after explicit operator approval.
+4. Run `npm run sprint6:readiness` in `teknos-logistics`.
+5. Add rates integration behind `LOGISTICS_ENABLED=false` feature flag.
+6. Validate `POST /v1/rates` from staging checkout context.
+7. Validate mock `POST /v1/shipments` from admin-only staging flow.
+8. Validate `GET /v1/shipments/:id/tracking` after mock booking.
+9. Configure merchant webhook endpoint and secret.
+10. Validate synthetic merchant relay and receiver signature verification.
+11. Switch provider-specific JNE booking only after explicit operator approval.
 
 ## Rollback
 

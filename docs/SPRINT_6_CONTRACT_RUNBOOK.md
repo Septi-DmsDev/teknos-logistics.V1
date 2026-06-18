@@ -11,6 +11,8 @@ The machine-readable contract is exposed by `GET /openapi.json` and validated by
 
 The parent handoff artifact is `docs/TEKNOS_ID_HANDOFF.md`.
 
+The full handoff readiness gate is `npm run sprint6:readiness`.
+
 ## Hard Boundary
 
 - `teknos-logistics` is the active editable project.
@@ -122,6 +124,7 @@ Use the narrowest validation first:
 
 ```bash
 npm run contract:check
+npm run sprint6:readiness
 npm run lint
 npm run typecheck
 npm run smoke:api
@@ -133,6 +136,7 @@ npm run smoke:webhook:relay
 Safety notes:
 
 - `npm run contract:check` is read-only and validates the OpenAPI surface without DB/JNE calls.
+- `npm run sprint6:readiness` is read-only and checks contract/docs/boundary readiness without reading or printing secrets.
 - `npm run smoke:jne:rates -- --force-jne` is tariff-only and non-mutating.
 - `npm run smoke:jne:webhook` is synthetic webhook replay and does not call JNE.
 - `npm run smoke:webhook:relay` uses synthetic merchant relay validation.
@@ -143,6 +147,7 @@ Safety notes:
 - API contracts and relay contract are documented and stable enough for parent integration planning.
 - `GET /openapi.json` exposes the current contract and `npm run contract:check` passes.
 - `docs/TEKNOS_ID_HANDOFF.md` describes parent env, client, receiver, cutover, and rollback without editing parent code.
+- `npm run sprint6:readiness` passes before parent-repo implementation begins.
 - Parent read-only boundary is preserved.
 - Smoke command expectations are documented with mutating vs non-mutating safety notes.
 - `docs/ROADMAP.md`, `CLAUDE.md`, and `AGENTS.md` reflect Sprint 6 status and boundary.
