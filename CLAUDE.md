@@ -9,6 +9,10 @@
 ## Project Operating Doctrine — 2026-06-18
 
 - `teknos-logistics` adalah project terpisah dari parent `teknos.id`, dengan repo, database, deploy, dan lifecycle sendiri.
+- Arah produk resmi: `teknos-logistics` menjadi platform logistik mirip Biteship untuk Teknos, bukan sekadar adapter JNE.
+- Prinsip ownership: `teknos.id` mengelola commerce; `teknos-logistics` mengelola operasional logistik.
+- Konfigurasi courier, toko/cabang/origin, mapping service, rekap resi, tracking history, webhook logs, retry/dead-letter, dan laporan logistik berada di `teknos-logistics`.
+- Web utama hanya menerima kontrak sederhana: API URL/key, feature flag, rates, shipment summary, tracking status, dan webhook update.
 - Batas kerja default: edit hanya file di `C:\NEXT\teknos.id\teknos-logistics`; parent `C:\NEXT\teknos.id` hanya boleh dibaca sebagai referensi.
 - Jangan modify, commit, atau push parent `teknos.id` dari konteks project ini kecuali user membuka task parent-repo terpisah secara eksplisit.
 - Gunakan Bahasa Indonesia untuk komunikasi operasional; tetap gunakan nama file, command, env var, endpoint, dan tipe data sesuai literal aslinya.
@@ -205,6 +209,9 @@ JNE_WEBHOOK_TOKEN         Shared token for courier webhook ingress validation; r
 
 ### Data Flow
 Merchant API requests enter Hono routes, are authenticated by API key hash lookup, validated with Zod DTOs, then call services/repositories. Courier adapters own external-provider calls; JNE tariff/tracking are non-mutating, while `generatecnote` creates a real resi and requires operator approval before manual validation.
+
+### Commerce vs Logistics Ownership
+`teknos.id` should not own logistics operations modules such as branch/origin courier config, AWB/resi recap, raw tracking history, courier webhook logs, relay retry state, or courier reporting. It should keep only the shipment summary needed by order/customer UX and delegate logistics operations to `teknos-logistics`.
 
 ### Integration Boundary
 Sprint 6 is a contract-first bridge. `teknos-logistics` owns public API contracts, merchant relay signing, smoke commands, and runbooks; parent `teknos.id` implementation is a separate future task and must not be changed from this repo context.

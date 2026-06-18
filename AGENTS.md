@@ -196,6 +196,7 @@ Akhiri dengan: **Summary Ãƒâ€šÃ‚Â· Files changed Ãƒâ€šÃ‚Â·
 
 ### Sprint 6 contract note (2026-06-18)
 - Sprint 6 is contract/runbook preparation inside `teknos-logistics`, not parent `teknos.id` implementation.
+- Product direction: Biteship-like platform; `teknos.id` owns commerce and `teknos-logistics` owns logistics operations/configuration.
 - Canonical runbook: `docs/SPRINT_6_CONTRACT_RUNBOOK.md`.
 - Parent handoff artifact: `docs/TEKNOS_ID_HANDOFF.md`.
 - Contract endpoint: `GET /openapi.json`; validation: `npm run contract:check`.

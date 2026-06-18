@@ -5,10 +5,13 @@ Status: Sprint 6 handoff artifact
 
 This document is the copy-ready handoff for the future parent `teknos.id` integration. It is intentionally stored in `teknos-logistics`; do not edit parent `teknos.id` from this sprint.
 
+Target model: `teknos.id` owns commerce; `teknos-logistics` owns logistics operations. Parent web should not rebuild resi recap, courier config, branch/origin logistics config, tracking history, retry logs, or courier reporting.
+
 ## Boundary
 
 - Parent `teknos.id` remains read-only until the user opens a separate explicit parent-repo task.
 - All API keys and webhook secrets are server-only.
+- Keep parent integration minimal: API URL/key, feature flag, rates call, shipment creation call, tracking read, and webhook receiver.
 - Rates and tracking are safe read flows; JNE shipment booking can create a real AWB/resi and requires explicit operator approval.
 - The current machine-readable contract is available from `GET /openapi.json` and checked by `npm run contract:check`.
 - Before opening a parent-repo implementation task, run `npm run sprint6:readiness` in `teknos-logistics`.

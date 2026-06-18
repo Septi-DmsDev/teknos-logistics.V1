@@ -4,6 +4,8 @@
 
 Sprint 6 handoff artifact: `docs/TEKNOS_ID_HANDOFF.md`.
 
+Architecture direction (2026-06-18): parent `teknos.id` should remain commerce-focused. Logistics operations such as courier configuration, branch/origin logistics config, AWB/resi recap, tracking history, webhook logs, retry state, and courier reports belong in `teknos-logistics`.
+
 ## Future HTTP Client
 
 Later, `teknos.id` should call `teknos-logistics` through a small server-only HTTP client using:

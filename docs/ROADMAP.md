@@ -8,9 +8,13 @@ Source spec: `docs/superpowers/specs/2026-06-17-teknos-logistics-platform-design
 
 `teknos-logistics` is a standalone logistics aggregator platform, not just a JNE adapter extraction. The platform must remain separated from `teknos.id` like the `teknos-omnichannel` nested-project pattern, with its own Git repository, deployment, database, and operational lifecycle.
 
+Strategic direction update (2026-06-18): `teknos-logistics` should become a Biteship-like logistics platform for Teknos. `teknos.id` owns commerce; `teknos-logistics` owns logistics operations. Courier configuration, branch/store origins, service mapping, AWB/resi recap, tracking history, webhook logs, retry/dead-letter behavior, merchant relay, and logistics reporting should live here. Parent web apps should only consume a simple server-only merchant API and webhook contract.
+
 ## Execution Principles
 
 - Keep `teknos.id` checkout and shipping flows unchanged until staging integration is proven.
+- Keep `teknos.id` simple: store only shipment summary fields needed for order/customer UX, not logistics operations records.
+- Keep store/branch/origin configuration and courier-specific operational data inside `teknos-logistics`.
 - Build small vertical slices that can be validated independently.
 - Use persistent database state for shipment lifecycle, tracking, webhook events, relay attempts, and idempotency.
 - Keep mock provider usable for development and staging even when JNE credentials are unavailable.
@@ -29,10 +33,29 @@ Source spec: `docs/superpowers/specs/2026-06-17-teknos-logistics-platform-design
 | Sprint 4 | Webhook ingress lifecycle | Done - migration applied, timing-safe token check, normalized event key idempotency, monotonic lifecycle, synthetic replay smoke passed | Done |
 | Sprint 5 | Merchant webhook relay | Done - HMAC-signed outbound relay worker, retry/backoff/dead-letter behavior, unique relay queue index, local relay smoke passed | Done |
 | Sprint 6 | `teknos.id` staging integration | In progress - OpenAPI contract, parent handoff, and `npm run sprint6:readiness` gate added; parent `teknos.id` remains read-only until separately approved | In Progress |
-| Sprint 7 | Admin ops MVP | Merchant/API key/webhook endpoint management and shipment/relay visibility | Planned |
+| Sprint 7 | Logistics admin config MVP | Merchant, store/branch/origin, courier service config, API key/webhook endpoint management, shipment/relay visibility | Planned |
 | Sprint 8 | Reliability and security hardening | Rate limiting, audit logs, health/readiness, Semgrep/Gitleaks/Trivy gates, deploy runbook | Planned |
-| Sprint 9 | Multi-courier foundation | JNT/SAP skeletons, provider capability matrix, per-courier normalizers | Planned |
-| Sprint 10 | Billing and analytics | Volume/cost analytics, invoices, B2B/SaaS commercialization foundation | Planned |
+| Sprint 9 | Multi-courier foundation | JNT/SAP skeletons, provider capability matrix, per-courier normalizers, service mapping | Planned |
+| Sprint 10 | Reporting, billing, and analytics | Resi recap, volume/cost analytics, courier performance, invoices, B2B/SaaS commercialization foundation | Planned |
+
+## Ownership Boundary
+
+`teknos.id` should own:
+
+- storefront, checkout, order, payment, catalog, customer UX,
+- shipment summary fields needed for order display,
+- server-only calls to `teknos-logistics`,
+- webhook receiver endpoint and feature flag rollout.
+
+`teknos-logistics` should own:
+
+- courier credentials and provider configuration,
+- store/branch/origin configuration,
+- rate quoting, booking, AWB/resi creation, and resi recap,
+- tracking history and normalized lifecycle,
+- courier webhook ingestion and merchant webhook relay,
+- retry/dead-letter/audit logs,
+- logistics reporting, billing, and future courier-selection rules.
 
 ## Sprint 1 Definition of Done
 

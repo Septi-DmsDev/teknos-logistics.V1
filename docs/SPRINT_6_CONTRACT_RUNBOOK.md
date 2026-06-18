@@ -7,6 +7,8 @@ Status: Contract baseline implemented
 
 Sprint 6 prepares the `teknos.id` staging bridge from the `teknos-logistics` side only. The output is a stable API contract, webhook relay contract, env checklist, and smoke runbook that can be handed to a separate parent-repo integration task.
 
+Product direction: the bridge should keep parent `teknos.id` simple. `teknos-logistics` owns Biteship-like logistics operations, including courier configuration, store/branch/origin config, resi recap, tracking history, webhook logs, retry/dead-letter state, and logistics reporting.
+
 The machine-readable contract is exposed by `GET /openapi.json` and validated by `npm run contract:check`.
 
 The parent handoff artifact is `docs/TEKNOS_ID_HANDOFF.md`.
