@@ -29,3 +29,10 @@ Expected calls:
 3. Add read-only rates client in `teknos.id` behind feature flag.
 4. Add shipment booking integration after admin QA.
 5. Deprecate direct JNE/Biteship only after production parity and rollback path are confirmed.
+## Sprint 6 bridge implementation — 2026-06-18
+
+- Parent `teknos.id` now has a staging-only `teknos-logistics` provider behind `LOGISTICS_PROVIDER=teknos-logistics`.
+- Required server-only envs in parent: `LOGISTICS_API_URL`, `LOGISTICS_API_KEY`, `LOGISTICS_WEBHOOK_SECRET`.
+- Remote booking from parent remains blocked unless `LOGISTICS_ENABLE_REMOTE_BOOKING=true`; keep it false until explicit approval because booking may create a real resi.
+- Parent route `POST /api/webhooks/logistics` verifies `x-teknos-signature` using the same `sha256=` HMAC format emitted by `teknos-logistics` relay worker; current handler acknowledges/logs staging events and does not mutate orders yet.
+

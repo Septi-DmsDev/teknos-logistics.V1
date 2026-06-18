@@ -61,3 +61,4 @@ Source spec: `docs/superpowers/specs/2026-06-17-teknos-logistics-platform-design
 - Supabase: acceptable as managed Postgres for staging/production, but not required for local dev.
 - Admin auth: JWT HttpOnly cookie planned for admin ops, not needed for Sprint 1.
 - JNT/SAP real integrations: defer until JNE lifecycle and provider contract are stable.
+
