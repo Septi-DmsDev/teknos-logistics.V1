@@ -3,6 +3,7 @@
 > Ringkasan 1 kalimat tentang project ini. Stack: Node.js TypeScript Hono API + Prisma PostgreSQL + Docker. Status: Development.
 
 **Spec lengkap:** `docs/superpowers/specs/`
+**Roadmap:** `docs/ROADMAP.md`
 **Sprint plans:** `docs/superpowers/plans/`
 
 ---
@@ -126,7 +127,8 @@ src/
 
 | Sprint | Topik | Status |
 |---|---|---|
-| Sprint 00 | Setup & Infrastructure | > isi |
+| Sprint 00 | Platform readiness | Done - bootstrap + `/init-project` guardrails |
+| Sprint 01 | Database and seed MVP | Next - see `docs/ROADMAP.md` |
 
 ---
 

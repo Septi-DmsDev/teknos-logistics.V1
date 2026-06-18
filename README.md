@@ -10,6 +10,12 @@ Standalone logistics aggregator service for Teknos internal and future B2B merch
 - Shipment lifecycle updates from booking and webhook events.
 - Merchant webhook relay records for resi/status notifications.
 
+## Project Docs
+
+- `docs/ROADMAP.md` - structured sprint roadmap and cutover policy.
+- `docs/implementation-notes.md` - technical migration notes and JNE assumptions.
+- `docs/teknos-id-integration-plan.md` - future integration plan for `teknos.id`.
+
 ## Commands
 
 ```bash
