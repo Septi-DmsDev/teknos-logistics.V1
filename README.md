@@ -31,3 +31,15 @@ npm run test
 docker compose up -d db
 npx prisma migrate dev
 ```
+
+## Sprint 1 Local Operations
+
+Run these only with a valid local/staging `DATABASE_URL` in ignored `.env.local`:
+
+```bash
+npm run seed:merchant -- --slug teknos --name "Teknos Internal"
+npm run api-key:create -- --merchant-slug teknos --label local --write-env TEKNOS_INTERNAL_API_KEY
+npm run merchant:list
+```
+
+The API key plaintext must not be committed or pasted into docs.

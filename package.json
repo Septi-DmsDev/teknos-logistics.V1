@@ -20,7 +20,10 @@
     "security:fs": "trivy fs .",
     "security:npm": "npm audit --audit-level=high",
     "security:all": "npm run security:secrets && npm run security:code && npm run security:fs && npm run security:npm",
-    "predeploy": "npm run lint && npm run typecheck && npm run build && npm run security:all"
+    "predeploy": "npm run lint && npm run typecheck && npm run build && npm run security:all",
+    "seed:merchant": "tsx scripts/seed-merchant.ts",
+    "api-key:create": "tsx scripts/create-api-key.ts",
+    "merchant:list": "tsx scripts/list-merchants.ts"
   },
   "dependencies": {
     "@hono/node-server": "^1.19.6",

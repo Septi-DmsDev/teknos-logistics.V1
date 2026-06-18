@@ -128,7 +128,7 @@ src/
 | Sprint | Topik | Status |
 |---|---|---|
 | Sprint 00 | Platform readiness | Done - bootstrap + `/init-project` guardrails |
-| Sprint 01 | Database and seed MVP | In Progress - migration `20260618021957_init` applied; seed/API key next |
+| Sprint 01 | Database and seed MVP | Done - migration `20260618021957_init` applied, merchant `teknos` seeded, local API key generated, mock rates/booking validated |
 
 ---
 
@@ -159,8 +159,11 @@ npm run build
 ## Environment Variables
 
 ```
-# Isi dengan semua env vars yang digunakan
-# Format: VAR_NAME    Deskripsi singkat
+DATABASE_URL              Server-side Postgres connection string. Use tunnel localhost:5433 for local migration/dev.
+TEKNOS_INTERNAL_API_KEY   Local-only merchant API key for manual testing; stored in ignored .env.local, never commit.
+LOGISTICS_PROVIDER        Provider selector: mock or jne.
+JNE_*                     Server-only JNE credentials/configuration.
+JNE_WEBHOOK_TOKEN         Shared token for courier webhook ingress validation.
 ```
 
 > **Aturan:** Variabel dengan prefix `NEXT_PUBLIC_` = aman untuk client. Tanpa prefix = server-only secret. Jangan salah assign.
