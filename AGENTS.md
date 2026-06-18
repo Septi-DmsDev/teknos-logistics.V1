@@ -183,7 +183,21 @@ Akhiri dengan: **Summary Ãƒâ€šÃ‚Â· Files changed Ãƒâ€šÃ‚Â·
 >
 > Format: singkat, bertanggal, operasional. Replace catatan lama yang sudah tidak relevan.
 
-- **Updated:** {{CURRENT_DATE}} ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â project initialized with agent protocol scaffold.
+- **Updated:** 2026-06-18 - Codex execution protocol strengthened for standalone `teknos-logistics` delivery.
+
+### Codex Power Protocol (2026-06-18)
+
+- **Hard boundary:** edit, commit, and push only inside `C:\NEXT\teknos.id\teknos-logistics`; parent `C:\NEXT\teknos.id` is read-only reference unless user opens a separate parent-repo task.
+- **Start checklist:** run `git status --short --branch`, read `CLAUDE.md`, `AGENTS.md`, `docs/ROADMAP.md`, and the sprint runbook/spec before code or docs changes.
+- **Skill routing:** use `database-migrations`/`prisma-patterns` for schema, `api-design`/`backend-patterns` for endpoint contracts, `coding-standards` for maintainability, `github-ops` for remote operations, and Context7/Exa only when current external facts are needed.
+- **Validation ladder:** docs-only changes need `git diff --check` plus secret scan where available; code changes add `npm run lint`, `npm run typecheck`, targeted smoke, and `npm run build` when production behavior changes.
+- **Security stop:** no real JNE AWB/resi, `generatecnote`, production booking, secret printing, parent-repo mutation, or broad refactor without explicit approval and documented intent.
+- **Commit discipline:** one narrow Conventional Commit per logical change; push only to `Septi-DmsDev/teknos-logistics.V1` for this project.
+
+### Sprint 6 contract note (2026-06-18)
+- Sprint 6 is contract/runbook preparation inside `teknos-logistics`, not parent `teknos.id` implementation.
+- Canonical runbook: `docs/SPRINT_6_CONTRACT_RUNBOOK.md`.
+- Future parent integration must start as a separate explicit task and should consume the documented contracts rather than changing this boundary.
 
 ### Sprint 3 JNE adapter note (2026-06-18)
 - JNE tariff-only smoke passed with `npm run smoke:jne:rates -- --force-jne`; this calls `/pricedev` only and must not create a real resi.

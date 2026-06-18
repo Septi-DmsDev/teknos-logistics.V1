@@ -6,6 +6,29 @@
 **Roadmap:** `docs/ROADMAP.md`
 **Sprint plans:** `docs/superpowers/plans/`
 
+## Project Operating Doctrine — 2026-06-18
+
+- `teknos-logistics` adalah project terpisah dari parent `teknos.id`, dengan repo, database, deploy, dan lifecycle sendiri.
+- Batas kerja default: edit hanya file di `C:\NEXT\teknos.id\teknos-logistics`; parent `C:\NEXT\teknos.id` hanya boleh dibaca sebagai referensi.
+- Jangan modify, commit, atau push parent `teknos.id` dari konteks project ini kecuali user membuka task parent-repo terpisah secara eksplisit.
+- Gunakan Bahasa Indonesia untuk komunikasi operasional; tetap gunakan nama file, command, env var, endpoint, dan tipe data sesuai literal aslinya.
+- Gunakan skill/MCP secara selektif: `database-migrations`/`prisma-patterns` untuk schema, `api-design`/`backend-patterns` untuk endpoint, `github-ops` untuk push/PR, Context7 untuk dokumen library, Exa/web hanya untuk fakta eksternal yang perlu verifikasi.
+- Real JNE AWB/resi adalah aksi produksi: jangan jalankan `generatecnote`, booking JNE nyata, atau flow yang dapat membuat resi tanpa approval eksplisit dan pelaporan ke user terlebih dahulu.
+
+### Definition of Ready
+
+- Scope sprint tertulis di `docs/ROADMAP.md`, spec/plan/runbook terkait, atau catatan dokumen lain di repo ini.
+- File yang akan disentuh sudah dideklarasikan dan tidak melanggar boundary parent read-only.
+- Env/credential yang dibutuhkan tersedia lokal/production tanpa dicetak ke chat atau disimpan di tracked file.
+- Risiko security untuk API key, webhook, DB write, secret, dan external courier sudah diidentifikasi sebelum coding.
+
+### Definition of Done
+
+- Code/docs berubah dalam scope sempit, reviewable, dan konsisten dengan repository/service boundary.
+- Dokumentasi operasional diperbarui pada commit yang sama untuk perubahan sprint, env, schema, deploy, atau integrasi eksternal.
+- Validasi yang relevan dijalankan dan hasilnya disebutkan; minimal docs-only memakai `git diff --check` dan secret scan sebelum push.
+- Commit memakai Conventional Commit dan push hanya ke remote `Septi-DmsDev/teknos-logistics.V1` untuk project ini.
+
 ---
 
 ## Ã¢Å¡â„¢Ã¯Â¸Â Alur Kerja Wajib (Development Discipline)
@@ -131,8 +154,9 @@ src/
 | Sprint 01 | Database and seed MVP | Done - migration `20260618021957_init` applied, merchant `teknos` seeded, local API key generated, mock rates/booking validated |
 | Sprint 02 | Core merchant API | Done - explicit DTO responses, idempotent booking by `merchantId + externalOrderId`, smoke rates/booking/tracking validated |
 | Sprint 03 | JNE production adapter | Done - tariff-only JNE smoke passed on 2026-06-18; real AWB/resi creation requires explicit user approval |
-| Sprint 04 | Webhook ingress lifecycle | In Progress - code ready; migration `20260618064000_add_webhook_event_key` pending valid Supabase DB credential |
+| Sprint 04 | Webhook ingress lifecycle | Done - migration `20260618064000_add_webhook_event_key` applied, timing-safe token check, normalized idempotency, and synthetic replay smoke passed |
 | Sprint 05 | Merchant webhook relay | Done - HMAC relay worker, retry/backoff, dead-letter state, and synthetic relay smoke passed |
+| Sprint 06 | `teknos.id` staging integration | Planned - prepare contracts/runbook inside `teknos-logistics`; parent `teknos.id` remains read-only until separately approved |
 
 ---
 
@@ -182,6 +206,9 @@ JNE_WEBHOOK_TOKEN         Shared token for courier webhook ingress validation; r
 ### Data Flow
 Merchant API requests enter Hono routes, are authenticated by API key hash lookup, validated with Zod DTOs, then call services/repositories. Courier adapters own external-provider calls; JNE tariff/tracking are non-mutating, while `generatecnote` creates a real resi and requires operator approval before manual validation.
 
+### Integration Boundary
+Sprint 6 is a contract-first bridge. `teknos-logistics` owns public API contracts, merchant relay signing, smoke commands, and runbooks; parent `teknos.id` implementation is a separate future task and must not be changed from this repo context.
+
 ---
 
 ## Yang TIDAK Boleh Dilakukan
@@ -189,7 +216,7 @@ Merchant API requests enter Hono routes, are authenticated by API key hash looku
 ### Arsitektur & Data Flow
 - Jangan call DB/ORM dari luar `server/repositories/`
 - Jangan hitung nilai penting (harga, diskon, stok, role) di client
-- > tambah larangan spesifik project
+- Jangan edit parent `teknos.id` saat mengerjakan `teknos-logistics`; baca sebagai referensi saja
 
 ### Security Ã¢â‚¬â€ DILARANG KERAS
 - Jangan expose secret ke client (prefix `NEXT_PUBLIC_` hanya untuk data publik)
