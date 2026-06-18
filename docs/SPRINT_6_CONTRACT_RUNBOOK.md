@@ -9,6 +9,8 @@ Sprint 6 prepares the `teknos.id` staging bridge from the `teknos-logistics` sid
 
 The machine-readable contract is exposed by `GET /openapi.json` and validated by `npm run contract:check`.
 
+The parent handoff artifact is `docs/TEKNOS_ID_HANDOFF.md`.
+
 ## Hard Boundary
 
 - `teknos-logistics` is the active editable project.
@@ -104,6 +106,16 @@ Required future parent `teknos.id` values:
 
 Never commit real values to `.env.example`, docs, `CLAUDE.md`, or `AGENTS.md`.
 
+## Parent Handoff
+
+Use `docs/TEKNOS_ID_HANDOFF.md` as the staging integration package for the future parent-repo task. It includes:
+
+- required parent env variables,
+- server-only HTTP client example,
+- HMAC webhook receiver example,
+- staging cutover checklist,
+- rollback notes.
+
 ## Smoke Commands
 
 Use the narrowest validation first:
@@ -130,6 +142,7 @@ Safety notes:
 
 - API contracts and relay contract are documented and stable enough for parent integration planning.
 - `GET /openapi.json` exposes the current contract and `npm run contract:check` passes.
+- `docs/TEKNOS_ID_HANDOFF.md` describes parent env, client, receiver, cutover, and rollback without editing parent code.
 - Parent read-only boundary is preserved.
 - Smoke command expectations are documented with mutating vs non-mutating safety notes.
 - `docs/ROADMAP.md`, `CLAUDE.md`, and `AGENTS.md` reflect Sprint 6 status and boundary.

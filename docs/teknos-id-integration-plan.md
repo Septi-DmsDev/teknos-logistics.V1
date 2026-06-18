@@ -2,6 +2,8 @@
 
 `teknos.id` integration is intentionally not implemented in this bootstrap phase.
 
+Sprint 6 handoff artifact: `docs/TEKNOS_ID_HANDOFF.md`.
+
 ## Future HTTP Client
 
 Later, `teknos.id` should call `teknos-logistics` through a small server-only HTTP client using:

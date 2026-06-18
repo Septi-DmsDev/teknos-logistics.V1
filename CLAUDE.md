@@ -212,6 +212,9 @@ Sprint 6 is a contract-first bridge. `teknos-logistics` owns public API contract
 ### Sprint 6 Contract Surface
 `GET /openapi.json` exposes the merchant API and courier webhook contract for parent handoff. `npm run contract:check` validates the contract surface without touching DB state, calling JNE, or creating AWB/resi.
 
+### Sprint 6 Parent Handoff
+`docs/TEKNOS_ID_HANDOFF.md` is the copy-ready integration package for a future parent `teknos.id` task. It documents server-only env, HTTP client usage, HMAC webhook receiver behavior, staging cutover, and rollback while preserving parent read-only boundary.
+
 ---
 
 ## Yang TIDAK Boleh Dilakukan
