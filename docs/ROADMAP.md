@@ -27,7 +27,7 @@ Source spec: `docs/superpowers/specs/2026-06-17-teknos-logistics-platform-design
 | Sprint 2 | Core merchant API | Stable rates, booking, tracking endpoints with idempotent booking by merchant/order; smoke API passed | Done |
 | Sprint 3 | JNE production adapter | Done - safe error mapping, per-operation config guard, timeout, redacted logging, and tariff-only JNE smoke passed with 7 rates | Done |
 | Sprint 4 | Webhook ingress lifecycle | Done - migration applied, timing-safe token check, normalized event key idempotency, monotonic lifecycle, synthetic replay smoke passed | Done |
-| Sprint 5 | Merchant webhook relay | HMAC-signed outbound relay, retry/backoff worker, dead-letter state | Planned |
+| Sprint 5 | Merchant webhook relay | Done - HMAC-signed outbound relay worker, retry/backoff/dead-letter behavior, unique relay queue index, local relay smoke passed | Done |
 | Sprint 6 | `teknos.id` staging integration | Server-side HTTP client, `LOGISTICS_API_URL`, `LOGISTICS_API_KEY`, `/api/webhooks/logistics`, feature flag | Planned |
 | Sprint 7 | Admin ops MVP | Merchant/API key/webhook endpoint management and shipment/relay visibility | Planned |
 | Sprint 8 | Reliability and security hardening | Rate limiting, audit logs, health/readiness, Semgrep/Gitleaks/Trivy gates, deploy runbook | Planned |

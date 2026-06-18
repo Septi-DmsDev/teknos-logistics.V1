@@ -159,6 +159,7 @@ model WebhookRelayAttempt {
 
   @@index([status, nextRetryAt])
   @@index([eventId])
+  @@unique([eventId, endpointId])
 }
 
 model RateCache {
