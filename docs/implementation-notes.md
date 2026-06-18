@@ -1,4 +1,4 @@
-# Implementation Notes — 2026-06-18
+﻿# Implementation Notes â€” 2026-06-18
 
 ## Migratable from `teknos.id`
 
@@ -47,3 +47,19 @@ See `.env.example`. All JNE credential values must stay server-only and must not
 - 2026-06-18: Hardened `POST /v1/shipments` with idempotency on `merchantId + externalOrderId`. Repeated booking requests return HTTP 200 with `idempotent: true` and the same shipment id.
 - 2026-06-18: API responses now use explicit shipment/tracking DTOs and do not expose recipient PII or raw Prisma entities.
 - 2026-06-18: Added `npm run smoke:api` for local/staging API smoke validation using ignored `TEKNOS_INTERNAL_API_KEY`. Smoke result: rates HTTP 200, booking HTTP 201, duplicate booking HTTP 200 idempotent, tracking HTTP 200.
+
+
+## JNE Adapter Hardening Log
+
+- 2026-06-18: Hardened JNE client with explicit configuration guard, request timeout, HTTP error mapping, and redacted operational logging.
+- 2026-06-18: Expanded JNE field mapping to better match the existing teknos.id adapter shape, including optional ADDR2/ZIP/city fields for booking payload parity.
+- 2026-06-18: Added non-mutating tariff smoke script `npm run smoke:jne:rates -- --force-jne`; validated successfully after setting ignored local `JNE_SMOKE_DEST_CODE`.
+
+## Sprint 3 JNE Adapter Validation — 2026-06-18
+
+- Copied JNE server-only env values from parent `teknos.id` into ignored local `.env.local` for adapter validation without printing or committing secret values.
+- `npm run smoke:jne:rates -- --force-jne` now calls the JNE adapter directly and only performs `POST /pricedev` tariff lookup; it does not call `generatecnote` and does not create a real resi.
+- Tariff smoke passed against JNE with origin/destination env values and returned 7 rates; first service code observed was `JTR23`.
+- API-level JNE smoke through `/v1/rates` still needs the local Supabase tunnel (`localhost:5433`) because merchant API-key auth uses Prisma; tunnel was not listening during this validation.
+- Real JNE booking/AWB validation is intentionally deferred until the user explicitly approves creating a real resi.
+

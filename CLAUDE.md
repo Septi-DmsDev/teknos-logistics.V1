@@ -130,6 +130,7 @@ src/
 | Sprint 00 | Platform readiness | Done - bootstrap + `/init-project` guardrails |
 | Sprint 01 | Database and seed MVP | Done - migration `20260618021957_init` applied, merchant `teknos` seeded, local API key generated, mock rates/booking validated |
 | Sprint 02 | Core merchant API | Done - explicit DTO responses, idempotent booking by `merchantId + externalOrderId`, smoke rates/booking/tracking validated |
+| Sprint 03 | JNE production adapter | Done - tariff-only JNE smoke passed on 2026-06-18; real AWB/resi creation requires explicit user approval |
 
 ---
 
@@ -163,7 +164,7 @@ npm run build
 DATABASE_URL              Server-side Postgres connection string. Use tunnel localhost:5433 for local migration/dev.
 TEKNOS_INTERNAL_API_KEY   Local-only merchant API key for manual testing; stored in ignored .env.local, never commit.
 LOGISTICS_PROVIDER        Provider selector: mock or jne.
-JNE_*                     Server-only JNE credentials/configuration.
+JNE_*                     Server-only JNE credentials/configuration. Tariff requires base URL/user/key/origin; booking additionally requires shipper/cust/branch values.
 JNE_WEBHOOK_TOKEN         Shared token for courier webhook ingress validation.
 ```
 
@@ -177,7 +178,7 @@ JNE_WEBHOOK_TOKEN         Shared token for courier webhook ingress validation.
 > Selalu hitung server-side â€” jangan percaya angka dari client.
 
 ### Data Flow
-> Definisikan di sini: dari mana data mengalir, siapa yang boleh menulis ke mana.
+Merchant API requests enter Hono routes, are authenticated by API key hash lookup, validated with Zod DTOs, then call services/repositories. Courier adapters own external-provider calls; JNE tariff/tracking are non-mutating, while `generatecnote` creates a real resi and requires operator approval before manual validation.
 
 ---
 
@@ -196,6 +197,7 @@ JNE_WEBHOOK_TOKEN         Shared token for courier webhook ingress validation.
 - Jangan trust nilai dari client untuk kalkulasi sensitif
 - Jangan gunakan `dangerouslySetInnerHTML` tanpa sanitasi
 - Jangan lakukan DB mutation dari GET handler
+- Jangan menjalankan JNE `generatecnote` / membuat resi nyata dari Codex tanpa approval eksplisit user
 
 ### Workflow & Docs
 - Jangan mulai coding tanpa membaca `CLAUDE.md` dan `AGENTS.md`

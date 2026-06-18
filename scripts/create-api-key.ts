@@ -46,10 +46,13 @@ function writeSecretToEnvLocal(name: string, value: string): void {
   if (!/^[A-Z_][A-Z0-9_]*$/.test(name)) throw new Error(`Invalid env var name: ${name}`)
   const path = '.env.local'
   const line = `${name}="${value}"`
-  const content = existsSync(path) ? readFileSync(path, 'utf8') : ''
-  const regex = new RegExp(`^${name}=.*$`, 'm')
-  const next = regex.test(content)
-    ? content.replace(regex, line)
-    : `${content.trimEnd()}${content.trimEnd() ? '\n' : ''}${line}\n`
-  writeFileSync(path, next)
+  const lines = existsSync(path) ? readFileSync(path, 'utf8').trimEnd().split(/\r?\n/) : []
+  const index = lines.findIndex((item) => item.startsWith(`${name}=`))
+  if (index >= 0) {
+    lines[index] = line
+  } else {
+    lines.push(line)
+  }
+  writeFileSync(path, `${lines.join('\n')}\n`)
 }
+

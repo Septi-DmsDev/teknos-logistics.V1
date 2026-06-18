@@ -25,7 +25,7 @@ Source spec: `docs/superpowers/specs/2026-06-17-teknos-logistics-platform-design
 | Sprint 0 | Platform readiness | Repo, guardrails, Hono/Prisma/Docker bootstrap, build/lint/typecheck pass | Done |
 | Sprint 1 | Database and seed MVP | Prisma migration applied, Teknos merchant seeded, local API key generated, mock rates/booking validated | Done |
 | Sprint 2 | Core merchant API | Stable rates, booking, tracking endpoints with idempotent booking by merchant/order; smoke API passed | Done |
-| Sprint 3 | JNE production adapter | Clean JNE tariff/AWB/tracking adapter, safe error mapping, redacted request logging | Planned |
+| Sprint 3 | JNE production adapter | Done - safe error mapping, per-operation config guard, timeout, redacted logging, and tariff-only JNE smoke passed with 7 rates | Done |
 | Sprint 4 | Webhook ingress lifecycle | JNE webhook token validation, status normalization, tracking history, idempotent lifecycle updates | Planned |
 | Sprint 5 | Merchant webhook relay | HMAC-signed outbound relay, retry/backoff worker, dead-letter state | Planned |
 | Sprint 6 | `teknos.id` staging integration | Server-side HTTP client, `LOGISTICS_API_URL`, `LOGISTICS_API_KEY`, `/api/webhooks/logistics`, feature flag | Planned |
@@ -49,14 +49,17 @@ Source spec: `docs/superpowers/specs/2026-06-17-teknos-logistics-platform-design
 
 1. Staging database migration and seed are complete.
 2. Mock provider end-to-end flow is validated.
-3. JNE staging/production credential behavior is validated without leaking secrets.
+3. JNE staging/production credential behavior is validated without leaking secrets; tariff-only smoke passed on 2026-06-18, but real AWB booking still requires explicit operator approval.
 4. Webhook ingress and merchant relay are idempotent.
 5. `teknos.id` integration is behind a feature flag or config switch.
 6. Rollback path to existing logistics flow is documented.
 
 ## Deferred Decisions
 
+- JNE AWB creation: do not run `generatecnote` or create a real resi from Codex without explicit user approval and reporting first.
 - Redis adoption: not required for initial MVP; revisit when retry worker/rate limiting/load requires it.
 - Supabase: acceptable as managed Postgres for staging/production, but not required for local dev.
 - Admin auth: JWT HttpOnly cookie planned for admin ops, not needed for Sprint 1.
 - JNT/SAP real integrations: defer until JNE lifecycle and provider contract are stable.
+
+

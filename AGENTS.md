@@ -185,3 +185,8 @@ Akhiri dengan: **Summary Â· Files changed Â· Validation commands run Â· Se
 
 - **Updated:** {{CURRENT_DATE}} â€” project initialized with agent protocol scaffold.
 
+### Sprint 3 JNE adapter note (2026-06-18)
+- JNE tariff-only smoke passed with `npm run smoke:jne:rates -- --force-jne`; this calls `/pricedev` only and must not create a real resi.
+- Do not run JNE `generatecnote` or `POST /v1/shipments` with courier `JNE` unless the user explicitly approves real AWB creation first.
+- API-level smoke needs Supabase tunnel `localhost:5433`; direct adapter tariff smoke does not need DB/auth.
+

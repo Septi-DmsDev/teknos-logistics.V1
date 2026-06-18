@@ -53,3 +53,11 @@ npm run smoke:api
 ```
 
 Expected result: rates 200, first booking 201, duplicate booking 200 with `idempotent: true`, tracking 200.
+
+## Sprint 3 JNE Smoke
+
+Non-mutating JNE tariff smoke (requires JNE_SMOKE_DEST_CODE and JNE credentials in ignored .env.local):
+
+```bash
+npm run smoke:jne:rates -- --force-jne
+```
