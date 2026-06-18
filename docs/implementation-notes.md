@@ -28,3 +28,8 @@ See `.env.example`. All JNE credential values must stay server-only and must not
 - Exact production webhook payload shape and status codes must be confirmed from JNE before broad status mapping is finalized.
 - Exact webhook auth header from JNE must be confirmed; MVP accepts `x-jne-token` or `x-webhook-token`.
 - Tracking can return Not Found until package is physically scanned by JNE.
+
+
+## Database Migration Log
+
+- 2026-06-18: Applied Prisma migration `20260618021957_init` to Supabase Postgres via local SSH tunnel `localhost:5433 -> 10.0.8.6:5432`. No credentials are documented here; use local `.env.local` only. Validation: `npx prisma migrate status` reported database schema up to date and `npm run build` passed.

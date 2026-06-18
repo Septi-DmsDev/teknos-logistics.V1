@@ -23,7 +23,7 @@ Source spec: `docs/superpowers/specs/2026-06-17-teknos-logistics-platform-design
 | Sprint | Theme | Primary Outcome | Status |
 |---|---|---|---|
 | Sprint 0 | Platform readiness | Repo, guardrails, Hono/Prisma/Docker bootstrap, build/lint/typecheck pass | Done |
-| Sprint 1 | Database and seed MVP | Prisma migration, internal Teknos merchant seed, one-time API key generation with hash storage | Next |
+| Sprint 1 | Database and seed MVP | Prisma migration applied; internal Teknos merchant seed and one-time API key generation remain | In Progress |
 | Sprint 2 | Core merchant API | Stable rates, booking, tracking endpoints with idempotent booking by merchant/order | Planned |
 | Sprint 3 | JNE production adapter | Clean JNE tariff/AWB/tracking adapter, safe error mapping, redacted request logging | Planned |
 | Sprint 4 | Webhook ingress lifecycle | JNE webhook token validation, status normalization, tracking history, idempotent lifecycle updates | Planned |

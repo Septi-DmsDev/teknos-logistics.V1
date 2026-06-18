@@ -128,7 +128,7 @@ src/
 | Sprint | Topik | Status |
 |---|---|---|
 | Sprint 00 | Platform readiness | Done - bootstrap + `/init-project` guardrails |
-| Sprint 01 | Database and seed MVP | Next - see `docs/ROADMAP.md` |
+| Sprint 01 | Database and seed MVP | In Progress - migration `20260618021957_init` applied; seed/API key next |
 
 ---
 
