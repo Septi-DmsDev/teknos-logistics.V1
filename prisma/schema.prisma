@@ -111,6 +111,7 @@ model ShipmentTracking {
 
 model WebhookEvent {
   id          String      @id @default(cuid())
+  eventKey    String?     @unique
   shipmentId  String?
   courier     CourierCode
   eventType   String
@@ -174,3 +175,4 @@ model RateCache {
   @@unique([courier, originCode, destCode, weightGrams])
   @@index([expiresAt])
 }
+

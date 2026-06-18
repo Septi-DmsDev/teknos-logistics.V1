@@ -78,31 +78,35 @@ export class ShipmentRepository {
 
   async applyTrackingEvent(shipmentId: string, event: NormalizedTrackingEvent): Promise<ShipmentRecord> {
     const occurredAt = new Date(event.occurredAt)
-    return this.prisma.shipment.update({
-      where: { id: shipmentId },
-      data: {
-        status: event.status,
-        deliveredAt: event.status === 'DELIVERED' ? occurredAt : undefined,
-        tracking: {
-          upsert: {
-            where: {
-              shipmentId_status_occurredAt_description: {
-                shipmentId,
-                status: event.status,
-                occurredAt,
-                description: event.description,
+    return this.prisma.$transaction(async (tx) => {
+      const current = await tx.shipment.findUniqueOrThrow({ where: { id: shipmentId }, select: baseSelect })
+      const nextStatus = shouldAdvanceStatus(current.status, event.status) ? event.status : current.status
+      return tx.shipment.update({
+        where: { id: shipmentId },
+        data: {
+          status: nextStatus,
+          deliveredAt: event.status === 'DELIVERED' ? occurredAt : current.deliveredAt,
+          tracking: {
+            upsert: {
+              where: {
+                shipmentId_status_occurredAt_description: {
+                  shipmentId,
+                  status: event.status,
+                  occurredAt,
+                  description: event.description,
+                },
               },
-            },
-            update: {},
-            create: {
-              status: event.status,
-              description: event.description,
-              occurredAt,
+              update: {},
+              create: {
+                status: event.status,
+                description: event.description,
+                occurredAt,
+              },
             },
           },
         },
-      },
-      select: baseSelect,
+        select: baseSelect,
+      })
     })
   }
 }
@@ -122,6 +126,22 @@ function mapShipmentInput(merchantId: string, input: ShipmentRequest) {
     recipientPhone: input.recipient.phone,
     recipientAddress: input.recipient.address,
   }
+}
+
+const statusRank: Record<ShipmentStatus, number> = {
+  DRAFT: 0,
+  BOOKED: 1,
+  PICKED_UP: 2,
+  IN_TRANSIT: 3,
+  OUT_FOR_DELIVERY: 4,
+  DELIVERED: 5,
+  RETURNED: 5,
+  FAILED: 5,
+  CANCELLED: 5,
+}
+
+function shouldAdvanceStatus(current: ShipmentStatus, next: ShipmentStatus): boolean {
+  return statusRank[next] >= statusRank[current]
 }
 
 const baseSelect = {

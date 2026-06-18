@@ -25,7 +25,8 @@
     "api-key:create": "tsx scripts/create-api-key.ts",
     "merchant:list": "tsx scripts/list-merchants.ts",
     "smoke:api": "tsx scripts/smoke-api.ts",
-    "smoke:jne:rates": "tsx scripts/smoke-jne-rates.ts"
+    "smoke:jne:rates": "tsx scripts/smoke-jne-rates.ts",
+    "smoke:jne:webhook": "tsx scripts/smoke-jne-webhook.ts"
   },
   "dependencies": {
     "@hono/node-server": "^1.19.6",

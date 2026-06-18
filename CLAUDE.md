@@ -131,6 +131,7 @@ src/
 | Sprint 01 | Database and seed MVP | Done - migration `20260618021957_init` applied, merchant `teknos` seeded, local API key generated, mock rates/booking validated |
 | Sprint 02 | Core merchant API | Done - explicit DTO responses, idempotent booking by `merchantId + externalOrderId`, smoke rates/booking/tracking validated |
 | Sprint 03 | JNE production adapter | Done - tariff-only JNE smoke passed on 2026-06-18; real AWB/resi creation requires explicit user approval |
+| Sprint 04 | Webhook ingress lifecycle | In Progress - code ready; migration `20260618064000_add_webhook_event_key` pending valid Supabase DB credential |
 
 ---
 
@@ -165,7 +166,7 @@ DATABASE_URL              Server-side Postgres connection string. Use tunnel loc
 TEKNOS_INTERNAL_API_KEY   Local-only merchant API key for manual testing; stored in ignored .env.local, never commit.
 LOGISTICS_PROVIDER        Provider selector: mock or jne.
 JNE_*                     Server-only JNE credentials/configuration. Tariff requires base URL/user/key/origin; booking additionally requires shipper/cust/branch values.
-JNE_WEBHOOK_TOKEN         Shared token for courier webhook ingress validation.
+JNE_WEBHOOK_TOKEN         Shared token for courier webhook ingress validation; required by POST /webhooks/jne.
 ```
 
 > **Aturan:** Variabel dengan prefix `NEXT_PUBLIC_` = aman untuk client. Tanpa prefix = server-only secret. Jangan salah assign.

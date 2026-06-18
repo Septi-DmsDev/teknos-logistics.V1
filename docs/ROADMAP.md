@@ -26,7 +26,7 @@ Source spec: `docs/superpowers/specs/2026-06-17-teknos-logistics-platform-design
 | Sprint 1 | Database and seed MVP | Prisma migration applied, Teknos merchant seeded, local API key generated, mock rates/booking validated | Done |
 | Sprint 2 | Core merchant API | Stable rates, booking, tracking endpoints with idempotent booking by merchant/order; smoke API passed | Done |
 | Sprint 3 | JNE production adapter | Done - safe error mapping, per-operation config guard, timeout, redacted logging, and tariff-only JNE smoke passed with 7 rates | Done |
-| Sprint 4 | Webhook ingress lifecycle | JNE webhook token validation, status normalization, tracking history, idempotent lifecycle updates | Planned |
+| Sprint 4 | Webhook ingress lifecycle | Code ready - timing-safe token check, normalized event key idempotency, monotonic shipment lifecycle, synthetic smoke script; DB migration pending valid Supabase credential | In Progress |
 | Sprint 5 | Merchant webhook relay | HMAC-signed outbound relay, retry/backoff worker, dead-letter state | Planned |
 | Sprint 6 | `teknos.id` staging integration | Server-side HTTP client, `LOGISTICS_API_URL`, `LOGISTICS_API_KEY`, `/api/webhooks/logistics`, feature flag | Planned |
 | Sprint 7 | Admin ops MVP | Merchant/API key/webhook endpoint management and shipment/relay visibility | Planned |
@@ -61,5 +61,4 @@ Source spec: `docs/superpowers/specs/2026-06-17-teknos-logistics-platform-design
 - Supabase: acceptable as managed Postgres for staging/production, but not required for local dev.
 - Admin auth: JWT HttpOnly cookie planned for admin ops, not needed for Sprint 1.
 - JNT/SAP real integrations: defer until JNE lifecycle and provider contract are stable.
-
 

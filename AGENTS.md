@@ -190,3 +190,8 @@ Akhiri dengan: **Summary Â· Files changed Â· Validation commands run Â· Se
 - Do not run JNE `generatecnote` or `POST /v1/shipments` with courier `JNE` unless the user explicitly approves real AWB creation first.
 - API-level smoke needs Supabase tunnel `localhost:5433`; direct adapter tariff smoke does not need DB/auth.
 
+### Sprint 4 webhook note (2026-06-18)
+- Migration `20260618064000_add_webhook_event_key` is required before webhook replay idempotency is live in Supabase.
+- Local deploy attempt reached `localhost:5433` but failed with Postgres auth `28P01`; refresh ignored `.env.local` database password before rerunning `npx prisma migrate deploy`.
+- `npm run smoke:jne:webhook` uses a synthetic JNE shipment only; it does not call JNE or create a real resi.
+
