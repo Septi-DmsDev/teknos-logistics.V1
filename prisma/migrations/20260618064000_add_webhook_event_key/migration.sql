@@ -1,4 +1,4 @@
-﻿-- Add nullable idempotency key for courier webhook events.
+-- Add nullable idempotency key for courier webhook events.
 -- PostgreSQL unique indexes allow multiple NULL values, so existing non-idempotent events remain valid.
 ALTER TABLE "WebhookEvent" ADD COLUMN "eventKey" TEXT;
 

@@ -1,4 +1,4 @@
-﻿# Implementation Notes â€” 2026-06-18
+# Implementation Notes â€” 2026-06-18
 
 ## Migratable from `teknos.id`
 
@@ -70,4 +70,3 @@ See `.env.example`. All JNE credential values must stay server-only and must not
 - Shipment lifecycle updates are monotonic: older/lower-rank webhook states do not downgrade terminal or later statuses, while tracking history remains upserted by unique event fields.
 - Added `npm run smoke:jne:webhook` for synthetic DB-backed webhook replay validation; it creates a fake local JNE shipment and does not call JNE or create a real resi.
 - Migration deploy attempted through `localhost:5433` on 2026-06-18, but Postgres rejected the local `DATABASE_URL` password (`28P01`). Update ignored `.env.local` with the current Supabase DB password, then run `npx prisma migrate deploy && npm run smoke:jne:webhook`.
-

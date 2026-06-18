@@ -1,4 +1,4 @@
-﻿# AGENTS.md â€” teknos-logistics
+# AGENTS.md â€” teknos-logistics
 
 Execution checklist untuk AI agents. **`CLAUDE.md` = aturan & referensi; file ini = checklist eksekusi; `SECURITY.md` = kebijakan security.**
 
@@ -191,7 +191,6 @@ Akhiri dengan: **Summary Â· Files changed Â· Validation commands run Â· Se
 - API-level smoke needs Supabase tunnel `localhost:5433`; direct adapter tariff smoke does not need DB/auth.
 
 ### Sprint 4 webhook note (2026-06-18)
-- Migration `20260618064000_add_webhook_event_key` is required before webhook replay idempotency is live in Supabase.
-- Local deploy attempt reached `localhost:5433` but failed with Postgres auth `28P01`; refresh ignored `.env.local` database password before rerunning `npx prisma migrate deploy`.
+- Migration `20260618064000_add_webhook_event_key` was applied to Supabase on 2026-06-18; webhook replay idempotency is live in the DB.
+- `npm run smoke:jne:webhook` passed on 2026-06-18 with synthetic shipment replay: first update delivered, second update duplicate, one tracking row, one event row.
 - `npm run smoke:jne:webhook` uses a synthetic JNE shipment only; it does not call JNE or create a real resi.
-

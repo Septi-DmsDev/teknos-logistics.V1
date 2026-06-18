@@ -1,4 +1,4 @@
-﻿# teknos-logistics
+# teknos-logistics
 
 > Ringkasan 1 kalimat tentang project ini. Stack: Node.js TypeScript Hono API + Prisma PostgreSQL + Docker. Status: Development.
 
@@ -213,4 +213,3 @@ Merchant API requests enter Hono routes, are authenticated by API key hash looku
 - [ ] Full flow test: end-to-end dari UI sampai DB
 - [ ] Security scan bersih (semgrep, gitleaks, trivy)
 - [ ] Monitoring & alerting aktif
-
