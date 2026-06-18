@@ -16,6 +16,7 @@ import { CourierWebhookService } from './services/courier-webhook.service.js'
 import { mountRateRoutes } from './routes/v1/rates.js'
 import { mountShipmentRoutes } from './routes/v1/shipments.js'
 import { mountJneWebhookRoutes } from './routes/webhooks/jne.js'
+import { openApiContract } from './contracts/openapi.js'
 import { sanitizeError } from './utils/http-error.js'
 
 export function createApp() {
@@ -39,6 +40,7 @@ export function createApp() {
   })
 
   app.get('/health', (c) => c.json({ ok: true, service: 'teknos-logistics' }))
+  app.get('/openapi.json', (c) => c.json(openApiContract))
   app.use('/v1/*', apiKeyAuth(merchantRepository))
   mountRateRoutes(app, rateService)
   mountShipmentRoutes(app, shipmentService)

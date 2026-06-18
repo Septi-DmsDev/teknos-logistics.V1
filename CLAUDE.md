@@ -156,7 +156,7 @@ src/
 | Sprint 03 | JNE production adapter | Done - tariff-only JNE smoke passed on 2026-06-18; real AWB/resi creation requires explicit user approval |
 | Sprint 04 | Webhook ingress lifecycle | Done - migration `20260618064000_add_webhook_event_key` applied, timing-safe token check, normalized idempotency, and synthetic replay smoke passed |
 | Sprint 05 | Merchant webhook relay | Done - HMAC relay worker, retry/backoff, dead-letter state, and synthetic relay smoke passed |
-| Sprint 06 | `teknos.id` staging integration | Planned - prepare contracts/runbook inside `teknos-logistics`; parent `teknos.id` remains read-only until separately approved |
+| Sprint 06 | `teknos.id` staging integration | In Progress - OpenAPI contract endpoint and `contract:check` handoff validation added inside `teknos-logistics`; parent `teknos.id` remains read-only |
 
 ---
 
@@ -208,6 +208,9 @@ Merchant API requests enter Hono routes, are authenticated by API key hash looku
 
 ### Integration Boundary
 Sprint 6 is a contract-first bridge. `teknos-logistics` owns public API contracts, merchant relay signing, smoke commands, and runbooks; parent `teknos.id` implementation is a separate future task and must not be changed from this repo context.
+
+### Sprint 6 Contract Surface
+`GET /openapi.json` exposes the merchant API and courier webhook contract for parent handoff. `npm run contract:check` validates the contract surface without touching DB state, calling JNE, or creating AWB/resi.
 
 ---
 

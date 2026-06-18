@@ -28,7 +28,8 @@
     "smoke:jne:rates": "tsx scripts/smoke-jne-rates.ts",
     "smoke:jne:webhook": "tsx scripts/smoke-jne-webhook.ts",
     "webhooks:relay": "tsx scripts/relay-webhooks.ts",
-    "smoke:webhook:relay": "tsx scripts/smoke-webhook-relay.ts"
+    "smoke:webhook:relay": "tsx scripts/smoke-webhook-relay.ts",
+    "contract:check": "tsx scripts/check-contract.ts"
   },
   "dependencies": {
     "@hono/node-server": "^1.19.6",

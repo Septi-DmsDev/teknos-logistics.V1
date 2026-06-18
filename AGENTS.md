@@ -197,6 +197,7 @@ Akhiri dengan: **Summary Ãƒâ€šÃ‚Â· Files changed Ãƒâ€šÃ‚Â·
 ### Sprint 6 contract note (2026-06-18)
 - Sprint 6 is contract/runbook preparation inside `teknos-logistics`, not parent `teknos.id` implementation.
 - Canonical runbook: `docs/SPRINT_6_CONTRACT_RUNBOOK.md`.
+- Contract endpoint: `GET /openapi.json`; validation: `npm run contract:check`.
 - Future parent integration must start as a separate explicit task and should consume the documented contracts rather than changing this boundary.
 
 ### Sprint 3 JNE adapter note (2026-06-18)

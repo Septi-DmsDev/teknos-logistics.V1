@@ -1,11 +1,13 @@
 # Sprint 6 Contract Runbook
 
 Date: 2026-06-18
-Status: Planned contract baseline
+Status: Contract baseline implemented
 
 ## Goal
 
 Sprint 6 prepares the `teknos.id` staging bridge from the `teknos-logistics` side only. The output is a stable API contract, webhook relay contract, env checklist, and smoke runbook that can be handed to a separate parent-repo integration task.
+
+The machine-readable contract is exposed by `GET /openapi.json` and validated by `npm run contract:check`.
 
 ## Hard Boundary
 
@@ -17,6 +19,12 @@ Sprint 6 prepares the `teknos.id` staging bridge from the `teknos-logistics` sid
 ## Merchant API Contracts
 
 All merchant API requests must use server-only `LOGISTICS_API_KEY` through an authorization header. Do not expose it to browser code.
+
+Authentication header:
+
+```http
+Authorization: Bearer <LOGISTICS_API_KEY>
+```
 
 ### `POST /v1/rates`
 
@@ -101,6 +109,7 @@ Never commit real values to `.env.example`, docs, `CLAUDE.md`, or `AGENTS.md`.
 Use the narrowest validation first:
 
 ```bash
+npm run contract:check
 npm run lint
 npm run typecheck
 npm run smoke:api
@@ -111,6 +120,7 @@ npm run smoke:webhook:relay
 
 Safety notes:
 
+- `npm run contract:check` is read-only and validates the OpenAPI surface without DB/JNE calls.
 - `npm run smoke:jne:rates -- --force-jne` is tariff-only and non-mutating.
 - `npm run smoke:jne:webhook` is synthetic webhook replay and does not call JNE.
 - `npm run smoke:webhook:relay` uses synthetic merchant relay validation.
@@ -119,6 +129,7 @@ Safety notes:
 ## Definition of Done
 
 - API contracts and relay contract are documented and stable enough for parent integration planning.
+- `GET /openapi.json` exposes the current contract and `npm run contract:check` passes.
 - Parent read-only boundary is preserved.
 - Smoke command expectations are documented with mutating vs non-mutating safety notes.
 - `docs/ROADMAP.md`, `CLAUDE.md`, and `AGENTS.md` reflect Sprint 6 status and boundary.
