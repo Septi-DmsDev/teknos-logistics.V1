@@ -183,7 +183,7 @@ Akhiri dengan: **Summary Ãƒâ€šÃ‚Â· Files changed Ãƒâ€šÃ‚Â·
 >
 > Format: singkat, bertanggal, operasional. Replace catatan lama yang sudah tidak relevan.
 
-- **Updated:** 2026-06-18 - Codex execution protocol strengthened for standalone `teknos-logistics` delivery.
+- **Updated:** 2026-06-18 - Sprint 7 Task 1 admin config schema migration created inside `teknos-logistics` only.
 
 ### Codex Power Protocol (2026-06-18)
 
@@ -203,10 +203,10 @@ Akhiri dengan: **Summary Ãƒâ€šÃ‚Â· Files changed Ãƒâ€šÃ‚Â·
 - Readiness gate: `npm run sprint6:readiness` before opening parent-repo implementation work.
 - Future parent integration must start as a separate explicit task and should consume the documented contracts rather than changing this boundary.
 
-### Sprint 7 planning note (2026-06-18)
-- Draft spec: `docs/superpowers/specs/2026-06-18-logistics-admin-config-mvp-design.md`.
-- Draft plan: `docs/superpowers/plans/2026-06-18-logistics-admin-config-mvp.md`.
-- Do not implement until the user approves the plan; first implementation task is schema migration.
+### Sprint 7 schema note (2026-06-18)
+- Task 1 migration `20260618103000_add_admin_config_models` adds `Store`, `Origin`, `CourierService`, `MerchantCourierService`, and `CourierServiceStatus` additively.
+- Production/Supabase migration was not run in this task; deploy later with explicit approval and normal Prisma migration tooling.
+- Coordinate before further edits to `prisma/schema.prisma` because admin API/repository tasks depend on this schema foundation.
 
 ### Sprint 3 JNE adapter note (2026-06-18)
 - JNE tariff-only smoke passed with `npm run smoke:jne:rates -- --force-jne`; this calls `/pricedev` only and must not create a real resi.

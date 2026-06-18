@@ -31,6 +31,11 @@ enum WebhookRelayStatus {
   FAILED
 }
 
+enum CourierServiceStatus {
+  ACTIVE
+  INACTIVE
+}
+
 model Merchant {
   id        String   @id @default(cuid())
   slug      String   @unique
@@ -39,11 +44,88 @@ model Merchant {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  apiKeys   ApiKey[]
-  shipments Shipment[]
-  endpoints MerchantWebhookEndpoint[]
+  apiKeys         ApiKey[]
+  shipments       Shipment[]
+  endpoints       MerchantWebhookEndpoint[]
+  stores          Store[]
+  origins         Origin[]
+  courierServices MerchantCourierService[]
 
   @@index([isActive, createdAt])
+}
+
+model Store {
+  id         String   @id @default(cuid())
+  merchantId String
+  slug       String
+  name       String
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  merchant Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  origins  Origin[]
+
+  @@unique([merchantId, slug])
+  @@index([merchantId, isActive])
+}
+
+model Origin {
+  id         String   @id @default(cuid())
+  merchantId String
+  storeId    String?
+  code       String
+  name       String
+  address    String?
+  city       String?
+  province   String?
+  postalCode String?
+  phone      String?
+  isDefault  Boolean  @default(false)
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  merchant        Merchant                 @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  store           Store?                   @relation(fields: [storeId], references: [id], onDelete: SetNull)
+  courierServices MerchantCourierService[]
+
+  @@unique([merchantId, code])
+  @@index([merchantId, isActive])
+  @@index([storeId, isActive])
+}
+
+model CourierService {
+  id          String               @id @default(cuid())
+  courier     CourierCode
+  serviceCode String
+  serviceName String
+  status      CourierServiceStatus @default(ACTIVE)
+  metadata    Json?
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+
+  merchants MerchantCourierService[]
+
+  @@unique([courier, serviceCode])
+  @@index([courier, status])
+}
+
+model MerchantCourierService {
+  id               String               @id @default(cuid())
+  merchantId       String
+  courierServiceId String
+  originId         String?
+  status           CourierServiceStatus @default(ACTIVE)
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+
+  merchant       Merchant       @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  courierService CourierService @relation(fields: [courierServiceId], references: [id], onDelete: Cascade)
+  origin         Origin?        @relation(fields: [originId], references: [id], onDelete: Cascade)
+
+  @@unique([merchantId, courierServiceId, originId])
+  @@index([merchantId, status])
 }
 
 model ApiKey {
@@ -64,28 +146,28 @@ model ApiKey {
 }
 
 model Shipment {
-  id              String         @id @default(cuid())
-  merchantId      String
-  externalOrderId String
-  courier         CourierCode
-  courierOrderId  String?
-  waybillId       String?
-  status          ShipmentStatus @default(DRAFT)
-  serviceCode     String
-  serviceName     String?
-  originCode      String
-  destCode        String
-  weightGrams     Int
-  rateIdr         Int?
-  recipientName   String
-  recipientPhone  String
+  id               String         @id @default(cuid())
+  merchantId       String
+  externalOrderId  String
+  courier          CourierCode
+  courierOrderId   String?
+  waybillId        String?
+  status           ShipmentStatus @default(DRAFT)
+  serviceCode      String
+  serviceName      String?
+  originCode       String
+  destCode         String
+  weightGrams      Int
+  rateIdr          Int?
+  recipientName    String
+  recipientPhone   String
   recipientAddress String
-  bookedAt        DateTime?
-  deliveredAt     DateTime?
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
+  bookedAt         DateTime?
+  deliveredAt      DateTime?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
 
-  merchant Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  merchant Merchant           @relation(fields: [merchantId], references: [id], onDelete: Cascade)
   tracking ShipmentTracking[]
   events   WebhookEvent[]
 
@@ -100,7 +182,7 @@ model ShipmentTracking {
   status      ShipmentStatus
   description String
   occurredAt  DateTime
-  rawPayload   Json?
+  rawPayload  Json?
   createdAt   DateTime       @default(now())
 
   shipment Shipment @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
@@ -120,7 +202,7 @@ model WebhookEvent {
   receivedAt  DateTime    @default(now())
   processedAt DateTime?
 
-  shipment Shipment? @relation(fields: [shipmentId], references: [id], onDelete: SetNull)
+  shipment      Shipment?             @relation(fields: [shipmentId], references: [id], onDelete: SetNull)
   relayAttempts WebhookRelayAttempt[]
 
   @@index([courier, receivedAt])
@@ -128,38 +210,38 @@ model WebhookEvent {
 }
 
 model MerchantWebhookEndpoint {
-  id          String   @id @default(cuid())
-  merchantId  String
-  url         String
-  secret      String
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id         String   @id @default(cuid())
+  merchantId String
+  url        String
+  secret     String
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
-  merchant Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  merchant Merchant              @relation(fields: [merchantId], references: [id], onDelete: Cascade)
   attempts WebhookRelayAttempt[]
 
   @@index([merchantId, isActive])
 }
 
 model WebhookRelayAttempt {
-  id          String             @id @default(cuid())
-  eventId     String
-  endpointId  String
-  status      WebhookRelayStatus @default(PENDING)
-  httpStatus  Int?
-  attemptCount Int               @default(0)
-  nextRetryAt DateTime?
-  lastError   String?
-  createdAt   DateTime           @default(now())
-  updatedAt   DateTime           @updatedAt
+  id           String             @id @default(cuid())
+  eventId      String
+  endpointId   String
+  status       WebhookRelayStatus @default(PENDING)
+  httpStatus   Int?
+  attemptCount Int                @default(0)
+  nextRetryAt  DateTime?
+  lastError    String?
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
 
-  event    WebhookEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  event    WebhookEvent            @relation(fields: [eventId], references: [id], onDelete: Cascade)
   endpoint MerchantWebhookEndpoint @relation(fields: [endpointId], references: [id], onDelete: Cascade)
 
+  @@unique([eventId, endpointId])
   @@index([status, nextRetryAt])
   @@index([eventId])
-  @@unique([eventId, endpointId])
 }
 
 model RateCache {
@@ -176,4 +258,3 @@ model RateCache {
   @@unique([courier, originCode, destCode, weightGrams])
   @@index([expiresAt])
 }
-

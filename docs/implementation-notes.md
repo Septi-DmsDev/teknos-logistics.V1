@@ -32,6 +32,7 @@ See `.env.example`. All JNE credential values must stay server-only and must not
 
 ## Database Migration Log
 
+- 2026-06-18: Created additive Prisma migration `20260618103000_add_admin_config_models` for Sprint 7 admin config foundations (`Store`, `Origin`, `CourierService`, `MerchantCourierService`, `CourierServiceStatus`). Not applied to production or Supabase in this task; validate/deploy separately with Prisma migration tooling.
 - 2026-06-18: Applied Prisma migration `20260618021957_init` to Supabase Postgres via local SSH tunnel `localhost:5433 -> 10.0.8.6:5432`. No credentials are documented here; use local `.env.local` only. Validation: `npx prisma migrate status` reported database schema up to date and `npm run build` passed.
 
 
