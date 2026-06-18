@@ -14,7 +14,13 @@
     "test": "node -e \"console.log('No automated tests configured for bootstrap; F1/F2/F7 covered separately by Claude Code')\"",
     "typecheck": "tsc --noEmit",
     "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate dev"
+    "prisma:migrate": "prisma migrate dev",
+    "security:secrets": "gitleaks detect --source . --verbose",
+    "security:code": "semgrep scan --config auto",
+    "security:fs": "trivy fs .",
+    "security:npm": "npm audit --audit-level=high",
+    "security:all": "npm run security:secrets && npm run security:code && npm run security:fs && npm run security:npm",
+    "predeploy": "npm run lint && npm run typecheck && npm run build && npm run security:all"
   },
   "dependencies": {
     "@hono/node-server": "^1.19.6",
