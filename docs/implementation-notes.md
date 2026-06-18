@@ -1,0 +1,30 @@
+# Implementation Notes — 2026-06-18
+
+## Migratable from `teknos.id`
+
+- JNE form-urlencoded request style for tariff, `generatecnote`, and tracking.
+- JNE field mapping concepts: `OLSHOP_BRANCH`, `OLSHOP_CUST`, `OLSHOP_ORDERID`, `OLSHOP_ORIG`, `OLSHOP_DEST`, `OLSHOP_SERVICE`, COD fields, and shipper env values.
+- Existing logistics provider abstraction concept.
+
+## Rewritten for standalone service
+
+- Merchant API key auth replaces storefront session/admin assumptions.
+- Shipment lifecycle persists in `Shipment` and `ShipmentTracking` instead of `Order` fields.
+- Webhook relay is queued in `WebhookRelayAttempt` so merchant notifications are decoupled from courier ingress.
+- Request validation uses API DTOs independent from `teknos.id` checkout models.
+
+## Relevant JNE endpoints
+
+- `POST /pricedev` for tariff/rates.
+- `POST /generatecnote` for AWB creation.
+- `POST /list/v1/cnote/:awb` for tracking.
+
+## Required env
+
+See `.env.example`. All JNE credential values must stay server-only and must not be committed.
+
+## Open JNE questions
+
+- Exact production webhook payload shape and status codes must be confirmed from JNE before broad status mapping is finalized.
+- Exact webhook auth header from JNE must be confirmed; MVP accepts `x-jne-token` or `x-webhook-token`.
+- Tracking can return Not Found until package is physically scanned by JNE.

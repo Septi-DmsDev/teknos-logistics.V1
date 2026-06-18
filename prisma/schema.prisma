@@ -1,0 +1,176 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum CourierCode {
+  JNE
+  JNT
+  SAP_EXPRESS
+  MOCK
+}
+
+enum ShipmentStatus {
+  DRAFT
+  BOOKED
+  PICKED_UP
+  IN_TRANSIT
+  OUT_FOR_DELIVERY
+  DELIVERED
+  RETURNED
+  FAILED
+  CANCELLED
+}
+
+enum WebhookRelayStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+model Merchant {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  name      String
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  apiKeys   ApiKey[]
+  shipments Shipment[]
+  endpoints MerchantWebhookEndpoint[]
+
+  @@index([isActive, createdAt])
+}
+
+model ApiKey {
+  id         String    @id @default(cuid())
+  merchantId String
+  keyHash    String    @unique
+  keyPrefix  String
+  label      String?
+  lastUsedAt DateTime?
+  expiresAt  DateTime?
+  isActive   Boolean   @default(true)
+  createdAt  DateTime  @default(now())
+
+  merchant Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+
+  @@index([merchantId, isActive])
+  @@index([keyPrefix])
+}
+
+model Shipment {
+  id              String         @id @default(cuid())
+  merchantId      String
+  externalOrderId String
+  courier         CourierCode
+  courierOrderId  String?
+  waybillId       String?
+  status          ShipmentStatus @default(DRAFT)
+  serviceCode     String
+  serviceName     String?
+  originCode      String
+  destCode        String
+  weightGrams     Int
+  rateIdr         Int?
+  recipientName   String
+  recipientPhone  String
+  recipientAddress String
+  bookedAt        DateTime?
+  deliveredAt     DateTime?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  merchant Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  tracking ShipmentTracking[]
+  events   WebhookEvent[]
+
+  @@unique([merchantId, externalOrderId])
+  @@index([merchantId, status, createdAt])
+  @@index([courier, waybillId])
+}
+
+model ShipmentTracking {
+  id          String         @id @default(cuid())
+  shipmentId  String
+  status      ShipmentStatus
+  description String
+  occurredAt  DateTime
+  rawPayload   Json?
+  createdAt   DateTime       @default(now())
+
+  shipment Shipment @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+
+  @@unique([shipmentId, status, occurredAt, description])
+  @@index([shipmentId, occurredAt])
+}
+
+model WebhookEvent {
+  id          String      @id @default(cuid())
+  shipmentId  String?
+  courier     CourierCode
+  eventType   String
+  rawPayload  Json
+  normalized  Json?
+  receivedAt  DateTime    @default(now())
+  processedAt DateTime?
+
+  shipment Shipment? @relation(fields: [shipmentId], references: [id], onDelete: SetNull)
+  relayAttempts WebhookRelayAttempt[]
+
+  @@index([courier, receivedAt])
+  @@index([shipmentId])
+}
+
+model MerchantWebhookEndpoint {
+  id          String   @id @default(cuid())
+  merchantId  String
+  url         String
+  secret      String
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  merchant Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  attempts WebhookRelayAttempt[]
+
+  @@index([merchantId, isActive])
+}
+
+model WebhookRelayAttempt {
+  id          String             @id @default(cuid())
+  eventId     String
+  endpointId  String
+  status      WebhookRelayStatus @default(PENDING)
+  httpStatus  Int?
+  attemptCount Int               @default(0)
+  nextRetryAt DateTime?
+  lastError   String?
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  event    WebhookEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  endpoint MerchantWebhookEndpoint @relation(fields: [endpointId], references: [id], onDelete: Cascade)
+
+  @@index([status, nextRetryAt])
+  @@index([eventId])
+}
+
+model RateCache {
+  id          String      @id @default(cuid())
+  courier     CourierCode
+  originCode  String
+  destCode    String
+  weightGrams Int
+  rates       Json
+  expiresAt   DateTime
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@unique([courier, originCode, destCode, weightGrams])
+  @@index([expiresAt])
+}
