@@ -203,6 +203,11 @@ Akhiri dengan: **Summary Ãƒâ€šÃ‚Â· Files changed Ãƒâ€šÃ‚Â·
 - Readiness gate: `npm run sprint6:readiness` before opening parent-repo implementation work.
 - Future parent integration must start as a separate explicit task and should consume the documented contracts rather than changing this boundary.
 
+### Sprint 7 planning note (2026-06-18)
+- Draft spec: `docs/superpowers/specs/2026-06-18-logistics-admin-config-mvp-design.md`.
+- Draft plan: `docs/superpowers/plans/2026-06-18-logistics-admin-config-mvp.md`.
+- Do not implement until the user approves the plan; first implementation task is schema migration.
+
 ### Sprint 3 JNE adapter note (2026-06-18)
 - JNE tariff-only smoke passed with `npm run smoke:jne:rates -- --force-jne`; this calls `/pricedev` only and must not create a real resi.
 - Do not run JNE `generatecnote` or `POST /v1/shipments` with courier `JNE` unless the user explicitly approves real AWB creation first.
