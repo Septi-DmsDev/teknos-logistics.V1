@@ -28,7 +28,11 @@ export const envSchema = z.object({
 export type Env = z.infer<typeof envSchema>
 
 export function loadEnv(source: NodeJS.ProcessEnv = process.env): Env {
-  return envSchema.parse(source)
+  const parsed = envSchema.parse(source)
+  if (parsed.NODE_ENV === 'production' && parsed.ADMIN_JWT_SECRET.trim().length === 0) {
+    throw new Error('ADMIN_JWT_SECRET is required in production')
+  }
+  return parsed
 }
 
 function loadEnvFile(file: string): void {
