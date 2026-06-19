@@ -1,18 +1,18 @@
-# AGENTS.md ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â teknos-logistics
+# AGENTS.md ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â teknos-logistics
 
 Execution checklist untuk AI agents. **`CLAUDE.md` = aturan & referensi; file ini = checklist eksekusi; `SECURITY.md` = kebijakan security.**
 
 ---
 
-## ÃƒÂ°Ã…Â¸Ã…Â¡Ã‚Â¨ Mandatory Pre-Task Checklist ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â NO EXCEPTIONS
+## ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸Ãƒâ€¦Ã‚Â¡Ãƒâ€šÃ‚Â¨ Mandatory Pre-Task Checklist ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â NO EXCEPTIONS
 
 ### Step 1: Load Project Context
 ```bash
 git status --short --branch
 git log --oneline -5
 ```
-- [ ] Baca `CLAUDE.md` penuh ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â catat stack, arsitektur, aturan, dan forbidden actions
-- [ ] Baca `AGENTS.md` ini ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â cek coordination note, who owns what, shared-file risk
+- [ ] Baca `CLAUDE.md` penuh ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â catat stack, arsitektur, aturan, dan forbidden actions
+- [ ] Baca `AGENTS.md` ini ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â cek coordination note, who owns what, shared-file risk
 - [ ] Jika task menyentuh schema/migration: baca migrasi terbaru
 - [ ] Jika task menyentuh payment/checkout: baca spec di `docs/superpowers/specs/`
 - [ ] Jika task menyentuh auth: review auth sections di `CLAUDE.md`
@@ -20,10 +20,10 @@ git log --oneline -5
 
 ### Step 2: Declare Intent
 Sebelum coding, nyatakan secara eksplisit:
-1. **Files yang akan disentuh** ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â list lengkap
-2. **Shared-file risk** ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â apakah ada file yang sedang dikerjakan agent lain?
-3. **Constraints dari `CLAUDE.md`** ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â rule apa yang berlaku untuk task ini?
-4. **Security concerns** ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â apakah task ini menyentuh auth, input, secrets, DB writes, upload?
+1. **Files yang akan disentuh** ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â list lengkap
+2. **Shared-file risk** ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â apakah ada file yang sedang dikerjakan agent lain?
+3. **Constraints dari `CLAUDE.md`** ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â rule apa yang berlaku untuk task ini?
+4. **Security concerns** ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â apakah task ini menyentuh auth, input, secrets, DB writes, upload?
 
 ### Step 3: Security Gate
 
@@ -44,7 +44,7 @@ Untuk setiap task yang menyentuh area di bawah, jawab SEMUA pertanyaan sebelum c
 | **Rate Limiting** | Public/abuse-prone endpoints dibatasi? |
 | **Data Ownership** | Caller diverifikasi MEMILIKI record (bukan sekadar authenticated)? |
 
-> ÃƒÂ¢Ã…Â¡Ã‚Â ÃƒÂ¯Ã‚Â¸Ã‚Â **HARD STOP**: Jika ada security check yang tidak yakin, selesaikan SEBELUM menulis kode. Jangan lanjut dengan asumsi "fix it later" untuk security.
+> ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã‚Â¡Ãƒâ€šÃ‚Â ÃƒÆ’Ã‚Â¯Ãƒâ€šÃ‚Â¸Ãƒâ€šÃ‚Â **HARD STOP**: Jika ada security check yang tidak yakin, selesaikan SEBELUM menulis kode. Jangan lanjut dengan asumsi "fix it later" untuk security.
 
 ### Step 4: Post-Implementation Validation
 ```bash
@@ -53,20 +53,20 @@ npm run lint && npm run typecheck && npm run build && npm run security:all
 ```
 Jika command tidak bisa dijalankan, sampaikan ke user apa yang perlu divalidasi.
 
-### Step 5: Docs-as-Code ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â Definition of Done
+### Step 5: Docs-as-Code ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â Definition of Done
 Task belum "selesai" sampai docs mencerminkan realita. Update dalam **commit yang sama** dengan code change.
 
 | Trigger | File yang di-update |
 |---|---|
-| Sprint selesai | `CLAUDE.md` Ãƒâ€šÃ‚Â§ Status Sprint |
-| Env variable baru | `CLAUDE.md` Ãƒâ€šÃ‚Â§ Environment Variables |
-| Keputusan arsitektur baru | `CLAUDE.md` Ãƒâ€šÃ‚Â§ Keputusan Arsitektur |
-| Fitur baru deploy | `CLAUDE.md` Ãƒâ€šÃ‚Â§ Fitur yang Sudah Dibangun |
+| Sprint selesai | `CLAUDE.md` ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§ Status Sprint |
+| Env variable baru | `CLAUDE.md` ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§ Environment Variables |
+| Keputusan arsitektur baru | `CLAUDE.md` ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§ Keputusan Arsitektur |
+| Fitur baru deploy | `CLAUDE.md` ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§ Fitur yang Sudah Dibangun |
 | Migration schema | Kedua file + nama migration + tanggal |
-| Rule baru dilarang | `CLAUDE.md` Ãƒâ€šÃ‚Â§ Yang TIDAK Boleh Dilakukan |
+| Rule baru dilarang | `CLAUDE.md` ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§ Yang TIDAK Boleh Dilakukan |
 
 ### Step 6: Commit (Conventional Commits)
-Format: `<type>(scope): summary` ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â `feat | fix | docs | chore | refactor | test | perf`.
+Format: `<type>(scope): summary` ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â `feat | fix | docs | chore | refactor | test | perf`.
 Satu commit = satu perubahan logis, scope sempit. Jangan pernah commit secrets/tokens/credentials.
 
 ### Security Tooling (jalankan sebelum commit/PR relevan)
@@ -81,13 +81,13 @@ trivy fs --scanners vuln,secret,misconfig .  # Dockerfile/image/dependencies
 ## Pembagian Peran Agent
 
 ### Claude Code (Utama)
-- Fitur kompleks ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â multi-file, arsitektur baru
+- Fitur kompleks ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â multi-file, arsitektur baru
 - Perubahan schema / migration Prisma
 - Auth, payment, webhook, server actions
 - Debug yang butuh konteks mendalam
 - QA execution (`/qa-execute`)
 
-### Codex (Paralel ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â scope terbatas)
+### Codex (Paralel ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â scope terbatas)
 - Task independen dari Claude (cari task tanpa dependency di plan)
 - UI components yang tidak menyentuh server
 - Docs update, refactor terisolasi
@@ -100,27 +100,27 @@ server/repositories/*.ts
 middleware.ts
 app/api/payment/** | app/api/order/**
 ```
-ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ Jika overlap: **koordinasi dulu**, jangan overwrite.
+ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ Jika overlap: **koordinasi dulu**, jangan overwrite.
 
 ---
 
-## Workflow Skills ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â Kapan Pakai Apa
+## Workflow Skills ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â Kapan Pakai Apa
 
 Gunakan skills ini untuk memaksimalkan kualitas dan konsistensi kerja:
 
 | Situasi | Skill yang dipakai |
 |---|---|
-| Ada ide fitur baru / masalah yang belum jelas | `/brainstorm` ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â ideation terstruktur |
-| Butuh dokumen spec formal sebelum coding | `/spec-writer` ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â buat design doc |
-| Butuh implementation plan yang executable | `/plan-writer` ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â buat task breakdown |
-| QA sebelum commit / deploy / ada bug report | `/qa-execute` ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â eksekusi 7-tier QA |
-| Setup project baru / onboarding repo | `/init-project` ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â scaffold protokol |
+| Ada ide fitur baru / masalah yang belum jelas | `/brainstorm` ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ideation terstruktur |
+| Butuh dokumen spec formal sebelum coding | `/spec-writer` ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â buat design doc |
+| Butuh implementation plan yang executable | `/plan-writer` ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â buat task breakdown |
+| QA sebelum commit / deploy / ada bug report | `/qa-execute` ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â eksekusi 7-tier QA |
+| Setup project baru / onboarding repo | `/init-project` ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â scaffold protokol |
 
-> **Pipeline ideal untuk fitur signifikan:** `/brainstorm` ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ `/spec-writer` ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ `/plan-writer` ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ [user approve] ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ implementasi ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ `/qa-execute`
+> **Pipeline ideal untuk fitur signifikan:** `/brainstorm` ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ `/spec-writer` ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ `/plan-writer` ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ [user approve] ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ implementasi ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ `/qa-execute`
 
 ---
 
-## ECC Specialized Agents ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â Kapan Dispatch
+## ECC Specialized Agents ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â Kapan Dispatch
 
 ECC agents sudah terinstall di `~/.claude/agents/`. Dispatch ke agent terspesialisasi alih-alih menangani semuanya di main session.
 
@@ -130,11 +130,11 @@ ECC agents sudah terinstall di `~/.claude/agents/`. Dispatch ke agent terspesial
 |---|---|
 | Perencanaan arsitektur fitur / multi-file | `code-architect` |
 | System design, scalability decisions | `architect` |
-| **TypeScript / JavaScript code review** | `typescript-reviewer` ÃƒÂ¢Ã¢â‚¬Â Ã‚Â pakai ini setelah ubah .ts/.tsx |
-| **React / JSX component review** | `react-reviewer` ÃƒÂ¢Ã¢â‚¬Â Ã‚Â pakai ini setelah ubah komponen |
-| **PostgreSQL schema, query, migration review** | `database-reviewer` ÃƒÂ¢Ã¢â‚¬Â Ã‚Â pakai ini setelah ubah schema/query |
-| **Security (auth / payment / webhook / input)** | `security-reviewer` ÃƒÂ¢Ã¢â‚¬Â Ã‚Â pakai ini untuk surface sensitif |
-| TDD enforcement ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â tulis tests dulu | `tdd-guide` |
+| **TypeScript / JavaScript code review** | `typescript-reviewer` ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â Ãƒâ€šÃ‚Â pakai ini setelah ubah .ts/.tsx |
+| **React / JSX component review** | `react-reviewer` ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â Ãƒâ€šÃ‚Â pakai ini setelah ubah komponen |
+| **PostgreSQL schema, query, migration review** | `database-reviewer` ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â Ãƒâ€šÃ‚Â pakai ini setelah ubah schema/query |
+| **Security (auth / payment / webhook / input)** | `security-reviewer` ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â Ãƒâ€šÃ‚Â pakai ini untuk surface sensitif |
+| TDD enforcement ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â tulis tests dulu | `tdd-guide` |
 | E2E browser flow testing (Playwright) | `e2e-runner` |
 | Build / TypeScript compilation errors | `build-error-resolver` |
 | React build failures | `react-build-resolver` |
@@ -142,7 +142,7 @@ ECC agents sudah terinstall di `~/.claude/agents/`. Dispatch ke agent terspesial
 | Dead code, unused imports, cleanup | `refactor-cleaner` |
 | General code review setelah task selesai | `code-reviewer` |
 
-### ECC Skill Reference ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â Pattern Libraries
+### ECC Skill Reference ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â Pattern Libraries
 
 Sebelum menggunakan skill ECC, **baca SKILL.md-nya terlebih dahulu** dengan `view_file` pada path di bawah:
 
@@ -161,19 +161,19 @@ Sebelum menggunakan skill ECC, **baca SKILL.md-nya terlebih dahulu** dengan `vie
 ### Aturan Dispatch
 - Dispatch agent terspesialisasi **sebelum** klaim task selesai untuk area sensitif (auth/payment/schema/webhook).
 - Setelah setiap coding task, dispatch `code-reviewer` atau reviewer stack-spesifik.
-- Agents berjalan terisolasi ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â berikan file list + task context yang tepat, bukan session history.
+- Agents berjalan terisolasi ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â berikan file list + task context yang tepat, bukan session history.
 - Untuk skill ECC: selalu `view_file` SKILL.md-nya dulu sebelum mengeksekusi workflow.
 
 ---
 
-## DevSecOps ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â Role & Reporting
+## DevSecOps ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â Role & Reporting
 
 **Role:** senior full-stack engineer + DevSecOps reviewer. Optimasi untuk perubahan yang **minimal, reviewable, testable**; prefer open-source / low-ops solutions.
 
-**Dependency Policy:** Jangan tambah package kecuali perlu. Jika menambah, nyatakan: **kenapa perlu Ãƒâ€šÃ‚Â· alternatif yang dipertimbangkan Ãƒâ€šÃ‚Â· risiko security/maintenance Ãƒâ€šÃ‚Â· sinyal popularitas/maintenance** (downloads, last release, maintainers).
+**Dependency Policy:** Jangan tambah package kecuali perlu. Jika menambah, nyatakan: **kenapa perlu ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· alternatif yang dipertimbangkan ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· risiko security/maintenance ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· sinyal popularitas/maintenance** (downloads, last release, maintainers).
 
 **Format Respons Akhir (setiap task):**
-Akhiri dengan: **Summary Ãƒâ€šÃ‚Â· Files changed Ãƒâ€šÃ‚Â· Validation commands run Ãƒâ€šÃ‚Â· Security/scalability risks found Ãƒâ€šÃ‚Â· Risks not fully verified Ãƒâ€šÃ‚Â· Recommended next steps.** Jangan pernah klaim project 100% secure.
+Akhiri dengan: **Summary ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· Files changed ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· Validation commands run ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· Security/scalability risks found ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· Risks not fully verified ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· Recommended next steps.** Jangan pernah klaim project 100% secure.
 
 ---
 
