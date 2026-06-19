@@ -30,6 +30,7 @@ import { mountAdminStoreRoutes } from './routes/admin/stores.js'
 import { mountAdminCourierServiceRoutes } from './routes/admin/courier-services.js'
 import { mountAdminVisibilityRoutes } from './routes/admin/visibility.js'
 import { mountAdminAuditLogRoutes } from './routes/admin/audit-logs.js'
+import { mountAdminUiRoutes } from './routes/admin-ui.js'
 import { openApiContract } from './contracts/openapi.js'
 import { sanitizeError } from './utils/http-error.js'
 
@@ -58,6 +59,8 @@ export function createApp() {
       headers: { 'Content-Type': 'application/json' },
     })
   })
+
+  mountAdminUiRoutes(app)
 
   app.get('/health', (c) => c.json({ ok: true, service: 'teknos-logistics' }))
   app.get('/ready', async (c) => {
