@@ -30,7 +30,8 @@
     "webhooks:relay": "tsx scripts/relay-webhooks.ts",
     "smoke:webhook:relay": "tsx scripts/smoke-webhook-relay.ts",
     "contract:check": "tsx scripts/check-contract.ts",
-    "sprint6:readiness": "tsx scripts/sprint6-readiness.ts"
+    "sprint6:readiness": "tsx scripts/sprint6-readiness.ts",
+    "smoke:admin-config": "tsx scripts/smoke-admin-config.ts"
   },
   "dependencies": {
     "@hono/node-server": "^1.19.6",

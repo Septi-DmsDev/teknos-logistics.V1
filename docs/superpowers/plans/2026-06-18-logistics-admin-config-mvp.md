@@ -1,4 +1,4 @@
-﻿# Logistics Admin Config MVP — Implementation Plan
+# Logistics Admin Config MVP — Implementation Plan
 
 **Tanggal:** 2026-06-18
 **Spec:** `docs/superpowers/specs/2026-06-18-logistics-admin-config-mvp-design.md`
@@ -171,6 +171,8 @@ npm run smoke:admin-config
 npm run lint
 npm run typecheck
 ```
+
+**Runtime note (2026-06-19):** `npm run smoke:admin-config` is implemented but requires a valid DB tunnel/credential and the Sprint 7 migration applied. It was not executed when first added because local Postgres auth returned `28P01`.
 
 **Codex Agent:** none required unless DB errors appear.
 **Depends on:** Task 5
