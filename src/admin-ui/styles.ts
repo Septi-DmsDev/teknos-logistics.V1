@@ -160,6 +160,23 @@ a { color: inherit; text-decoration: none; }
 .status-success { background: #dcfce7; color: #166534; }
 .status-warning { background: #fef3c7; color: #92400e; }
 .status-danger { background: #fee2e2; color: #991b1b; }
+.status-info { background: #dbeafe; color: #1d4ed8; }
+
+.route-panel { display: grid; gap: 18px; }
+.route-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+.route-header h2 { margin: 0 0 8px; }
+.form-card {
+  border: 1px solid var(--border);
+  background: var(--panel-muted);
+  border-radius: 16px;
+  padding: 16px;
+}
+.form-card h3 { margin: 0 0 14px; }
 
 .card-grid {
   display: grid;
@@ -188,5 +205,6 @@ th { color: var(--muted); font-size: 0.82rem; text-transform: uppercase; letter-
   .sidebar { position: static; }
   .main-panel { padding: 18px; }
   .topbar { align-items: flex-start; flex-direction: column; }
+  .route-header { flex-direction: column; }
   .card-grid { grid-template-columns: 1fr; }
 }`
