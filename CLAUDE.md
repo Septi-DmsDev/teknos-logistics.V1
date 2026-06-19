@@ -161,7 +161,7 @@ src/
 | Sprint 04 | Webhook ingress lifecycle | Done - migration `20260618064000_add_webhook_event_key` applied, timing-safe token check, normalized idempotency, and synthetic replay smoke passed |
 | Sprint 05 | Merchant webhook relay | Done - HMAC relay worker, retry/backoff, dead-letter state, and synthetic relay smoke passed |
 | Sprint 06 | `teknos.id` staging integration | In Progress - OpenAPI contract endpoint and `contract:check` handoff validation added inside `teknos-logistics`; parent `teknos.id` remains read-only |
-| Sprint 07 | Logistics admin config MVP | In Progress - Task 1 schema migration `20260618103000_add_admin_config_models` created for admin config models; not deployed/applied in production |
+| Sprint 07 | Logistics admin config MVP | In Progress - Tasks 1-6 implemented through schema, admin auth/schemas, repositories, services, routes, and `smoke:admin-config`; DB smoke blocked by local Postgres auth `28P01` |
 
 ---
 
@@ -226,7 +226,7 @@ Sprint 6 is a contract-first bridge. `teknos-logistics` owns public API contract
 `npm run sprint6:readiness` is the read-only readiness gate for contract/docs/boundary checks before any parent-repo implementation begins.
 
 ### Sprint 7 Admin Config Foundation
-Draft spec: `docs/superpowers/specs/2026-06-18-logistics-admin-config-mvp-design.md`. Draft plan: `docs/superpowers/plans/2026-06-18-logistics-admin-config-mvp.md`. Task 1 adds additive schema/migration `20260618103000_add_admin_config_models` for merchant stores, origins, courier service catalog, and merchant-enabled courier services; production migration has not been run.
+Draft spec: `docs/superpowers/specs/2026-06-18-logistics-admin-config-mvp-design.md`. Draft plan: `docs/superpowers/plans/2026-06-18-logistics-admin-config-mvp.md`. Tasks 1-6 add additive schema/migration `20260618103000_add_admin_config_models`, admin auth/schemas, repository/service layers, `/admin/*` routes, and `npm run smoke:admin-config`. Production migration and admin DB smoke have not been run because the current local tunnel reaches Postgres but auth fails with `28P01`.
 
 ---
 

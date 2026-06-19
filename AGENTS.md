@@ -183,7 +183,7 @@ Akhiri dengan: **Summary ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· Files chan
 >
 > Format: singkat, bertanggal, operasional. Replace catatan lama yang sudah tidak relevan.
 
-- **Updated:** 2026-06-18 - Sprint 7 Task 1 admin config schema migration created inside `teknos-logistics` only.
+- **Updated:** 2026-06-19 - Sprint 7 admin config Tasks 1-6 implemented in `teknos-logistics`; DB smoke pending valid Postgres auth.
 
 ### Codex Power Protocol (2026-06-18)
 
@@ -203,10 +203,11 @@ Akhiri dengan: **Summary ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· Files chan
 - Readiness gate: `npm run sprint6:readiness` before opening parent-repo implementation work.
 - Future parent integration must start as a separate explicit task and should consume the documented contracts rather than changing this boundary.
 
-### Sprint 7 schema note (2026-06-18)
-- Task 1 migration `20260618103000_add_admin_config_models` adds `Store`, `Origin`, `CourierService`, `MerchantCourierService`, and `CourierServiceStatus` additively.
-- Production/Supabase migration was not run in this task; deploy later with explicit approval and normal Prisma migration tooling.
-- Coordinate before further edits to `prisma/schema.prisma` because admin API/repository tasks depend on this schema foundation.
+### Sprint 7 admin config note (2026-06-19)
+- Tasks 1-6 are implemented and pushed: schema migration, admin auth/schemas, repositories, services, `/admin/*` routes, and `npm run smoke:admin-config`.
+- Migration `20260618103000_add_admin_config_models` has not been applied to Supabase/production in this sprint turn.
+- DB-backed smoke was not executed because local tunnel reaches Postgres but auth fails with `28P01`; update ignored `DATABASE_URL` before `npx prisma migrate deploy` and `npm run smoke:admin-config`.
+- Continue to keep parent `teknos.id` read-only; admin config ownership stays inside `teknos-logistics`.
 
 ### Sprint 3 JNE adapter note (2026-06-18)
 - JNE tariff-only smoke passed with `npm run smoke:jne:rates -- --force-jne`; this calls `/pricedev` only and must not create a real resi.
