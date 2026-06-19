@@ -44,12 +44,13 @@ export function mountAdminCourierServiceRoutes(app: Hono, configs: AdminConfigSe
   })
 
   app.put('/admin/merchants/:merchantId/courier-services/:serviceId', async (c) => {
-    const input = await parseJson(c, adminMerchantCourierServiceUpsertSchema)
-    const service = await configs.upsertMerchantCourierService({
-      ...input,
+    const body = await c.req.json()
+    const input = adminMerchantCourierServiceUpsertSchema.parse({
+      ...body,
       merchant_id: c.req.param('merchantId'),
       courier_service_id: c.req.param('serviceId'),
     })
+    const service = await configs.upsertMerchantCourierService(input)
     return c.json({ service })
   })
 }

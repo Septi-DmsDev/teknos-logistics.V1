@@ -1,4 +1,4 @@
-﻿-- CreateEnum
+-- CreateEnum
 CREATE TYPE "CourierServiceStatus" AS ENUM ('ACTIVE', 'INACTIVE');
 
 -- CreateTable

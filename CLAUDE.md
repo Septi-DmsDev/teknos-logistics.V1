@@ -6,7 +6,7 @@
 **Roadmap:** `docs/ROADMAP.md`
 **Sprint plans:** `docs/superpowers/plans/`
 
-## Project Operating Doctrine â€” 2026-06-18
+## Project Operating Doctrine Ã¢â‚¬â€ 2026-06-18
 
 - `teknos-logistics` adalah project terpisah dari parent `teknos.id`, dengan repo, database, deploy, dan lifecycle sendiri.
 - Arah produk resmi: `teknos-logistics` menjadi platform logistik mirip Biteship untuk Teknos, bukan sekadar adapter JNE.
@@ -35,52 +35,52 @@
 
 ---
 
-## ÃƒÂ¢Ã…Â¡Ã¢â€žÂ¢ÃƒÂ¯Ã‚Â¸Ã‚Â Alur Kerja Wajib (Development Discipline)
+## ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã‚Â¡ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã‚Â¯Ãƒâ€šÃ‚Â¸Ãƒâ€šÃ‚Â Alur Kerja Wajib (Development Discipline)
 
-Berlaku untuk SETIAP tugas ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â patuhi sebelum, selama, dan sesudah eksekusi.
+Berlaku untuk SETIAP tugas ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â patuhi sebelum, selama, dan sesudah eksekusi.
 
-### 1. Pipeline Wajib ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â 4 Fase Tanpa Shortcut
+### 1. Pipeline Wajib ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â 4 Fase Tanpa Shortcut
 
 ```
 FASE 1        FASE 2           FASE 3              FASE 4
-IDEASI    ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢  PLANNING     ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢   EKSEKUSI        ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢   QA & DEPLOY
+IDEASI    ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢  PLANNING     ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢   EKSEKUSI        ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢   QA & DEPLOY
 /brainstorm  /spec-writer     coding terkoordinasi  /qa-execute
              /plan-writer     [user approve dulu]
 ```
 
-- **Fase 1 (Ideasi):** Fitur baru / ambigu ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ `/brainstorm` wajib. Output = keputusan pendekatan yang disepakati.
-- **Fase 2 (Planning):** `/spec-writer` ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ simpan di `docs/superpowers/specs/`. `/plan-writer` ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ simpan di `docs/superpowers/plans/`. User **harus approve plan** sebelum coding dimulai.
+- **Fase 1 (Ideasi):** Fitur baru / ambigu ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ `/brainstorm` wajib. Output = keputusan pendekatan yang disepakati.
+- **Fase 2 (Planning):** `/spec-writer` ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ simpan di `docs/superpowers/specs/`. `/plan-writer` ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ simpan di `docs/superpowers/plans/`. User **harus approve plan** sebelum coding dimulai.
 - **Fase 3 (Eksekusi):** Ikuti plan task per task. Deklarasikan file yang disentuh. Tidak ada dua agent di file yang sama. Commit scope sempit per task.
 - **Fase 4 (QA):** `/qa-execute` sebelum setiap deploy. Tidak ada deploy tanpa QA Report = READY.
 
-### 2. Konteks dulu ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â baca dokumentasi sebelum eksekusi
+### 2. Konteks dulu ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â baca dokumentasi sebelum eksekusi
 - Baca `CLAUDE.md` + `AGENTS.md` + spec/plan yang relevan sebelum menyentuh kode.
 - Verifikasi fakta repo: `git status --short --branch`, `git log --oneline -10`.
-- Jangan improvisasi di luar plan ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â jika butuh perubahan scope, update plan dulu.
+- Jangan improvisasi di luar plan ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â jika butuh perubahan scope, update plan dulu.
 
-### 2. Dokumentasi selalu sinkron (docs-as-code) ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â WAJIB
+### 2. Dokumentasi selalu sinkron (docs-as-code) ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â WAJIB
 Setiap perubahan kode/arsitektur/schema/env/deploy **harus disertai update dokumentasi dalam commit yang sama**. Tugas belum "selesai" sampai dokumen mencerminkan kondisi nyata. Singkat, **bertanggal**, operasional; ganti catatan usang.
 
 | Trigger | File yang di-update |
 |---|---|
-| Sprint selesai | `CLAUDE.md` Ãƒâ€šÃ‚Â§ Status Sprint |
-| Env variable baru | `CLAUDE.md` Ãƒâ€šÃ‚Â§ Environment Variables |
-| Keputusan arsitektur | `CLAUDE.md` Ãƒâ€šÃ‚Â§ Keputusan Arsitektur |
-| Fitur baru deploy | `CLAUDE.md` Ãƒâ€šÃ‚Â§ Fitur yang Sudah Dibangun |
+| Sprint selesai | `CLAUDE.md` ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§ Status Sprint |
+| Env variable baru | `CLAUDE.md` ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§ Environment Variables |
+| Keputusan arsitektur | `CLAUDE.md` ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§ Keputusan Arsitektur |
+| Fitur baru deploy | `CLAUDE.md` ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§ Fitur yang Sudah Dibangun |
 | Migration schema | Kedua file + nama migration + tanggal |
-| Rule baru dilarang | `CLAUDE.md` Ãƒâ€šÃ‚Â§ Yang TIDAK Boleh Dilakukan |
+| Rule baru dilarang | `CLAUDE.md` ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§ Yang TIDAK Boleh Dilakukan |
 
-### 3. Security-first ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â setiap perubahan berpotensi berisiko
+### 3. Security-first ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â setiap perubahan berpotensi berisiko
 Permukaan sensitif: **API key auth, courier webhooks, request validation, env/secret handling, Prisma schema/migrations, outbound merchant webhook relay**.
-- Spec dulu untuk permukaan sensitif ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â jangan hotfix buta.
-- **Selalu** validasi & otorisasi **server-side** ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â jangan percaya nilai dari client (harga, role, stock, ID).
+- Spec dulu untuk permukaan sensitif ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â jangan hotfix buta.
+- **Selalu** validasi & otorisasi **server-side** ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â jangan percaya nilai dari client (harga, role, stock, ID).
 - Jalankan tooling sebelum commit relevan:
   ```bash
   semgrep --config auto <path>                 # auth/payment/webhook/upload/input
   gitleaks protect --staged --no-banner        # config/env/docs/credentials
   trivy fs --scanners vuln,secret,misconfig .  # Dockerfile/image/dependency
   ```
-- **Jangan pernah** commit/hardcode secret, token, credentials ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â termasuk di docs & `.env.example`.
+- **Jangan pernah** commit/hardcode secret, token, credentials ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â termasuk di docs & `.env.example`.
 
 ### 4. Bukti sebelum klaim
 Jangan klaim build/lint/test/migration/QA/deploy berhasil tanpa menjalankan perintahnya dan membaca outputnya. Pisahkan `terkonfirmasi` vs `asumsi` vs `langkah berikutnya`.
@@ -89,7 +89,7 @@ Jangan klaim build/lint/test/migration/QA/deploy berhasil tanpa menjalankan peri
 Format: `<tipe>(scope): ringkasan`. Tipe: `feat | fix | docs | chore | refactor | test | perf`.
 Satu commit = satu perubahan logis, scope sempit.
 
-### 6. 5 Aturan Tim ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â Non-Negotiable
+### 6. 5 Aturan Tim ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â Non-Negotiable
 
 | # | Aturan | Konsekuensi jika dilanggar |
 |---|---|---|
@@ -105,7 +105,7 @@ Satu commit = satu perubahan logis, scope sempit.
 - Ikuti `AGENTS.md` + `SECURITY.md` + `docs/AI_AGENT_PROTOCOL.md`.
 - **Jangan** baca/tampilkan/commit file secret (`.env*`, `*.pem`, `*.key`, `id_rsa`, `id_ed25519`).
 - Gunakan MCP/tool bila tersedia: **Context7** (dok library terbaru), **Playwright** (QA UI), **GitHub** (PR/CI), **Semgrep/Gitleaks/Trivy** (security scan).
-- Jalankan `npm run lint && npm run typecheck && npm run build && npm run security:all` sebelum klaim selesai. Laporan akhir ringkas & jujur ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â jangan klaim 100% aman.
+- Jalankan `npm run lint && npm run typecheck && npm run build && npm run security:all` sebelum klaim selesai. Laporan akhir ringkas & jujur ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â jangan klaim 100% aman.
 
 ---
 
@@ -122,20 +122,20 @@ Satu commit = satu perubahan logis, scope sempit.
 
 ---
 
-## Struktur Folder ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â Aturan Wajib
+## Struktur Folder ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â Aturan Wajib
 
 ```
 src/
-ÃƒÂ¢Ã¢â‚¬ÂÃ…â€œÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ app/           # Routes (Next.js App Router)
-ÃƒÂ¢Ã¢â‚¬ÂÃ…â€œÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ components/    # UI only ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â TIDAK boleh query DB langsung
-ÃƒÂ¢Ã¢â‚¬ÂÃ…â€œÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ features/      # Domain logic per fitur
-ÃƒÂ¢Ã¢â‚¬ÂÃ…â€œÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ server/
-ÃƒÂ¢Ã¢â‚¬ÂÃ¢â‚¬Å¡   ÃƒÂ¢Ã¢â‚¬ÂÃ…â€œÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ actions/       # Server Actions (entry dari UI)
-ÃƒÂ¢Ã¢â‚¬ÂÃ¢â‚¬Å¡   ÃƒÂ¢Ã¢â‚¬ÂÃ…â€œÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ services/      # Business logic
-ÃƒÂ¢Ã¢â‚¬ÂÃ¢â‚¬Å¡   ÃƒÂ¢Ã¢â‚¬ÂÃ¢â‚¬ÂÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ repositories/  # SATU-SATUNYA tempat ORM/DB dipanggil
-ÃƒÂ¢Ã¢â‚¬ÂÃ¢â‚¬ÂÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ lib/
-    ÃƒÂ¢Ã¢â‚¬ÂÃ…â€œÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ validators/    # Zod schemas
-    ÃƒÂ¢Ã¢â‚¬ÂÃ¢â‚¬ÂÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ utils/
+ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒâ€¦Ã¢â‚¬Å“ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ app/           # Routes (Next.js App Router)
+ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒâ€¦Ã¢â‚¬Å“ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ components/    # UI only ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â TIDAK boleh query DB langsung
+ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒâ€¦Ã¢â‚¬Å“ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ features/      # Domain logic per fitur
+ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒâ€¦Ã¢â‚¬Å“ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ server/
+ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡   ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒâ€¦Ã¢â‚¬Å“ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ actions/       # Server Actions (entry dari UI)
+ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡   ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒâ€¦Ã¢â‚¬Å“ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ services/      # Business logic
+ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡   ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ repositories/  # SATU-SATUNYA tempat ORM/DB dipanggil
+ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ lib/
+    ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒâ€¦Ã¢â‚¬Å“ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ validators/    # Zod schemas
+    ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ utils/
 ```
 
 > **Aturan wajib:** Jangan call DB/ORM dari luar `server/repositories/`. Selalu lewat `server/repositories/`.
@@ -167,7 +167,7 @@ src/
 
 ## Fitur yang Sudah Dibangun
 
-> Daftar fitur yang sudah live, format: `- **Nama Fitur ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ (YYYY-MM-DD):** ringkasan 1 kalimat.`
+> Daftar fitur yang sudah live, format: `- **Nama Fitur ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ (YYYY-MM-DD):** ringkasan 1 kalimat.`
 
 ---
 
@@ -206,7 +206,7 @@ JNE_WEBHOOK_TOKEN         Shared token for courier webhook ingress validation; r
 ## Keputusan Arsitektur Penting
 
 ### Harga & Kalkulasi
-> Selalu hitung server-side ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â jangan percaya angka dari client.
+> Selalu hitung server-side ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â jangan percaya angka dari client.
 
 ### Data Flow
 Merchant API requests enter Hono routes, are authenticated by API key hash lookup, validated with Zod DTOs, then call services/repositories. Courier adapters own external-provider calls; JNE tariff/tracking are non-mutating, while `generatecnote` creates a real resi and requires operator approval before manual validation.
@@ -237,11 +237,11 @@ Draft spec: `docs/superpowers/specs/2026-06-18-logistics-admin-config-mvp-design
 - Jangan hitung nilai penting (harga, diskon, stok, role) di client
 - Jangan edit parent `teknos.id` saat mengerjakan `teknos-logistics`; baca sebagai referensi saja
 
-### Security ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â DILARANG KERAS
+### Security ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â DILARANG KERAS
 - Jangan expose secret ke client (prefix `NEXT_PUBLIC_` hanya untuk data publik)
 - Jangan commit `.env*` ke repository
 - Jangan return error message internal ke client (stack trace, query detail)
-- Jangan skip validasi input di server actions / route handlers ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â selalu Zod
+- Jangan skip validasi input di server actions / route handlers ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â selalu Zod
 - Jangan trust nilai dari client untuk kalkulasi sensitif
 - Jangan gunakan `dangerouslySetInnerHTML` tanpa sanitasi
 - Jangan lakukan DB mutation dari GET handler

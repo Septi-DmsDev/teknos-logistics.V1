@@ -18,8 +18,9 @@ export function mountAdminStoreRoutes(app: Hono, configs: AdminConfigService): v
   })
 
   app.post('/admin/merchants/:merchantId/stores', async (c) => {
-    const input = await parseJson(c, adminStoreCreateSchema)
-    const store = await configs.createStore({ ...input, merchant_id: c.req.param('merchantId') })
+    const body = await c.req.json()
+    const input = adminStoreCreateSchema.parse({ ...body, merchant_id: c.req.param('merchantId') })
+    const store = await configs.createStore(input)
     return c.json({ store }, 201)
   })
 
@@ -37,8 +38,9 @@ export function mountAdminStoreRoutes(app: Hono, configs: AdminConfigService): v
   })
 
   app.post('/admin/merchants/:merchantId/origins', async (c) => {
-    const input = await parseJson(c, adminOriginCreateSchema)
-    const origin = await configs.createOrigin({ ...input, merchant_id: c.req.param('merchantId') })
+    const body = await c.req.json()
+    const input = adminOriginCreateSchema.parse({ ...body, merchant_id: c.req.param('merchantId') })
+    const origin = await configs.createOrigin(input)
     return c.json({ origin }, 201)
   })
 
