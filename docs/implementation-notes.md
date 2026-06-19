@@ -32,7 +32,7 @@ See `.env.example`. All JNE credential values must stay server-only and must not
 
 ## Database Migration Log
 
-- 2026-06-18: Created additive Prisma migration `20260618103000_add_admin_config_models` for Sprint 7 admin config foundations (`Store`, `Origin`, `CourierService`, `MerchantCourierService`, `CourierServiceStatus`). Not applied to production or Supabase in this task; validate/deploy separately with Prisma migration tooling.
+- 2026-06-19: Applied additive Prisma migration `20260618103000_add_admin_config_models` to Supabase Postgres through local SSH tunnel `localhost:5433 -> 10.0.8.12:5432`; `npx prisma migrate status` reported database schema up to date.
 - 2026-06-18: Applied Prisma migration `20260618021957_init` to Supabase Postgres via local SSH tunnel `localhost:5433 -> 10.0.8.6:5432`. No credentials are documented here; use local `.env.local` only. Validation: `npx prisma migrate status` reported database schema up to date and `npm run build` passed.
 
 
@@ -81,4 +81,4 @@ See `.env.example`. All JNE credential values must stay server-only and must not
 ## Sprint 7 Admin Config MVP â€” 2026-06-19
 
 - Added `npm run smoke:admin-config` for DB-backed admin config smoke covering merchant, store, origin, courier service, assignment, shipment list, and relay list without calling JNE or creating AWB/resi.
-- Smoke was not executed in this commit because the active Supabase tunnel reached Postgres but database auth failed with PostgreSQL code `28P01`; update local ignored `DATABASE_URL` before running migration/smoke.
+- Initial smoke was blocked by a stale tunnel/credential mismatch (`28P01`). On 2026-06-19 the stale tunnel was closed, `localhost:5433` pointed to `10.0.8.12:5432`, migration `20260618103000_add_admin_config_models` was applied with `npx prisma migrate deploy`, and `npm run smoke:admin-config` passed.
