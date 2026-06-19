@@ -132,6 +132,13 @@ export const adminWebhookRelayListQuerySchema = adminPaginationSchema.extend({
   status: webhookRelayStatusSchema.optional(),
 })
 
+export const adminAuditLogListQuerySchema = adminPaginationSchema.extend({
+  method: z.enum(['POST', 'PUT', 'PATCH', 'DELETE']).optional(),
+  path: z.string().trim().min(1).max(255).optional(),
+  status_min: z.coerce.number().int().min(100).max(599).optional(),
+  status_max: z.coerce.number().int().min(100).max(599).optional(),
+})
+
 export type AdminMerchantCreateInput = z.infer<typeof adminMerchantCreateSchema>
 export type AdminMerchantUpdateInput = z.infer<typeof adminMerchantUpdateSchema>
 export type AdminStoreCreateInput = z.infer<typeof adminStoreCreateSchema>
@@ -147,3 +154,4 @@ export type AdminWebhookEndpointCreateInput = z.infer<typeof adminWebhookEndpoin
 export type AdminWebhookEndpointUpdateInput = z.infer<typeof adminWebhookEndpointUpdateSchema>
 export type AdminShipmentListQuery = z.infer<typeof adminShipmentListQuerySchema>
 export type AdminWebhookRelayListQuery = z.infer<typeof adminWebhookRelayListQuerySchema>
+export type AdminAuditLogListQuery = z.infer<typeof adminAuditLogListQuerySchema>

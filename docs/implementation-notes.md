@@ -81,4 +81,28 @@ See `.env.example`. All JNE credential values must stay server-only and must not
 ## Sprint 7 Admin Config MVP â€” 2026-06-19
 
 - Added `npm run smoke:admin-config` for DB-backed admin config smoke covering merchant, store, origin, courier service, assignment, shipment list, and relay list without calling JNE or creating AWB/resi.
-- Initial smoke was blocked by a stale tunnel/credential mismatch (`28P01`). On 2026-06-19 the stale tunnel was closed, `localhost:5433` pointed to `10.0.8.12:5432`, migration `20260618103000_add_admin_config_models` was applied with `npx prisma migrate deploy`, and `npm run smoke:admin-config` passed.
+- Initial smoke was blocked by a stale tunnel/credential mismatch (`28P01`). On 2026-06-19 the stale tunnel was closed, `localhost:5433` pointed to `10.0.8.12:5432`, migration `20260618103000_add_admin_config_models` was applied with `npx prisma migrate deploy`, and full validation passed: `npm run lint`, `npm run typecheck`, `npm run build`, and `npm run smoke:admin-config`.
+
+## Sprint 8 Reliability/Security Prep - 2026-06-19
+
+- Next implementation stream should harden the admin platform before UI expansion: rate limiting, mutation audit logs, health/readiness checks, security scan scripts, and deploy runbook updates.
+- Parent `teknos.id` remains read-only; consume the simplified merchant API/webhook contract instead of moving logistics operations back into the storefront.
+
+## Sprint 8 Slice 1 - 2026-06-19
+
+- Added `GET /ready` to verify database connectivity separately from lightweight `GET /health`.
+- Added in-memory rate limiting for `/admin/*`, `/v1/*`, and `/webhooks/*`; configure with `RATE_LIMIT_WINDOW_MS`, `RATE_LIMIT_PUBLIC_MAX`, and `RATE_LIMIT_ADMIN_MAX`. Set max to `0` only when rate limiting must be disabled for controlled local testing.
+- Added sanitized admin mutation audit logs for POST/PUT/PATCH/DELETE admin requests without logging request bodies, tokens, API keys, or secrets.
+
+## Sprint 8 Slice 2 - 2026-06-19
+
+- Added additive migration `20260619093000_add_admin_audit_logs` for persistent admin mutation audit metadata.
+- Admin audit persistence records method, path, status, duration, request id, IP, user agent, and timestamp only; request bodies, tokens, API keys, and secrets are intentionally not stored.
+- Migration was applied to Supabase through `localhost:5433 -> 10.0.8.12:5432` with `npx prisma migrate deploy`; `npx prisma migrate status` reported schema up to date.
+
+## Sprint 8 Completion - 2026-06-19
+
+- Added `GET /admin/audit-logs` for authenticated admin audit visibility with pagination and filters for method, path, and status range.
+- Added `npm run audit:cleanup` for dry-run-first audit retention cleanup and `npm run sprint8:readiness` for hardening readiness checks.
+- Added `docs/SPRINT_8_HARDENING_RUNBOOK.md` as the operational deploy/security gate.
+- Sprint 8 is complete; remaining scale follow-up is replacing in-memory rate limiting with Redis/shared storage when running multiple app instances.

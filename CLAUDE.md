@@ -161,7 +161,8 @@ src/
 | Sprint 04 | Webhook ingress lifecycle | Done - migration `20260618064000_add_webhook_event_key` applied, timing-safe token check, normalized idempotency, and synthetic replay smoke passed |
 | Sprint 05 | Merchant webhook relay | Done - HMAC relay worker, retry/backoff, dead-letter state, and synthetic relay smoke passed |
 | Sprint 06 | `teknos.id` staging integration | In Progress - OpenAPI contract endpoint and `contract:check` handoff validation added inside `teknos-logistics`; parent `teknos.id` remains read-only |
-| Sprint 07 | Logistics admin config MVP | In Progress - Tasks 1-6 implemented, migration `20260618103000_add_admin_config_models` applied, and `npm run smoke:admin-config` passed |
+| Sprint 07 | Logistics admin config MVP | Done - Tasks 1-7 completed, migration `20260618103000_add_admin_config_models` applied, full validation passed, and admin smoke passed on 2026-06-19 |
+| Sprint 08 | Reliability and security hardening | Done - health/readiness, route rate limiting, persistent admin audit logs, audit visibility, cleanup utility, and runbook/readiness gate completed |
 
 ---
 
@@ -197,6 +198,9 @@ TEKNOS_INTERNAL_API_KEY   Local-only merchant API key for manual testing; stored
 LOGISTICS_PROVIDER        Provider selector: mock or jne.
 JNE_*                     Server-only JNE credentials/configuration. Tariff requires base URL/user/key/origin; booking additionally requires shipper/cust/branch values.
 JNE_WEBHOOK_TOKEN         Shared token for courier webhook ingress validation; required by POST /webhooks/jne.
+RATE_LIMIT_WINDOW_MS      In-memory rate limit window in milliseconds; default 60000.
+RATE_LIMIT_PUBLIC_MAX     Max requests per window for `/v1/*` and `/webhooks/*`; default 120; set 0 only for controlled local testing.
+RATE_LIMIT_ADMIN_MAX      Max requests per window for `/admin/*`; default 60; set 0 only for controlled local testing.
 ```
 
 > **Aturan:** Variabel dengan prefix `NEXT_PUBLIC_` = aman untuk client. Tanpa prefix = server-only secret. Jangan salah assign.
@@ -226,7 +230,10 @@ Sprint 6 is a contract-first bridge. `teknos-logistics` owns public API contract
 `npm run sprint6:readiness` is the read-only readiness gate for contract/docs/boundary checks before any parent-repo implementation begins.
 
 ### Sprint 7 Admin Config Foundation
-Draft spec: `docs/superpowers/specs/2026-06-18-logistics-admin-config-mvp-design.md`. Draft plan: `docs/superpowers/plans/2026-06-18-logistics-admin-config-mvp.md`. Tasks 1-6 add additive schema/migration `20260618103000_add_admin_config_models`, admin auth/schemas, repository/service layers, `/admin/*` routes, and `npm run smoke:admin-config`. Migration was applied through `localhost:5433 -> 10.0.8.12:5432`, and `npm run smoke:admin-config` passed on 2026-06-19.
+Spec: `docs/superpowers/specs/2026-06-18-logistics-admin-config-mvp-design.md`. Plan: `docs/superpowers/plans/2026-06-18-logistics-admin-config-mvp.md`. Tasks 1-7 are complete: additive schema/migration `20260618103000_add_admin_config_models`, admin auth/schemas, repository/service layers, `/admin/*` routes, `npm run smoke:admin-config`, and operational docs. Migration was applied through `localhost:5433 -> 10.0.8.12:5432`; `npm run lint`, `npm run typecheck`, `npm run build`, and `npm run smoke:admin-config` passed on 2026-06-19.
+
+### Sprint 8 Reliability and Security Hardening
+Next sprint should harden the admin/config platform before UI expansion: route-level rate limiting, admin mutation audit logs, health/readiness endpoints, security scan commands, deploy/runbook checks, and documented failure/retry behavior. Keep parent `teknos.id` read-only unless the user opens a separate parent integration task.
 
 ---
 

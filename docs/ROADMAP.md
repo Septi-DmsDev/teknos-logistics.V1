@@ -33,8 +33,8 @@ Strategic direction update (2026-06-18): `teknos-logistics` should become a Bite
 | Sprint 4 | Webhook ingress lifecycle | Done - migration applied, timing-safe token check, normalized event key idempotency, monotonic lifecycle, synthetic replay smoke passed | Done |
 | Sprint 5 | Merchant webhook relay | Done - HMAC-signed outbound relay worker, retry/backoff/dead-letter behavior, unique relay queue index, local relay smoke passed | Done |
 | Sprint 6 | `teknos.id` staging integration | In progress - OpenAPI contract, parent handoff, and `npm run sprint6:readiness` gate added; parent `teknos.id` remains read-only until separately approved | In Progress |
-| Sprint 7 | Logistics admin config MVP | In progress - Tasks 1-6 implemented; migration applied and `npm run smoke:admin-config` passed. Spec: `docs/superpowers/specs/2026-06-18-logistics-admin-config-mvp-design.md`; Plan: `docs/superpowers/plans/2026-06-18-logistics-admin-config-mvp.md` | In Progress |
-| Sprint 8 | Reliability and security hardening | Rate limiting, audit logs, health/readiness, Semgrep/Gitleaks/Trivy gates, deploy runbook | Planned |
+| Sprint 7 | Logistics admin config MVP | Done - Tasks 1-7 completed; admin config schema/routes/services/docs implemented, migration applied, full validation and `npm run smoke:admin-config` passed on 2026-06-19 | Done |
+| Sprint 8 | Reliability and security hardening | Done - health/readiness, route rate limiting, persistent admin audit logs, audit visibility, cleanup utility, and runbook/readiness gate completed | Done |
 | Sprint 9 | Multi-courier foundation | JNT/SAP skeletons, provider capability matrix, per-courier normalizers, service mapping | Planned |
 | Sprint 10 | Reporting, billing, and analytics | Resi recap, volume/cost analytics, courier performance, invoices, B2B/SaaS commercialization foundation | Planned |
 

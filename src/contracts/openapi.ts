@@ -26,6 +26,16 @@ export const openApiContract = {
         },
       },
     },
+    '/ready': {
+      get: {
+        tags: ['Health'],
+        summary: 'Readiness check with database connectivity',
+        responses: {
+          '200': { description: 'Service and database are reachable' },
+          '500': { description: 'Database or internal dependency is unavailable' },
+        },
+      },
+    },
     '/openapi.json': {
       get: {
         tags: ['Health'],
@@ -96,6 +106,27 @@ export const openApiContract = {
           },
           '401': { $ref: '#/components/responses/Unauthorized' },
           '404': { description: 'Shipment not found for merchant' },
+        },
+      },
+    },
+    '/admin/audit-logs': {
+      get: {
+        tags: ['Health'],
+        summary: 'List sanitized admin audit logs',
+        description: 'Internal admin endpoint for mutation audit visibility. Responses contain metadata only and never include request bodies, tokens, API keys, or secrets.',
+        security: bearerAuth,
+        parameters: [
+          { name: 'limit', in: 'query', schema: { type: 'integer', minimum: 1, maximum: 100 } },
+          { name: 'offset', in: 'query', schema: { type: 'integer', minimum: 0 } },
+          { name: 'method', in: 'query', schema: { type: 'string', enum: ['POST', 'PUT', 'PATCH', 'DELETE'] } },
+          { name: 'path', in: 'query', schema: { type: 'string' } },
+          { name: 'status_min', in: 'query', schema: { type: 'integer', minimum: 100, maximum: 599 } },
+          { name: 'status_max', in: 'query', schema: { type: 'integer', minimum: 100, maximum: 599 } },
+        ],
+        responses: {
+          '200': { description: 'Sanitized admin audit logs' },
+          '401': { $ref: '#/components/responses/Unauthorized' },
+          '429': { description: 'Rate limited' },
         },
       },
     },

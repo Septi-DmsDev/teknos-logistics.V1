@@ -258,3 +258,19 @@ model RateCache {
   @@unique([courier, originCode, destCode, weightGrams])
   @@index([expiresAt])
 }
+
+model AdminAuditLog {
+  id         String   @id @default(cuid())
+  method     String
+  path       String
+  status     Int
+  durationMs Int
+  requestId  String?
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([method, path, createdAt])
+  @@index([status, createdAt])
+}

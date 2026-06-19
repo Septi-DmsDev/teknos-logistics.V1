@@ -2,7 +2,7 @@
 
 **Tanggal:** 2026-06-18
 **Spec:** `docs/superpowers/specs/2026-06-18-logistics-admin-config-mvp-design.md`
-**Status:** Draft
+**Status:** Done - implemented, migrated, validated, and documented on 2026-06-19
 
 ---
 
@@ -172,7 +172,7 @@ npm run lint
 npm run typecheck
 ```
 
-**Runtime note (2026-06-19):** `npm run smoke:admin-config` is implemented but requires a valid DB tunnel/credential and the Sprint 7 migration applied. It was not executed when first added because local Postgres auth returned `28P01`.
+**Runtime note (2026-06-19):** `npm run smoke:admin-config` passed after `localhost:5433` pointed to Supabase DB `10.0.8.12:5432` and migration `20260618103000_add_admin_config_models` was applied. The script writes synthetic admin config rows only; it does not call JNE or create AWB/resi.
 
 **Codex Agent:** none required unless DB errors appear.
 **Depends on:** Task 5
@@ -181,6 +181,8 @@ npm run typecheck
 ---
 
 ### Task 7: Update Operational Docs and Roadmap
+
+**Status (2026-06-19):** Done. `CLAUDE.md`, `AGENTS.md`, `docs/ROADMAP.md`, `docs/TEKNOS_ID_HANDOFF.md`, and `docs/implementation-notes.md` now record Sprint 7 completion, parent read-only boundary, tunnel/migration status, and validation evidence.
 
 **Files:**
 - `[MODIFY] CLAUDE.md` — Sprint 7 status, env/admin rules, built features.
