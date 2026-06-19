@@ -1,6 +1,9 @@
-﻿import type { Prisma, PrismaClient, ShipmentStatus } from '@prisma/client'
+import type { Prisma, PrismaClient, ShipmentStatus } from '@prisma/client'
 import type { BookShipmentResult, CourierCode, NormalizedTrackingEvent } from '../couriers/types.js'
 import type { ShipmentRequest } from '../schemas/api.js'
+import type { AdminShipmentListQuery } from '../schemas/admin.js'
+
+type AdminShipmentListParams = Partial<AdminShipmentListQuery>
 
 export interface ShipmentRecord {
   id: string
@@ -23,6 +26,10 @@ export interface ShipmentRecord {
 
 export type ShipmentWithTracking = Prisma.ShipmentGetPayload<{
   select: typeof shipmentWithTrackingSelect
+}>
+
+export type AdminShipmentRecord = Prisma.ShipmentGetPayload<{
+  select: typeof adminShipmentSelect
 }>
 
 export class ShipmentRepository {
@@ -74,6 +81,24 @@ export class ShipmentRepository {
 
   async findByWaybill(courier: CourierCode, waybillId: string): Promise<ShipmentRecord | null> {
     return this.prisma.shipment.findFirst({ where: { courier, waybillId }, select: baseSelect })
+  }
+
+  async listAdminShipments(params: AdminShipmentListParams = {}): Promise<AdminShipmentRecord[]> {
+    const limit = params.limit ?? 50
+    const offset = params.offset ?? 0
+    return this.prisma.shipment.findMany({
+      where: {
+        merchantId: params.merchant_id,
+        status: params.status,
+        courier: params.courier,
+        externalOrderId: params.external_order_id,
+        waybillId: params.waybill_id,
+      },
+      select: adminShipmentSelect,
+      orderBy: [{ createdAt: 'desc' }, { id: 'asc' }],
+      take: limit,
+      skip: offset,
+    })
   }
 
   async applyTrackingEvent(shipmentId: string, event: NormalizedTrackingEvent): Promise<ShipmentRecord> {
@@ -161,6 +186,13 @@ const baseSelect = {
   deliveredAt: true,
   createdAt: true,
   updatedAt: true,
+} as const
+
+const adminShipmentSelect = {
+  ...baseSelect,
+  courierOrderId: true,
+  merchant: { select: { id: true, slug: true, name: true, isActive: true } },
+  _count: { select: { tracking: true, events: true } },
 } as const
 
 const shipmentWithTrackingSelect = {

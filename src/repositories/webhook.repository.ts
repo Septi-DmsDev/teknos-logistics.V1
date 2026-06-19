@@ -1,8 +1,31 @@
-﻿import { Prisma } from '@prisma/client'
+import { Prisma } from '@prisma/client'
 import type { PrismaClient, WebhookRelayStatus } from '@prisma/client'
 import type { CourierCode, NormalizedTrackingEvent } from '../couriers/types.js'
+import type {
+  AdminWebhookEndpointCreateInput,
+  AdminWebhookEndpointUpdateInput,
+  AdminWebhookRelayListQuery,
+} from '../schemas/admin.js'
+
+type AdminWebhookRelayListParams = Partial<AdminWebhookRelayListQuery>
 
 export type RelayAttemptWithPayload = Awaited<ReturnType<WebhookRepository['findDueRelayAttempts']>>[number]
+export type AdminWebhookEndpointRecord = Prisma.MerchantWebhookEndpointGetPayload<{
+  select: typeof adminWebhookEndpointSelect
+}>
+export type AdminWebhookRelayAttemptRecord = Prisma.WebhookRelayAttemptGetPayload<{
+  select: typeof adminWebhookRelayAttemptSelect
+}>
+
+export interface PaginationParams {
+  limit?: number
+  offset?: number
+}
+
+export interface AdminWebhookEndpointListParams extends PaginationParams {
+  merchantId?: string
+  isActive?: boolean
+}
 
 export class WebhookRepository {
   constructor(private readonly prisma: PrismaClient) {}
@@ -119,6 +142,60 @@ export class WebhookRepository {
     return this.updateRelayAttempt(input.id, input.final ? 'FAILED' : 'PENDING', input.httpStatus, input.message, input.nextRetryAt)
   }
 
+  async listAdminWebhookEndpoints(params: AdminWebhookEndpointListParams = {}): Promise<AdminWebhookEndpointRecord[]> {
+    const { limit, offset } = normalizePagination(params)
+    return this.prisma.merchantWebhookEndpoint.findMany({
+      where: {
+        merchantId: params.merchantId,
+        isActive: params.isActive,
+      },
+      select: adminWebhookEndpointSelect,
+      orderBy: [{ createdAt: 'desc' }, { id: 'asc' }],
+      take: limit,
+      skip: offset,
+    })
+  }
+
+  async createAdminWebhookEndpoint(input: AdminWebhookEndpointCreateInput): Promise<AdminWebhookEndpointRecord> {
+    return this.prisma.merchantWebhookEndpoint.create({
+      data: {
+        merchantId: input.merchant_id,
+        url: input.url,
+        secret: input.secret,
+        isActive: input.is_active,
+      },
+      select: adminWebhookEndpointSelect,
+    })
+  }
+
+  async updateAdminWebhookEndpoint(id: string, input: AdminWebhookEndpointUpdateInput): Promise<AdminWebhookEndpointRecord> {
+    return this.prisma.merchantWebhookEndpoint.update({
+      where: { id },
+      data: {
+        url: input.url,
+        secret: input.secret,
+        isActive: input.is_active,
+      },
+      select: adminWebhookEndpointSelect,
+    })
+  }
+
+  async listAdminWebhookRelays(params: AdminWebhookRelayListParams = {}): Promise<AdminWebhookRelayAttemptRecord[]> {
+    const { limit, offset } = normalizePagination(params)
+    return this.prisma.webhookRelayAttempt.findMany({
+      where: {
+        eventId: params.event_id,
+        endpointId: params.endpoint_id,
+        status: params.status,
+        endpoint: params.merchant_id ? { merchantId: params.merchant_id } : undefined,
+      },
+      select: adminWebhookRelayAttemptSelect,
+      orderBy: [{ createdAt: 'desc' }, { id: 'asc' }],
+      take: limit,
+      skip: offset,
+    })
+  }
+
   private async updateRelayAttempt(id: string, status: WebhookRelayStatus, httpStatus: number | undefined, lastError: string | null, nextRetryAt: Date | null) {
     return this.prisma.webhookRelayAttempt.update({
       where: { id },
@@ -133,6 +210,13 @@ export class WebhookRepository {
   }
 }
 
+function normalizePagination(params: PaginationParams): Required<PaginationParams> {
+  return {
+    limit: params.limit ?? 50,
+    offset: params.offset ?? 0,
+  }
+}
+
 function toJsonObject(value: unknown): object {
   if (value && typeof value === 'object') return value
   return { value }
@@ -141,3 +225,58 @@ function toJsonObject(value: unknown): object {
 function isUniqueConstraintError(error: unknown): boolean {
   return error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002'
 }
+
+const adminWebhookEndpointSelect = {
+  id: true,
+  merchantId: true,
+  url: true,
+  isActive: true,
+  createdAt: true,
+  updatedAt: true,
+  merchant: { select: { id: true, slug: true, name: true, isActive: true } },
+  _count: { select: { attempts: true } },
+} as const
+
+const adminWebhookRelayAttemptSelect = {
+  id: true,
+  eventId: true,
+  endpointId: true,
+  status: true,
+  httpStatus: true,
+  attemptCount: true,
+  nextRetryAt: true,
+  lastError: true,
+  createdAt: true,
+  updatedAt: true,
+  endpoint: {
+    select: {
+      id: true,
+      merchantId: true,
+      url: true,
+      isActive: true,
+      merchant: { select: { id: true, slug: true, name: true, isActive: true } },
+    },
+  },
+  event: {
+    select: {
+      id: true,
+      eventKey: true,
+      shipmentId: true,
+      courier: true,
+      eventType: true,
+      receivedAt: true,
+      processedAt: true,
+      shipment: {
+        select: {
+          id: true,
+          merchantId: true,
+          externalOrderId: true,
+          courier: true,
+          waybillId: true,
+          status: true,
+          updatedAt: true,
+        },
+      },
+    },
+  },
+} as const
