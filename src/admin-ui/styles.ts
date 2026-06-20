@@ -207,6 +207,14 @@ a { color: inherit; text-decoration: none; }
 .pagination-row { justify-content: flex-end; margin-top: 14px; }
 .inline-link { color: var(--primary); font-weight: 800; }
 .inline-link:hover { color: var(--primary-dark); text-decoration: underline; }
+.truncate-text {
+  display: inline-block;
+  max-width: 280px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: bottom;
+  white-space: nowrap;
+}
 .secret-box {
   display: grid;
   gap: 8px;

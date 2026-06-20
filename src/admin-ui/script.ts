@@ -151,6 +151,18 @@ function renderRoute() {
   if (state.currentRoute === '/courier-services') {
     void loadCourierServicesPage()
   }
+
+  if (state.currentRoute === '/shipments') {
+    void loadShipmentsPage()
+  }
+
+  if (state.currentRoute === '/webhook-relays') {
+    void loadWebhookRelaysPage()
+  }
+
+  if (state.currentRoute === '/audit-logs') {
+    void loadAuditLogsPage()
+  }
 }
 
 function routeConfig(route) {
@@ -205,15 +217,33 @@ function routeConfig(route) {
   }
 
   if (route === '/shipments') {
-    return placeholderPage('Shipments', 'Monitoring shipment hanya baca data; tidak ada tombol booking atau AWB.')
+    return {
+      title: 'Shipments',
+      eyebrow: 'Operations',
+      description: 'Monitoring shipment read-only; tidak ada booking, retry, atau pembuatan AWB/resi.',
+      badge: 'Read-only',
+      content: renderReadOnlyLoading('Shipments'),
+    }
   }
 
   if (route === '/webhook-relays') {
-    return placeholderPage('Webhook Relays', 'Status relay webhook merchant akan ditampilkan secara aman.')
+    return {
+      title: 'Webhook Relays',
+      eyebrow: 'Operations',
+      description: 'Monitoring relay webhook read-only; tidak ada tombol retry pada Sprint 9.',
+      badge: 'Read-only',
+      content: renderReadOnlyLoading('Webhook relays'),
+    }
   }
 
   if (route === '/audit-logs') {
-    return placeholderPage('Audit Logs', 'Log audit admin akan ditampilkan dengan metadata tersanitasi.')
+    return {
+      title: 'Audit Logs',
+      eyebrow: 'Operations',
+      description: 'Log audit admin tersanitasi untuk observability internal.',
+      badge: 'Read-only',
+      content: renderReadOnlyLoading('Audit logs'),
+    }
   }
 
   return placeholderPage('Dashboard', 'Route tidak dikenali, kembali ke dashboard.')
@@ -904,6 +934,246 @@ function renderCourierAssignmentList(assignments, error) {
     + '</div>'
 }
 
+function renderReadOnlyLoading(title) {
+  return '<div class="form-card wide-card"><h3>' + escapeHtml(title) + '</h3><p class="muted">Memuat data read-only...</p></div>'
+}
+
+async function loadShipmentsPage() {
+  const snapshotRoute = state.currentRoute
+  const query = shipmentQueryFromHash()
+  let shipments = []
+  let error = ''
+  try {
+    const payload = await apiGet('/admin/shipments', { ...query, limit: 50 })
+    shipments = Array.isArray(payload?.shipments) ? payload.shipments : []
+  } catch {
+    error = 'Shipment tidak tersedia saat ini.'
+  }
+  if (state.currentRoute !== snapshotRoute || state.currentRoute !== '/shipments' || !elements.contentPanel) return
+  const route = routeConfig('/shipments')
+  elements.contentPanel.innerHTML = renderPageShell({ ...route, content: renderShipmentsContent(query, shipments, error) })
+}
+
+async function loadWebhookRelaysPage() {
+  const snapshotRoute = state.currentRoute
+  const query = relayQueryFromHash()
+  let relays = []
+  let error = ''
+  try {
+    const payload = await apiGet('/admin/webhook-relays', { ...query, limit: 50 })
+    relays = Array.isArray(payload?.attempts) ? payload.attempts : []
+  } catch {
+    error = 'Webhook relay tidak tersedia saat ini.'
+  }
+  if (state.currentRoute !== snapshotRoute || state.currentRoute !== '/webhook-relays' || !elements.contentPanel) return
+  const route = routeConfig('/webhook-relays')
+  elements.contentPanel.innerHTML = renderPageShell({ ...route, content: renderRelaysContent(query, relays, error) })
+}
+
+async function loadAuditLogsPage() {
+  const snapshotRoute = state.currentRoute
+  const query = auditQueryFromHash()
+  let logs = []
+  let error = ''
+  try {
+    const payload = await apiGet('/admin/audit-logs', { ...query, limit: 50 })
+    logs = Array.isArray(payload?.logs) ? payload.logs : []
+  } catch {
+    error = 'Audit logs tidak tersedia saat ini.'
+  }
+  if (state.currentRoute !== snapshotRoute || state.currentRoute !== '/audit-logs' || !elements.contentPanel) return
+  const route = routeConfig('/audit-logs')
+  elements.contentPanel.innerHTML = renderPageShell({ ...route, content: renderAuditLogsContent(query, logs, error) })
+}
+
+function shipmentQueryFromHash() {
+  const params = hashParams()
+  return compactQuery({
+    merchant_id: params.get('merchant_id') || '',
+    status: normalizeShipmentStatus(params.get('status') || ''),
+    courier: normalizeCourierFilter(params.get('courier') || ''),
+    external_order_id: params.get('external_order_id') || '',
+    waybill_id: params.get('waybill_id') || '',
+  })
+}
+
+function relayQueryFromHash() {
+  const params = hashParams()
+  return compactQuery({
+    merchant_id: params.get('merchant_id') || '',
+    endpoint_id: params.get('endpoint_id') || '',
+    event_id: params.get('event_id') || '',
+    status: normalizeRelayStatus(params.get('status') || ''),
+  })
+}
+
+function auditQueryFromHash() {
+  const params = hashParams()
+  return compactQuery({
+    method: normalizeAuditMethod(params.get('method') || ''),
+    path: params.get('path') || '',
+    status_min: params.get('status_min') || '',
+    status_max: params.get('status_max') || '',
+  })
+}
+
+function hashParams() {
+  return new URLSearchParams((window.location.hash.split('?')[1] || '').trim())
+}
+
+function compactQuery(query) {
+  return Object.fromEntries(Object.entries(query).filter(([, value]) => value !== ''))
+}
+
+function normalizeShipmentStatus(value) {
+  return ['DRAFT', 'BOOKED', 'PICKED_UP', 'IN_TRANSIT', 'OUT_FOR_DELIVERY', 'DELIVERED', 'RETURNED', 'FAILED', 'CANCELLED'].includes(value) ? value : ''
+}
+
+function normalizeRelayStatus(value) {
+  return ['PENDING', 'SUCCESS', 'FAILED'].includes(value) ? value : ''
+}
+
+function normalizeAuditMethod(value) {
+  return ['POST', 'PUT', 'PATCH', 'DELETE'].includes(value) ? value : ''
+}
+
+function readOnlyHash(route, query) {
+  const params = new URLSearchParams()
+  Object.entries(query).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== '') params.set(key, String(value))
+  })
+  const queryText = params.toString()
+  return '#' + route + (queryText ? '?' + queryText : '')
+}
+
+function renderShipmentsContent(query, shipments, error) {
+  return '<div class="management-grid">'
+    + renderShipmentsFilter(query)
+    + renderShipmentsTable(shipments, error)
+    + '</div>'
+}
+
+function renderShipmentsFilter(query) {
+  return '<form class="form-card wide-card" data-form="shipments-filter"><h3>Filter shipments</h3><div class="form-grid split-grid">'
+    + '<label><span>Merchant ID</span><input name="merchant_id" value="' + escapeHtml(query.merchant_id || '') + '" /></label>'
+    + '<label><span>Status</span><select name="status">' + shipmentStatusOptions(query.status || '') + '</select></label>'
+    + '<label><span>Courier</span><select name="courier">' + courierOptions(query.courier || '') + '</select></label>'
+    + '<label><span>External order ID</span><input name="external_order_id" value="' + escapeHtml(query.external_order_id || '') + '" /></label>'
+    + '<label><span>Waybill ID</span><input name="waybill_id" value="' + escapeHtml(query.waybill_id || '') + '" /></label>'
+    + '<button class="button" type="submit">Apply filter</button>'
+    + '</div></form>'
+}
+
+function renderShipmentsTable(shipments, error) {
+  const rows = shipments.map((shipment) => [
+    escapeHtml(shipment.merchant?.name || shipment.merchantId),
+    escapeHtml(shipment.courier + ' / ' + shipment.status),
+    escapeHtml(shipment.externalOrderId),
+    escapeHtml(shipment.waybillId || '-'),
+    escapeHtml(shipment.serviceCode + (shipment.serviceName ? ' - ' + shipment.serviceName : '')),
+    escapeHtml(shipment.originCode + ' → ' + shipment.destCode),
+    escapeHtml(String(shipment.weightGrams) + 'g / ' + (shipment.rateIdr ?? '-')),
+    escapeHtml('T:' + (shipment.counts?.tracking ?? 0) + ' E:' + (shipment.counts?.events ?? 0)),
+    escapeHtml(formatDate(shipment.createdAt) + ' / ' + formatDate(shipment.updatedAt)),
+  ])
+  return '<div class="form-card wide-card"><div class="section-title"><h3>Shipments</h3><span>' + escapeHtml(shipments.length) + ' rows</span></div>'
+    + renderUnsafeTable({ columns: ['Merchant', 'Courier/Status', 'External Order', 'Waybill', 'Service', 'Origin/Dest', 'Weight/Rate', 'Counts', 'Created/Updated'], rows, emptyMessage: error || 'Belum ada shipment.' })
+    + '</div>'
+}
+
+function renderRelaysContent(query, relays, error) {
+  return '<div class="management-grid">'
+    + renderRelaysFilter(query)
+    + renderRelaysTable(relays, error)
+    + '</div>'
+}
+
+function renderRelaysFilter(query) {
+  return '<form class="form-card wide-card" data-form="relays-filter"><h3>Filter webhook relays</h3><div class="form-grid split-grid">'
+    + '<label><span>Merchant ID</span><input name="merchant_id" value="' + escapeHtml(query.merchant_id || '') + '" /></label>'
+    + '<label><span>Endpoint ID</span><input name="endpoint_id" value="' + escapeHtml(query.endpoint_id || '') + '" /></label>'
+    + '<label><span>Event ID</span><input name="event_id" value="' + escapeHtml(query.event_id || '') + '" /></label>'
+    + '<label><span>Status</span><select name="status">' + relayStatusOptions(query.status || '') + '</select></label>'
+    + '<button class="button" type="submit">Apply filter</button>'
+    + '</div></form>'
+}
+
+function renderRelaysTable(relays, error) {
+  const rows = relays.map((relay) => [
+    escapeHtml(relay.status + ' / attempts ' + relay.attemptCount),
+    escapeHtml(formatDate(relay.nextRetryAt)),
+    longText(relay.lastError || '-'),
+    longText(relay.endpoint?.url || '-'),
+    escapeHtml((relay.event?.eventType || '-') + ' / ' + (relay.event?.courier || '-')),
+    escapeHtml(relay.event?.shipment ? relay.event.shipment.externalOrderId + ' / ' + (relay.event.shipment.waybillId || '-') : '-'),
+    escapeHtml(formatDate(relay.updatedAt)),
+  ])
+  return '<div class="form-card wide-card"><div class="section-title"><h3>Webhook relays</h3><span>' + escapeHtml(relays.length) + ' rows</span></div>'
+    + renderUnsafeTable({ columns: ['Status', 'Next retry', 'Last error', 'Endpoint URL', 'Event', 'Shipment', 'Updated'], rows, emptyMessage: error || 'Belum ada relay.' })
+    + '</div>'
+}
+
+function renderAuditLogsContent(query, logs, error) {
+  return '<div class="management-grid">'
+    + renderAuditFilter(query)
+    + renderAuditTable(logs, error)
+    + '</div>'
+}
+
+function renderAuditFilter(query) {
+  return '<form class="form-card wide-card" data-form="audit-filter"><h3>Filter audit logs</h3><div class="form-grid split-grid">'
+    + '<label><span>Method</span><select name="method">' + auditMethodOptions(query.method || '') + '</select></label>'
+    + '<label><span>Path</span><input name="path" value="' + escapeHtml(query.path || '') + '" /></label>'
+    + '<label><span>Status min</span><input name="status_min" type="number" min="100" max="599" value="' + escapeHtml(query.status_min || '') + '" /></label>'
+    + '<label><span>Status max</span><input name="status_max" type="number" min="100" max="599" value="' + escapeHtml(query.status_max || '') + '" /></label>'
+    + '<button class="button" type="submit">Apply filter</button>'
+    + '</div></form>'
+}
+
+function renderAuditTable(logs, error) {
+  const rows = logs.map((log) => [
+    escapeHtml(log.method),
+    longText(log.path),
+    escapeHtml(String(log.status)),
+    escapeHtml(String(log.durationMs) + 'ms'),
+    longText(log.requestId || '-'),
+    longText(log.ipAddress || '-'),
+    longText(log.userAgent || '-'),
+    escapeHtml(formatDate(log.createdAt)),
+  ])
+  return '<div class="form-card wide-card"><div class="section-title"><h3>Audit logs</h3><span>' + escapeHtml(logs.length) + ' rows</span></div>'
+    + renderUnsafeTable({ columns: ['Method', 'Path', 'Status', 'Duration', 'Request ID', 'IP', 'User Agent', 'Created'], rows, emptyMessage: error || 'Belum ada audit log.' })
+    + '</div>'
+}
+
+function courierOptions(selected) {
+  return optionHtml('', 'Semua courier', selected)
+    + optionHtml('MOCK', 'MOCK', selected)
+    + optionHtml('JNE', 'JNE', selected)
+    + optionHtml('JNT', 'JNT', selected)
+    + optionHtml('SAP_EXPRESS', 'SAP_EXPRESS', selected)
+}
+
+function shipmentStatusOptions(selected) {
+  return optionHtml('', 'Semua status', selected)
+    + ['DRAFT', 'BOOKED', 'PICKED_UP', 'IN_TRANSIT', 'OUT_FOR_DELIVERY', 'DELIVERED', 'RETURNED', 'FAILED', 'CANCELLED'].map((status) => optionHtml(status, status, selected)).join('')
+}
+
+function relayStatusOptions(selected) {
+  return optionHtml('', 'Semua status', selected)
+    + ['PENDING', 'SUCCESS', 'FAILED'].map((status) => optionHtml(status, status, selected)).join('')
+}
+
+function auditMethodOptions(selected) {
+  return optionHtml('', 'Semua method', selected)
+    + ['POST', 'PUT', 'PATCH', 'DELETE'].map((method) => optionHtml(method, method, selected)).join('')
+}
+
+function longText(value) {
+  const safeValue = escapeHtml(value)
+  return '<span class="truncate-text" title="' + safeValue + '">' + safeValue + '</span>'
+}
+
 async function handleContentForm(form) {
   const formName = form.dataset.form || ''
   if (formName === 'merchant-filter') return applyMerchantFilter(form)
@@ -917,6 +1187,9 @@ async function handleContentForm(form) {
   if (formName === 'courier-filter') return applyCourierFilter(form)
   if (formName === 'courier-service-create') return saveCourierService(form)
   if (formName === 'courier-assignment-upsert') return saveCourierAssignment(form)
+  if (formName === 'shipments-filter') return applyShipmentsFilter(form)
+  if (formName === 'relays-filter') return applyRelaysFilter(form)
+  if (formName === 'audit-filter') return applyAuditFilter(form)
 }
 
 async function handleContentAction(button) {
@@ -1061,6 +1334,37 @@ function applyCourierFilter(form) {
     status: normalizeStatusFilter(String(data.get('status') || '')),
   }
   window.location.hash = courierHash(query).slice(1)
+}
+
+function applyShipmentsFilter(form) {
+  const data = new FormData(form)
+  window.location.hash = readOnlyHash('/shipments', compactQuery({
+    merchant_id: String(data.get('merchant_id') || '').trim(),
+    status: normalizeShipmentStatus(String(data.get('status') || '')),
+    courier: normalizeCourierFilter(String(data.get('courier') || '')),
+    external_order_id: String(data.get('external_order_id') || '').trim(),
+    waybill_id: String(data.get('waybill_id') || '').trim(),
+  })).slice(1)
+}
+
+function applyRelaysFilter(form) {
+  const data = new FormData(form)
+  window.location.hash = readOnlyHash('/webhook-relays', compactQuery({
+    merchant_id: String(data.get('merchant_id') || '').trim(),
+    endpoint_id: String(data.get('endpoint_id') || '').trim(),
+    event_id: String(data.get('event_id') || '').trim(),
+    status: normalizeRelayStatus(String(data.get('status') || '')),
+  })).slice(1)
+}
+
+function applyAuditFilter(form) {
+  const data = new FormData(form)
+  window.location.hash = readOnlyHash('/audit-logs', compactQuery({
+    method: normalizeAuditMethod(String(data.get('method') || '')),
+    path: String(data.get('path') || '').trim(),
+    status_min: String(data.get('status_min') || '').trim(),
+    status_max: String(data.get('status_max') || '').trim(),
+  })).slice(1)
 }
 
 async function saveCourierService(form) {
