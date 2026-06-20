@@ -25,7 +25,7 @@ Prepare `teknos-logistics` to become a multi-courier aggregator beyond JNE/MOCK 
 
 ## Contract Decision
 
-Current `POST /v1/rates` remains `origin_code`, `dest_code`, `weight_grams`, `couriers`. Destination code abstraction is deferred to a later destination mapping sprint. For Sprint 10 slice 1, capability metadata documents each courier's current destination code expectation.
+Current `POST /v1/rates` remains `origin_code`, `dest_code`, `weight_grams`, `couriers` for backward-compatible Sprint 10 slice 1. The final goal is more Biteship-like from the parent perspective: parent keeps only `LOGISTICS_API_URL`, `LOGISTICS_API_KEY`, `LOGISTICS_WEBHOOK_SECRET`, and `LOGISTICS_ENABLED`, while origin area/postal code/courier list/provider destination codes are configured in `teknos-logistics`. Destination code abstraction is the next required slice.
 
 ## Done Criteria
 

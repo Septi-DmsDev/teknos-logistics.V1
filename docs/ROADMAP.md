@@ -8,13 +8,14 @@ Source spec: `docs/superpowers/specs/2026-06-17-teknos-logistics-platform-design
 
 `teknos-logistics` is a standalone logistics aggregator platform, not just a JNE adapter extraction. The platform must remain separated from `teknos.id` like the `teknos-omnichannel` nested-project pattern, with its own Git repository, deployment, database, and operational lifecycle.
 
-Strategic direction update (2026-06-18): `teknos-logistics` should become a Biteship-like logistics platform for Teknos. `teknos.id` owns commerce; `teknos-logistics` owns logistics operations. Courier configuration, branch/store origins, service mapping, AWB/resi recap, tracking history, webhook logs, retry/dead-letter behavior, merchant relay, and logistics reporting should live here. Parent web apps should only consume a simple server-only merchant API and webhook contract.
+Strategic direction update (2026-06-20): `teknos-logistics` should become a Biteship-like logistics platform for Teknos with stronger centralization than Biteship-style env setup. `teknos.id` owns commerce; `teknos-logistics` owns logistics operations. Parent web apps should only keep `LOGISTICS_API_URL`, `LOGISTICS_API_KEY`, `LOGISTICS_WEBHOOK_SECRET`, and `LOGISTICS_ENABLED`. Courier configuration, branch/store origins, provider origin/destination code mapping, enabled courier lists, service mapping, AWB/resi recap, tracking history, webhook logs, retry/dead-letter behavior, merchant relay, and logistics reporting should live here.
 
 ## Execution Principles
 
 - Keep `teknos.id` checkout and shipping flows unchanged until staging integration is proven.
 - Keep `teknos.id` simple: store only shipment summary fields needed for order/customer UX, not logistics operations records.
-- Keep store/branch/origin configuration and courier-specific operational data inside `teknos-logistics`.
+- Keep parent env limited to `LOGISTICS_API_URL`, `LOGISTICS_API_KEY`, `LOGISTICS_WEBHOOK_SECRET`, and `LOGISTICS_ENABLED`.
+- Keep store/branch/origin configuration, origin postal/provider codes, enabled couriers, destination mapping, and courier-specific operational data inside `teknos-logistics`.
 - Build small vertical slices that can be validated independently.
 - Use persistent database state for shipment lifecycle, tracking, webhook events, relay attempts, and idempotency.
 - Keep mock provider usable for development and staging even when JNE credentials are unavailable.
@@ -85,3 +86,16 @@ Strategic direction update (2026-06-18): `teknos-logistics` should become a Bite
 - Supabase: acceptable as managed Postgres for staging/production, but not required for local dev.
 - Admin auth: JWT HttpOnly cookie planned for admin ops, not needed for Sprint 1.
 - JNT/SAP real integrations: defer until JNE lifecycle and provider contract are stable.
+
+## Parent Environment Goal
+
+Final parent integration target:
+
+```env
+LOGISTICS_API_URL=
+LOGISTICS_API_KEY=
+LOGISTICS_WEBHOOK_SECRET=
+LOGISTICS_ENABLED=false
+```
+
+Do not add Biteship-like parent envs for origin area, origin postal code, or courier list. Those values belong in `teknos-logistics` admin configuration and destination/origin mapping.

@@ -119,3 +119,9 @@ See `.env.example`. All JNE credential values must stay server-only and must not
 - Added Sprint 10 spec/plan for JNT/SAP skeletons, capability metadata, normalizers, and service mapping foundation.
 - JNT and SAP Express providers are registered as skeleton adapters; external rates/booking/tracking intentionally return `501 COURIER_NOT_IMPLEMENTED` until official API contracts and credentials are confirmed.
 - Added authenticated read-only `GET /v1/couriers/capabilities` so merchants can inspect active vs skeleton courier capability metadata without exposing credentials.
+
+## Parent Env Boundary Decision - 2026-06-20
+
+- Final parent `teknos.id` integration should use only `LOGISTICS_API_URL`, `LOGISTICS_API_KEY`, `LOGISTICS_WEBHOOK_SECRET`, and `LOGISTICS_ENABLED`.
+- Do not mirror Biteship envs such as origin area ID, origin postal code, or courier list in parent apps. Those are centralized in `teknos-logistics` Admin Control Center.
+- Next product gap is destination/origin abstraction so parent can send store/destination data without owning raw JNE/JNT/SAP provider codes.

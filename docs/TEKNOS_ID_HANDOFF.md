@@ -11,13 +11,15 @@ Target model: `teknos.id` owns commerce; `teknos-logistics` owns logistics opera
 
 - Parent `teknos.id` remains read-only until the user opens a separate explicit parent-repo task.
 - All API keys and webhook secrets are server-only.
-- Keep parent integration minimal: API URL/key, feature flag, rates call, shipment creation call, tracking read, and webhook receiver.
+- Keep parent integration minimal: API URL, API key, webhook HMAC secret, feature flag, rates call, shipment creation call, tracking read, and webhook receiver. Do not add origin area/postal code/courier-list envs to parent; configure them in `teknos-logistics`.
 - Rates and tracking are safe read flows; JNE shipment booking can create a real AWB/resi and requires explicit operator approval.
 - The current machine-readable contract is available from `GET /openapi.json` and checked by `npm run contract:check`.
 - Before opening a parent-repo implementation task, run `npm run sprint6:readiness` in `teknos-logistics`.
 - Sprint 9 Admin Control Center lives entirely inside `teknos-logistics` at `/admin-ui`: merchant/store/origin/courier config, operations visibility, and smoke/readiness validation. Parent `teknos.id` should still consume only the simplified merchant API and webhook contract, not duplicate logistics operations UI.
 
 ## Required Parent Environment
+
+This is intentionally different from Biteship-style envs. Parent `teknos.id` should not own `BITESHIP_ORIGIN_AREA_ID`, `BITESHIP_ORIGIN_POSTAL_CODE`, or `BITESHIP_COURIERS` equivalents. Those are admin-managed in `teknos-logistics`.
 
 ```env
 LOGISTICS_API_URL="https://<teknos-logistics-host>"
