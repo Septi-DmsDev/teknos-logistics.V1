@@ -192,8 +192,76 @@ a { color: inherit; text-decoration: none; }
   padding: 16px;
 }
 
+.metric-success { border-color: #bbf7d0; background: #f0fdf4; }
+.metric-warning { border-color: #fde68a; background: #fffbeb; }
+.metric-danger { border-color: #fecaca; background: #fff1f2; }
+.metric-info { border-color: #bfdbfe; background: #eff6ff; }
+
 .metric-card strong { display: block; margin-top: 6px; font-size: 1.2rem; }
 .metric-label { color: var(--muted); font-size: 0.8rem; font-weight: 800; text-transform: uppercase; }
+
+.dashboard-grid { display: grid; gap: 18px; }
+.dashboard-status {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.dashboard-sections {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.dashboard-section,
+.quick-links {
+  border: 1px solid var(--border);
+  background: var(--panel-muted);
+  border-radius: 16px;
+  padding: 16px;
+}
+
+.dashboard-section-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.dashboard-section-header h3,
+.quick-links h3 { margin: 0; }
+.dashboard-section-header span { color: var(--muted); font-size: 0.86rem; font-weight: 700; }
+
+.dashboard-list {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dashboard-list li {
+  display: grid;
+  gap: 4px;
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+}
+
+.dashboard-list span { color: var(--muted); font-size: 0.88rem; }
+
+.quick-links { display: grid; gap: 12px; }
+.quick-links div { display: flex; flex-wrap: wrap; gap: 10px; }
+.quick-links a {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: white;
+  color: var(--primary);
+  font-weight: 800;
+  padding: 8px 12px;
+}
+
+.quick-links a:hover { border-color: var(--primary); background: #eff6ff; }
 
 .table-wrap { overflow-x: auto; }
 table { width: 100%; border-collapse: collapse; }
@@ -207,4 +275,6 @@ th { color: var(--muted); font-size: 0.82rem; text-transform: uppercase; letter-
   .topbar { align-items: flex-start; flex-direction: column; }
   .route-header { flex-direction: column; }
   .card-grid { grid-template-columns: 1fr; }
+  .dashboard-status,
+  .dashboard-sections { grid-template-columns: 1fr; }
 }`

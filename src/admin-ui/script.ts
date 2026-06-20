@@ -117,6 +117,10 @@ function renderRoute() {
   if (elements.pageTitle) elements.pageTitle.textContent = route.title
 
   elements.contentPanel.innerHTML = renderPageShell(route)
+
+  if (state.currentRoute === '/dashboard') {
+    void loadDashboard()
+  }
 }
 
 function routeConfig(route) {
@@ -124,9 +128,9 @@ function routeConfig(route) {
     return {
       title: 'Dashboard',
       eyebrow: 'Overview',
-      description: 'Ringkasan admin logistics akan ditambahkan pada task berikutnya.',
-      badge: 'Foundation',
-      content: renderDashboardPlaceholder(),
+      description: 'Ringkasan health, readiness, merchant, shipment, relay webhook, dan audit terbaru.',
+      badge: 'Live Overview',
+      content: renderDashboardLoading(),
     }
   }
 
@@ -204,20 +208,161 @@ function renderPageShell(route) {
     + '</section>'
 }
 
-function renderDashboardPlaceholder() {
-  return '<div class="card-grid">'
-    + metricCard('Browser state', 'Ready', 'Token, route, merchant, loading, error, and success state are initialized.')
-    + metricCard('API client', 'Ready', 'Bearer injection and sanitized error handling are available for page tasks.')
-    + metricCard('Safety', 'No AWB Action', 'No JNE booking, AWB creation, or env exposure is implemented in this shell.')
+function renderDashboardLoading() {
+  return '<div id="dashboard-root" class="dashboard-grid">'
+    + '<div class="dashboard-status">'
+    + metricCard('Health', 'Loading', 'Mengecek proses aplikasi tanpa token admin.', 'info')
+    + metricCard('Readiness', 'Loading', 'Mengecek koneksi database tanpa token admin.', 'info')
+    + metricCard('Safety', 'No AWB Action', 'Dashboard ini hanya membaca data operasional.', 'success')
+    + '</div>'
+    + '<div class="dashboard-sections">'
+    + dashboardSection('Merchants', 'Memuat merchant terbaru...', [])
+    + dashboardSection('Shipments', 'Memuat shipment terbaru...', [])
+    + dashboardSection('Webhook Relays', 'Memuat relay terbaru...', [])
+    + dashboardSection('Audit Logs', 'Memuat audit terbaru...', [])
+    + '</div>'
+    + renderQuickLinks()
     + '</div>'
 }
 
-function metricCard(label, value, description) {
-  return '<article class="metric-card">'
+function metricCard(label, value, description, tone = 'muted') {
+  const safeTone = ['success', 'warning', 'danger', 'info', 'muted'].includes(tone) ? tone : 'muted'
+  return '<article class="metric-card metric-' + safeTone + '">'
     + '<span class="metric-label">' + escapeHtml(label) + '</span>'
     + '<strong>' + escapeHtml(value) + '</strong>'
     + '<p class="muted">' + escapeHtml(description) + '</p>'
     + '</article>'
+}
+
+async function loadDashboard() {
+  const snapshotRoute = state.currentRoute
+  const healthPromise = fetchStatus('/health')
+  const readinessPromise = fetchStatus('/ready')
+  const adminPromise = Promise.allSettled([
+    apiGet('/admin/merchants', { limit: 5 }),
+    apiGet('/admin/shipments', { limit: 5 }),
+    apiGet('/admin/webhook-relays', { limit: 5 }),
+    apiGet('/admin/audit-logs', { limit: 5 }),
+  ])
+
+  const [health, readiness, adminResults] = await Promise.all([
+    healthPromise,
+    readinessPromise,
+    adminPromise,
+  ])
+
+  if (state.currentRoute !== snapshotRoute || state.currentRoute !== '/dashboard' || !elements.contentPanel) return
+
+  const merchants = settledValue(adminResults[0], 'merchants')
+  const shipments = settledValue(adminResults[1], 'shipments')
+  const relays = settledValue(adminResults[2], 'attempts')
+  const logs = settledValue(adminResults[3], 'logs')
+
+  const content = '<div id="dashboard-root" class="dashboard-grid">'
+    + '<div class="dashboard-status">'
+    + statusMetric('Health', health, 'Proses aplikasi')
+    + statusMetric('Readiness', readiness, 'Database readiness')
+    + metricCard('Safety', 'No AWB Action', 'Tidak ada tombol booking, generatecnote, atau pembuatan resi di dashboard.', 'success')
+    + '</div>'
+    + '<div class="dashboard-sections">'
+    + dashboardSection('Merchants', summaryLabel(merchants.items, merchants.error), merchantRows(merchants.items), merchants.error)
+    + dashboardSection('Shipments', summaryLabel(shipments.items, shipments.error), shipmentRows(shipments.items), shipments.error)
+    + dashboardSection('Webhook Relays', summaryLabel(relays.items, relays.error), relayRows(relays.items), relays.error)
+    + dashboardSection('Audit Logs', summaryLabel(logs.items, logs.error), auditRows(logs.items), logs.error)
+    + '</div>'
+    + renderQuickLinks()
+    + '</div>'
+
+  const route = routeConfig('/dashboard')
+  elements.contentPanel.innerHTML = renderPageShell({ ...route, content })
+}
+
+async function fetchStatus(path) {
+  try {
+    const response = await fetch(path)
+    const payload = await readJson(response)
+    return {
+      ok: response.ok && payload?.ok === true,
+      status: response.status,
+      payload,
+    }
+  } catch {
+    return { ok: false, status: 0, payload: null }
+  }
+}
+
+function settledValue(result, key) {
+  if (result.status !== 'fulfilled') {
+    return { items: [], error: 'Data tidak tersedia saat ini.' }
+  }
+
+  const items = Array.isArray(result.value?.[key]) ? result.value[key] : []
+  return { items, error: '' }
+}
+
+function statusMetric(label, status, description) {
+  const tone = status.ok ? 'success' : 'danger'
+  const value = status.ok ? 'OK' : 'Unavailable'
+  const statusText = status.status ? 'HTTP ' + status.status : 'Tidak tersambung'
+  return metricCard(label, value, description + ' - ' + statusText, tone)
+}
+
+function summaryLabel(items, error) {
+  if (error) return error
+  return items.length + ' data terbaru'
+}
+
+function dashboardSection(title, summary, rows, error = '') {
+  const safeRows = rows.length > 0
+    ? rows.map((row) => '<li><strong>' + escapeHtml(row.title) + '</strong><span>' + escapeHtml(row.meta) + '</span></li>').join('')
+    : '<li><strong>' + escapeHtml(error ? 'Unavailable' : 'Kosong') + '</strong><span>' + escapeHtml(summary) + '</span></li>'
+
+  return '<article class="dashboard-section">'
+    + '<div class="dashboard-section-header"><h3>' + escapeHtml(title) + '</h3><span>' + escapeHtml(summary) + '</span></div>'
+    + '<ul class="dashboard-list">' + safeRows + '</ul>'
+    + '</article>'
+}
+
+function merchantRows(items) {
+  return items.map((merchant) => ({
+    title: merchant.name || merchant.slug || merchant.id,
+    meta: (merchant.isActive ? 'Active' : 'Inactive') + ' - ' + (merchant._count?.shipments ?? 0) + ' shipments - ' + formatDate(merchant.createdAt),
+  }))
+}
+
+function shipmentRows(items) {
+  return items.map((shipment) => ({
+    title: shipment.externalOrderId || shipment.id,
+    meta: shipment.courier + ' ' + shipment.serviceCode + ' - ' + shipment.status + ' - ' + (shipment.merchant?.name || shipment.merchantId),
+  }))
+}
+
+function relayRows(items) {
+  return items.map((relay) => ({
+    title: relay.event?.eventType || relay.eventId || relay.id,
+    meta: relay.status + ' - attempt ' + relay.attemptCount + ' - ' + (relay.endpoint?.merchant?.name || relay.endpointId),
+  }))
+}
+
+function auditRows(items) {
+  return items.map((log) => ({
+    title: log.method + ' ' + log.path,
+    meta: 'HTTP ' + log.status + ' - ' + log.durationMs + 'ms - ' + formatDate(log.createdAt),
+  }))
+}
+
+function renderQuickLinks() {
+  const links = [
+    ['Merchants', '#/merchants'],
+    ['Stores & Origins', '#/stores-origins'],
+    ['Courier Services', '#/courier-services'],
+    ['Shipments', '#/shipments'],
+    ['Webhook Relays', '#/webhook-relays'],
+    ['Audit Logs', '#/audit-logs'],
+  ]
+  return '<div class="quick-links"><h3>Quick Links</h3><div>'
+    + links.map(([label, href]) => '<a href="' + escapeHtml(href) + '">' + escapeHtml(label) + '</a>').join('')
+    + '</div></div>'
 }
 
 function highlightActiveRoute() {
