@@ -33,6 +33,7 @@ export interface DestinationMappingUpdateInput extends Partial<DestinationLookup
 }
 
 export type DestinationMappingRecord = Prisma.DestinationMappingGetPayload<{ select: typeof destinationMappingSelect }>
+export type OriginMappingRecord = Prisma.OriginMappingGetPayload<{ select: typeof originMappingSelect }>
 export type OriginResolutionRecord = Prisma.OriginGetPayload<{ select: typeof originResolutionSelect }>
 
 export class DestinationMappingRepository {
@@ -43,6 +44,51 @@ export class DestinationMappingRepository {
       where: { id: originId, merchantId, isActive: true },
       select: originResolutionSelect,
     })
+  }
+
+
+  async listOriginMappings(merchantId: string, originId: string): Promise<OriginMappingRecord[]> {
+    return this.prisma.originMapping.findMany({
+      where: { merchantId, originId },
+      select: originMappingSelect,
+      orderBy: [{ courier: 'asc' }, { updatedAt: 'desc' }],
+    })
+  }
+
+  async upsertOriginMapping(input: {
+    merchant_id: string
+    origin_id: string
+    courier: CourierCode
+    provider_code: string
+    label?: string
+    is_active?: boolean
+  }): Promise<OriginMappingRecord> {
+    return this.prisma.originMapping.upsert({
+      where: { originId_courier: { originId: input.origin_id, courier: input.courier } },
+      create: {
+        merchantId: input.merchant_id,
+        originId: input.origin_id,
+        courier: input.courier,
+        providerCode: input.provider_code,
+        label: input.label,
+        isActive: input.is_active ?? true,
+      },
+      update: {
+        merchantId: input.merchant_id,
+        providerCode: input.provider_code,
+        label: input.label,
+        isActive: input.is_active ?? true,
+      },
+      select: originMappingSelect,
+    })
+  }
+
+  async resolveOriginCode(merchantId: string, originId: string, courier: CourierCode): Promise<string | null> {
+    const mapping = await this.prisma.originMapping.findFirst({
+      where: { merchantId, originId, courier, isActive: true },
+      select: { providerCode: true },
+    })
+    return mapping?.providerCode ?? null
   }
 
   async list(params: DestinationMappingListParams = {}): Promise<DestinationMappingRecord[]> {
@@ -147,6 +193,17 @@ const destinationMappingSelect = {
   updatedAt: true,
 } as const
 
+const originMappingSelect = {
+  id: true,
+  merchantId: true,
+  originId: true,
+  courier: true,
+  providerCode: true,
+  label: true,
+  isActive: true,
+  createdAt: true,
+  updatedAt: true,
+} as const
 const originResolutionSelect = {
   id: true,
   merchantId: true,

@@ -154,3 +154,11 @@ Safety notes:
 - Smoke command expectations are documented with mutating vs non-mutating safety notes.
 - `docs/ROADMAP.md`, `CLAUDE.md`, and `AGENTS.md` reflect Sprint 6 status and boundary.
 - Any later parent implementation starts as a separate explicit task outside this repo scope.
+
+## Sprint 11B-13 Offline Gates
+
+- SAP Express: `npm run smoke:sap:adapter` and `npm run sprint11b:readiness`.
+- OriginMapping: `npm run sprint12:readiness`; real couriers require provider origin mapping or return `ORIGIN_MAPPING_NOT_FOUND`.
+- JNE destination import tooling: `npm run import:jne:destinations` dry-run and `npm run sprint13:readiness`.
+- Webhook signature contract: `npm run smoke:webhook:signature` verifies `sha256=<hmac>` over exact JSON body.
+- Do not run `npm run import:jne:destinations -- --apply` until DB tunnel is healthy and migrations are deployed.

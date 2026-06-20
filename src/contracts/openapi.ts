@@ -186,6 +186,25 @@ export const openApiContract = {
         },
       },
     },
+    '/webhooks/sap-express': {
+      post: {
+        tags: ['Courier Webhooks'],
+        summary: 'Receive SAP Express lifecycle webhook',
+        description: 'Courier ingress endpoint protected by shared token and normalized event-key idempotency.',
+        parameters: [
+          { name: 'x-sap-token', in: 'header', required: true, schema: { type: 'string' } },
+        ],
+        requestBody: {
+          required: true,
+          content: { 'application/json': { schema: { type: 'object', additionalProperties: true } } },
+        },
+        responses: {
+          '200': { description: 'Webhook accepted or deduplicated' },
+          '401': { description: 'Invalid webhook token' },
+          '404': { description: 'Shipment not found for webhook payload' },
+        },
+      },
+    },
   },
   components: {
     securitySchemes: {

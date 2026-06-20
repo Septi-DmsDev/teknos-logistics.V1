@@ -117,7 +117,7 @@ See `.env.example`. All JNE credential values must stay server-only and must not
 ## Sprint 10 Multi-Courier Foundation - 2026-06-20
 
 - Added Sprint 10 spec/plan for JNT/SAP skeletons, capability metadata, normalizers, and service mapping foundation.
-- JNT and SAP Express providers are registered as skeleton adapters; external rates/booking/tracking intentionally return `501 COURIER_NOT_IMPLEMENTED` until official API contracts and credentials are confirmed.
+- JNT remains a skeleton adapter. SAP Express is active for offline-validated rates/booking/tracking/webhook normalization; real SAP runtime QA waits for credentials, operator approval for booking, and server/tunnel recovery.
 - Added authenticated read-only `GET /v1/couriers/capabilities` so merchants can inspect active vs skeleton courier capability metadata without exposing credentials.
 
 ## Parent Env Boundary Decision - 2026-06-20
@@ -663,3 +663,31 @@ Gap ini **milik teknos-logistics**, bukan teknos.id. teknos.id hanya perlu kirim
 
 BLOCKER untuk JNE rates dan SAP Express rates bekerja via teknos-logistics. Harus diselesaikan
 sebelum Sprint 6 teknos-logistics integration (teknos.id -> teknos-logistics) dimulai.
+
+## Sprint 11B SAP Express Offline Implementation - 2026-06-20
+
+- Added SAP Express JSON client using `api_key` header and API v2 endpoints for shipment cost, pickup create, and tracking.
+- Activated SAP Express adapter for rate normalization, booking payload construction, tracking normalization, and webhook normalization.
+- Added `/webhooks/sap-express` protected by `SAP_WEBHOOK_TOKEN` or `x-webhook-token` fallback, using the shared courier webhook idempotency service.
+- Added `npm run smoke:sap:adapter` and `npm run sprint11b:readiness` for offline validation without DB/server and without creating real AWB/resi.
+- Runtime SAP smoke and DB-backed webhook smoke remain deferred until server/tunnel is healthy. Real booking still requires explicit operator approval.
+## Sprint 12 OriginMapping Offline Implementation - 2026-06-20
+
+- Added `OriginMapping` schema and migration `20260620143000_add_origin_mappings` so each merchant origin can map to a provider-specific courier origin code.
+- Updated `/v1/rates/resolve` flow to use provider origin code for real couriers and throw `ORIGIN_MAPPING_NOT_FOUND` when missing.
+- Added admin list/upsert endpoint `GET/POST /admin/merchants/:merchantId/origins/:originId/mappings`.
+- Added `npm run origin:mappings:upsert` with JNE Mojokerto default `MJK10008`; SAP placeholder stays inactive unless `SAP_ORIGIN_PROVIDER_CODE` is provided.
+- DB migration deploy and runtime smoke are deferred until server/tunnel is healthy.
+## Sprint 13 JNE Destination Import Tooling - 2026-06-20
+
+- JNE `list_dest.xlsx` has 82,959 granular destination rows and 7,353 unique `TARIFF_CODE` values.
+- `DestinationMapping.providerCode` cannot stay unique because many subdistrict/postal-code rows share the same tariff code. Added nullable `sourceKey` and migration `20260620152000_make_destination_mappings_importable` to make full import idempotent per source row.
+- Added `npm run import:jne:destinations` as dry-run default. Use `npm run import:jne:destinations -- --apply` only after DB tunnel and migrations are healthy.
+- Importer parses XLSX without adding npm dependencies; on Windows it uses PowerShell `Expand-Archive`, on Linux it expects `unzip` to be available.
+- Runtime DB import is deferred until server/tunnel is healthy.
+## Sprint 11B SAP Express Unit Tests - 2026-06-20
+
+- Added `node:test` unit coverage for SAP Express status normalizer and adapter using mock fetchers only.
+- `npm run test` now runs `tsx --test tests/**/*.test.ts` instead of the bootstrap placeholder.
+- Test coverage includes rates normalization/filtering, missing config errors, booking response handling, tracking normalization, webhook normalization, and empty tracking behavior.
+- No SAP network call or real booking is performed by these tests.

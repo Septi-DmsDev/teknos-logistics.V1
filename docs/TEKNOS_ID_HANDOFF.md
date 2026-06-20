@@ -1,7 +1,7 @@
 # teknos.id Integration Handoff
 
 Date: 2026-06-20
-Status: Sprint 6 handoff artifact; Sprint 10 destination abstraction in progress inside `teknos-logistics`
+Status: Sprint 6 handoff artifact; updated after Sprint 11B SAP Express, Sprint 12 OriginMapping, and Sprint 13 JNE import tooling
 
 This document is the copy-ready handoff for the future parent `teknos.id` integration. It is intentionally stored in `teknos-logistics`; do not edit parent `teknos.id` from this sprint.
 
@@ -17,6 +17,8 @@ Target model: `teknos.id` owns commerce; `teknos-logistics` owns logistics opera
 - Before opening a parent-repo implementation task, run `npm run sprint6:readiness`, `npm run contract:check`, and the current sprint readiness gate in `teknos-logistics`.
 - Sprint 9 Admin Control Center lives entirely inside `teknos-logistics` at `/admin-ui`: merchant/store/origin/courier config, operations visibility, and smoke/readiness validation. Parent `teknos.id` should still consume only the simplified merchant API and webhook contract, not duplicate logistics operations UI.
 - Sprint 10 adds `POST /v1/rates/resolve` so parent can send `origin_id` plus human-readable destination fields; raw provider `dest_code` should become fallback/legacy only.
+- Sprint 12 adds `OriginMapping`; parent sends `origin_id`, while `teknos-logistics` resolves courier-specific origin codes. Missing real-courier origin mapping returns `ORIGIN_MAPPING_NOT_FOUND`.
+- Sprint 13 JNE import tooling parses 82,959 destination rows; DB apply waits for tunnel and deployed migrations.
 
 ## Required Parent Environment
 
@@ -27,6 +29,7 @@ LOGISTICS_API_URL="https://<teknos-logistics-host>"
 LOGISTICS_API_KEY="tlg_<server-only-api-key>"
 LOGISTICS_WEBHOOK_SECRET="<server-only-merchant-webhook-secret>"
 LOGISTICS_ENABLED="false"
+LOGISTICS_ORIGIN_ID="<origin-id-from-teknos-logistics>"
 ```
 
 Rollout rule: keep `LOGISTICS_ENABLED=false` until staging rates, mock booking, tracking, and webhook relay have passed.
@@ -212,3 +215,10 @@ export async function POST(request: Request) {
 - Disable parent feature flag to stop new calls to `teknos-logistics`.
 - Keep webhook receiver idempotent so delayed retries do not corrupt order state.
 - Do not remove legacy logistics env/code until production rollback window is complete.
+
+## Current Offline Status
+
+- `teknos-logistics` build, lint, typecheck, and readiness gates pass offline.
+- DB tunnel is currently unavailable, so migrations/imports are not applied yet.
+- Required DB sequence when tunnel returns: `npx prisma migrate deploy`, `npm run origin:mappings:upsert`, `npm run import:jne:destinations -- --apply`.
+- Parent `teknos.id` integration should wait until `/v1/rates/resolve` is smoke-tested against imported JNE mappings.

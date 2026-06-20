@@ -39,9 +39,9 @@ Strategic direction update (2026-06-20): `teknos-logistics` should become a Bite
 | Sprint 9 | Admin Control Center minimal | Done - `/admin-ui`, dashboard, merchant/store/origin/courier config UI, read-only ops pages, smoke/readiness checks | Done |
 | Sprint 10 | Multi-courier foundation + destination abstraction | In progress - JNT/SAP skeletons, provider capability matrix, normalizers, capability endpoint, `DestinationMapping`, and `POST /v1/rates/resolve` | In Progress |
 | Sprint 11A | Supabase Admin Auth Foundation | In progress - env placeholders, `AdminOperator`, Supabase JWT verifier, provider switch, audit identity fields, bootstrap script, readiness gate | In Progress |
-| Sprint 11B | SAP Express full integration | `sap-express.client.ts` + `sap-express.types.ts` + complete adapter (rates/booking/tracking/webhook) + env vars + tests; spec + plan draft tersedia di `docs/superpowers/` | Planned |
+| Sprint 11B | SAP Express full integration | Implemented offline - SAP JSON client, active adapter rates/booking/tracking/webhook normalize, `/webhooks/sap-express`, capability ACTIVE, mock smoke, readiness gate. Runtime SAP/DB QA waits for server/tunnel recovery. | In Progress |
 | Sprint 12 | Origin Store Registry | Optional per-courier origin resolver if one internal origin needs different provider origin codes; parent keeps sending internal `origin_id` | Planned |
-| Sprint 13 | Destination Mapping Ops | Admin/import tooling for postal_code + kecamatan + kota + provinsi ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ kode tujuan per provider at scale | Planned |
+| Sprint 13 | Destination Mapping data import | Tooling ready offline - JNE XLSX dry-run parses 82,959 rows / 7,353 tariff codes; schema adjusted with `sourceKey`; DB apply waits for tunnel/migration. | In Progress |
 | Sprint 14 | Aggregated multi-courier rates policy | Service selection rules, courier enablement rules, ranking, and fallback behavior for resolved rates | Planned |
 | Sprint 15 | Reporting, billing, and analytics | Resi recap, volume/cost analytics, courier performance, invoices, B2B/SaaS commercialization foundation | Planned |
 
@@ -104,3 +104,5 @@ LOGISTICS_ENABLED=false
 ```
 
 Do not add Biteship-like parent envs for origin area, origin postal code, or courier list. Those values belong in `teknos-logistics` admin configuration and destination/origin mapping.
+
+- 2026-06-20 Sprint 12: OriginMapping offline implementation added; DB deploy pending server/tunnel recovery.

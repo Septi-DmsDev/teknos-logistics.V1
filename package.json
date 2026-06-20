@@ -11,7 +11,7 @@
     "start": "node dist/src/server.js",
     "build": "prisma generate && tsc -p tsconfig.json",
     "lint": "eslint .",
-    "test": "node -e \"console.log('No automated tests configured for bootstrap; F1/F2/F7 covered separately by Claude Code')\"",
+    "test": "tsx --test tests/**/*.test.ts",
     "typecheck": "tsc --noEmit",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
@@ -41,7 +41,14 @@
     "admin:operator:upsert": "tsx scripts/upsert-admin-operator.ts",
     "sprint11a:readiness": "tsx scripts/sprint11a-readiness.ts",
     "admin:supabase:bootstrap": "tsx scripts/bootstrap-supabase-admin.ts",
-    "smoke:admin:supabase": "tsx scripts/smoke-supabase-admin-auth.ts"
+    "smoke:admin:supabase": "tsx scripts/smoke-supabase-admin-auth.ts",
+    "smoke:sap:adapter": "tsx scripts/smoke-sap-express-adapter.ts",
+    "sprint11b:readiness": "tsx scripts/sprint11b-readiness.ts",
+    "origin:mappings:upsert": "tsx scripts/upsert-origin-mappings.ts",
+    "sprint12:readiness": "tsx scripts/sprint12-readiness.ts",
+    "import:jne:destinations": "tsx scripts/import-jne-destinations.ts",
+    "sprint13:readiness": "tsx scripts/sprint13-readiness.ts",
+    "smoke:webhook:signature": "tsx scripts/smoke-webhook-signature.ts"
   },
   "dependencies": {
     "@hono/node-server": "^1.19.6",

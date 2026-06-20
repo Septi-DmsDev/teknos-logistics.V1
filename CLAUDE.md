@@ -166,7 +166,7 @@ src/
 | Sprint 09 | Admin Control Center minimal | Done - `/admin-ui` dashboard, merchant/store/origin/courier config UI, read-only operations pages, `smoke:admin-ui`, and `sprint9:readiness` completed |
 | Sprint 10 | Multi-courier foundation + destination abstraction | In Progress - JNT/SAP skeleton providers, capability matrix, `/v1/couriers/capabilities`, `DestinationMapping`, and `/v1/rates/resolve` slice added |
 | Sprint 11A | Supabase Admin Auth Foundation | In Progress - env placeholders, `AdminOperator`, Supabase JWT verifier, provider-switched admin middleware, audit identity fields, bootstrap script, and readiness gate added |
-| Sprint 11B (SAP Express) | SAP Express full integration | Planned - `sap-express.client.ts`, `sap-express.types.ts`, complete adapter, env vars, webhook handler, and tests; spec/plan draft tersedia di `docs/superpowers/` |
+| Sprint 11B (SAP Express) | SAP Express full integration | In Progress - offline implementation added: SAP JSON client, active adapter rates/booking/tracking/webhook normalize, `/webhooks/sap-express`, capability ACTIVE, mock smoke, and readiness gate. Runtime SAP/DB QA waits for server/tunnel recovery. |
 
 ---
 
@@ -248,13 +248,13 @@ SUPABASE_URL             Supabase project URL for Sprint 11A admin auth.
 SUPABASE_ANON_KEY        Browser-safe Supabase anon key for future login UI only.
 SUPABASE_JWT_SECRET      Server-side JWT verification secret for Supabase admin access tokens.
 SUPABASE_SERVICE_ROLE_KEY Server-only service role key for controlled admin bootstrap/server tasks; never expose to browser.
-LOGISTICS_PROVIDER        Provider selector: mock or jne. Akan ditambah sap_express setelah Sprint 11B.
+LOGISTICS_PROVIDER        Legacy provider selector: mock or jne. Multi-courier registry now includes SAP_EXPRESS; merchant payload should use courier field/capabilities.
 JNE_*                     Server-only JNE credentials/configuration. Tariff requires base URL/user/key/origin; booking additionally requires shipper/cust/branch values.
 SAP_API_BASE_URL          URL base API SAP Express (ditambahkan Sprint 11B).
-SAP_USERNAME              Username / merchant code SAP (Sprint 11B).
+SAP_CUSTOMER_CODE         Customer/merchant code SAP Express (Sprint 11B).
 SAP_API_KEY               API key SAP Express (Sprint 11B).
-SAP_ORIGIN_CODE           Kode origin SAP (kota/cabang pengirim) (Sprint 11B).
-SAP_SHIPPER_*             Data pengirim untuk booking SAP: NAME, ADDRESS, CITY, PHONE, ZIP (Sprint 11B).
+SAP_ORIGIN_DISTRICT_CODE  Default pickup district code for direct SAP booking; Sprint 12 OriginMapping will resolve per origin/courier.
+SAP_SHIPPER_*             Data pengirim untuk booking SAP: NAME, ADDRESS, PHONE, CONTACT (Sprint 11B).
 SAP_WEBHOOK_TOKEN         Token untuk validasi webhook dari SAP (Sprint 11B).
 JNE_WEBHOOK_TOKEN         Shared token for courier webhook ingress validation; required by POST /webhooks/jne.
 RATE_LIMIT_WINDOW_MS      In-memory rate limit window in milliseconds; default 60000.
@@ -338,3 +338,13 @@ Decision date: 2026-06-20. The current `/admin-ui` raw `ADMIN_JWT_SECRET` token 
 ### Final Parent Env Boundary
 
 Target integrasi parent sengaja berbeda dari env Biteship. Biteship biasanya membutuhkan API key, origin area/postal code, dan courier list di aplikasi pemakai. Di Teknos, parent app hanya boleh menyimpan `LOGISTICS_API_URL`, `LOGISTICS_API_KEY`, `LOGISTICS_WEBHOOK_SECRET`, dan `LOGISTICS_ENABLED`; origin area/postal code, provider destination code, enabled couriers, service mapping, dan konfigurasi operasional logistik harus diatur sekali di `teknos-logistics` Admin Control Center.
+
+### Sprint 11B SAP Express Offline Implementation
+
+Decision date: 2026-06-20. SAP Express is now an active registered courier implementation for offline-validated rates, booking payload construction, tracking normalization, and webhook normalization. Added `SapExpressClient`, `SapExpressAdapter`, `/webhooks/sap-express` protected by `SAP_WEBHOOK_TOKEN`, capability matrix `ACTIVE`, `npm run smoke:sap:adapter`, and `npm run sprint11b:readiness`. Do not run real SAP booking/pickup creation without explicit operator approval. Runtime SAP and DB-backed QA remain blocked while server/tunnel infrastructure is down.
+### Sprint 12 OriginMapping Offline Implementation
+
+Decision date: 2026-06-20. Real courier rates must not use the internal `Origin.code` directly. Sprint 12 adds `OriginMapping` per `(originId, courier)`, provider origin resolution in `/v1/rates/resolve`, admin origin mapping endpoints, and `npm run origin:mappings:upsert`. Missing mapping returns `ORIGIN_MAPPING_NOT_FOUND`. SAP placeholder mappings must remain inactive until SAP IT confirms the provider origin code.
+### Sprint 13 JNE Destination Import Tooling
+
+Decision date: 2026-06-20. Full JNE destination import requires granular rows, not one row per tariff code. `DestinationMapping` now uses nullable `sourceKey` as the import idempotency key and provider code is indexed, not unique. `npm run import:jne:destinations` is dry-run by default; `--apply` writes to DB and must wait until tunnel/migrations are healthy. No new XLSX dependency was added.

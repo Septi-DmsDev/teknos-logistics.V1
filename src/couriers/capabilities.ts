@@ -51,13 +51,13 @@ export const courierCapabilities: Record<CourierCode, CourierCapability> = {
   SAP_EXPRESS: {
     courier: 'SAP_EXPRESS',
     displayName: 'SAP Express',
-    implementationStatus: 'SKELETON',
-    supportsRates: false,
-    supportsBooking: false,
-    supportsTracking: false,
+    implementationStatus: 'ACTIVE',
+    supportsRates: true,
+    supportsBooking: true,
+    supportsTracking: true,
     supportsWebhook: true,
-    destinationCodeFormat: 'Pending provider contract; keep merchant payload as origin_code/dest_code until mapping is confirmed.',
-    notes: ['Adapter is registered but external API calls intentionally return 501 until credentials and API contract are confirmed.'],
+    destinationCodeFormat: 'SAP Express district code, for example JI1609. Sprint 12 OriginMapping must resolve merchant origins to provider codes before real rates.',
+    notes: ['Rates and tracking are read flows.', 'Booking creates a real SAP Express AWB/resi and requires explicit operator approval before production validation.'],
   },
 }
 

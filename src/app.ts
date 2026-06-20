@@ -32,6 +32,7 @@ import { mountCourierRoutes } from './routes/v1/couriers.js'
 import { mountRateRoutes } from './routes/v1/rates.js'
 import { mountShipmentRoutes } from './routes/v1/shipments.js'
 import { mountJneWebhookRoutes } from './routes/webhooks/jne.js'
+import { mountSapExpressWebhookRoutes } from './routes/webhooks/sap-express.js'
 import { mountAdminMerchantRoutes } from './routes/admin/merchants.js'
 import { mountAdminStoreRoutes } from './routes/admin/stores.js'
 import { mountAdminCourierServiceRoutes } from './routes/admin/courier-services.js'
@@ -44,7 +45,7 @@ import { sanitizeError } from './utils/http-error.js'
 
 export function createApp() {
   const app = new Hono()
-  const registry = new ProviderRegistry([new MockAdapter(), new JneAdapter(env), new JntAdapter(), new SapExpressAdapter()])
+  const registry = new ProviderRegistry([new MockAdapter(), new JneAdapter(env), new JntAdapter(), new SapExpressAdapter(env)])
   const merchantRepository = new MerchantRepository(prisma)
   const rateCacheRepository = new RateCacheRepository(prisma)
   const shipmentRepository = new ShipmentRepository(prisma)
@@ -96,6 +97,7 @@ export function createApp() {
   mountRateRoutes(app, rateService, destinationResolutionService)
   mountShipmentRoutes(app, shipmentService)
   mountJneWebhookRoutes(app, env, courierWebhookService)
+  mountSapExpressWebhookRoutes(app, env, courierWebhookService)
 
   return app
 }

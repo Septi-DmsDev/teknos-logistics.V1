@@ -32,6 +32,19 @@ export const envSchema = z.object({
   JNE_SHIPPER_PHONE: optionalSecret,
   JNE_SHIPPER_ZIP: optionalSecret,
   JNE_WEBHOOK_TOKEN: optionalSecret,
+  SAP_API_BASE_URL: optionalUrl,
+  SAP_TRACKING_BASE_URL: optionalUrl,
+  SAP_API_KEY: optionalSecret,
+  SAP_CUSTOMER_CODE: optionalSecret,
+  SAP_ORIGIN_DISTRICT_CODE: optionalSecret,
+  SAP_PICKUP_PLACE: z.string().optional().default('1'),
+  SAP_SHIPMENT_TYPE_CODE: z.string().optional().default('SHTPC'),
+  SAP_SHIPMENT_CONTENT_CODE: z.string().optional().default('SHTPC'),
+  SAP_SHIPPER_NAME: optionalSecret,
+  SAP_SHIPPER_ADDRESS: optionalSecret,
+  SAP_SHIPPER_PHONE: optionalSecret,
+  SAP_SHIPPER_CONTACT: optionalSecret,
+  SAP_WEBHOOK_TOKEN: optionalSecret,
 })
 
 export type Env = z.infer<typeof envSchema>

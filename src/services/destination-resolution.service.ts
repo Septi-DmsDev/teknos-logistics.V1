@@ -32,9 +32,12 @@ export class DestinationResolutionService {
     if (!origin) throw new HttpError(404, 'Origin not found or inactive', 'ORIGIN_NOT_FOUND')
 
     const couriers = (input.couriers?.length ? input.couriers : ['MOCK']) as CourierCode[]
-    const resolved = await Promise.all(couriers.map((courier) => this.resolveDestination(merchantId, courier, input.destination)))
+    const resolved = await Promise.all(couriers.map(async (courier) => ({
+      ...await this.resolveDestination(merchantId, courier, input.destination),
+      originCode: await this.resolveOriginCode(merchantId, origin.id, origin.code, courier),
+    })))
     const rateGroups = await Promise.all(resolved.map((item) => this.rates.getRates({
-      origin_code: origin.code,
+      origin_code: item.originCode,
       dest_code: item.providerCode,
       weight_grams: input.weight_grams,
       couriers: [item.courier],
@@ -50,6 +53,13 @@ export class DestinationResolutionService {
     }
   }
 
+  private async resolveOriginCode(merchantId: string, originId: string, fallbackOriginCode: string, courier: CourierCode): Promise<string> {
+    if (courier === 'MOCK') return fallbackOriginCode
+
+    const providerCode = await this.mappings.resolveOriginCode(merchantId, originId, courier)
+    if (!providerCode) throw new HttpError(422, `Origin mapping not found for ${courier}`, 'ORIGIN_MAPPING_NOT_FOUND')
+    return providerCode
+  }
   private async resolveDestination(merchantId: string, courier: CourierCode, destination: RateResolveRequest['destination']): Promise<{
     courier: CourierCode
     providerCode: string

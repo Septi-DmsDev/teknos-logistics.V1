@@ -1,4 +1,4 @@
-﻿import { z } from 'zod'
+import { z } from 'zod'
 import { courierCodeSchema } from './api.js'
 
 const idSchema = z.string().trim().min(1).max(64)
@@ -98,6 +98,14 @@ export const adminDestinationMappingListQuerySchema = adminPaginationSchema.exte
   is_active: z.coerce.boolean().optional(),
 })
 
+export const adminOriginMappingUpsertSchema = z.object({
+  merchant_id: idSchema,
+  origin_id: idSchema,
+  courier: courierCodeSchema,
+  provider_code: z.string().trim().min(2).max(64),
+  label: z.string().trim().min(1).max(120).optional(),
+  is_active: z.boolean().default(true),
+})
 export const adminCourierServiceCreateSchema = z.object({
   courier: courierCodeSchema,
   service_code: z.string().trim().min(1).max(32),
@@ -176,6 +184,7 @@ export type AdminOriginUpdateInput = z.infer<typeof adminOriginUpdateSchema>
 export type AdminDestinationMappingCreateInput = z.infer<typeof adminDestinationMappingCreateSchema>
 export type AdminDestinationMappingUpdateInput = z.infer<typeof adminDestinationMappingUpdateSchema>
 export type AdminDestinationMappingListQuery = z.infer<typeof adminDestinationMappingListQuerySchema>
+export type AdminOriginMappingUpsertInput = z.infer<typeof adminOriginMappingUpsertSchema>
 export type AdminCourierServiceCreateInput = z.infer<typeof adminCourierServiceCreateSchema>
 export type AdminCourierServiceUpdateInput = z.infer<typeof adminCourierServiceUpdateSchema>
 export type AdminMerchantCourierServiceUpsertInput = z.infer<typeof adminMerchantCourierServiceUpsertSchema>

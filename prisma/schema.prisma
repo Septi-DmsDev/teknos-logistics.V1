@@ -58,6 +58,7 @@ model Merchant {
   origins         Origin[]
   courierServices MerchantCourierService[]
   destinationMappings DestinationMapping[]
+  originMappings      OriginMapping[]
 
   @@index([isActive, createdAt])
 }
@@ -97,6 +98,7 @@ model Origin {
   merchant        Merchant                 @relation(fields: [merchantId], references: [id], onDelete: Cascade)
   store           Store?                   @relation(fields: [storeId], references: [id], onDelete: SetNull)
   courierServices MerchantCourierService[]
+  originMappings  OriginMapping[]
 
   @@unique([merchantId, code])
   @@index([merchantId, isActive])
@@ -147,6 +149,7 @@ model DestinationMapping {
   subdistrict  String?
   postalCode   String?
   providerCode String
+  sourceKey    String?
   label        String?
   isActive     Boolean     @default(true)
   createdAt    DateTime    @default(now())
@@ -154,11 +157,29 @@ model DestinationMapping {
 
   merchant Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
 
-  @@unique([merchantId, courier, providerCode])
+  @@unique([merchantId, courier, sourceKey])
+  @@index([merchantId, courier, providerCode])
   @@index([merchantId, courier, postalCode, isActive])
   @@index([merchantId, courier, city, isActive])
 }
 
+model OriginMapping {
+  id           String      @id @default(cuid())
+  merchantId   String
+  originId     String
+  courier      CourierCode
+  providerCode String
+  label        String?
+  isActive     Boolean     @default(true)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  merchant Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  origin   Origin   @relation(fields: [originId], references: [id], onDelete: Cascade)
+
+  @@unique([originId, courier])
+  @@index([merchantId, courier, isActive])
+}
 model ApiKey {
   id         String    @id @default(cuid())
   merchantId String
