@@ -36,6 +36,13 @@ enum CourierServiceStatus {
   INACTIVE
 }
 
+enum AdminOperatorRole {
+  SUPER_ADMIN
+  OPS_ADMIN
+  OPS_VIEWER
+  FINANCE
+}
+
 model Merchant {
   id        String   @id @default(cuid())
   slug      String   @unique
@@ -283,6 +290,19 @@ model RateCache {
   @@index([expiresAt])
 }
 
+
+model AdminOperator {
+  id             String            @id @default(cuid())
+  supabaseUserId String            @unique
+  email          String
+  role           AdminOperatorRole @default(OPS_VIEWER)
+  isActive       Boolean           @default(true)
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  @@index([email])
+  @@index([role, isActive])
+}
 model AdminAuditLog {
   id         String   @id @default(cuid())
   method     String
@@ -292,9 +312,14 @@ model AdminAuditLog {
   requestId  String?
   ipAddress  String?
   userAgent  String?
+  operatorId String?
+  actorEmail String?
+  actorRole  AdminOperatorRole?
+  authProvider String?
   createdAt  DateTime @default(now())
 
   @@index([createdAt])
   @@index([method, path, createdAt])
   @@index([status, createdAt])
+  @@index([operatorId, createdAt])
 }

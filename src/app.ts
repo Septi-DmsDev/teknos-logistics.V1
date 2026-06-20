@@ -14,6 +14,7 @@ import { WebhookRepository } from './repositories/webhook.repository.js'
 import { AdminConfigRepository } from './repositories/admin-config.repository.js'
 import { AdminAuditRepository } from './repositories/admin-audit.repository.js'
 import { DestinationMappingRepository } from './repositories/destination-mapping.repository.js'
+import { AdminOperatorRepository } from './repositories/admin-operator.repository.js'
 import { apiKeyAuth } from './middleware/api-key-auth.js'
 import { adminAuth } from './middleware/admin-auth.js'
 import { adminAudit } from './middleware/admin-audit.js'
@@ -26,6 +27,7 @@ import { AdminApiKeyService } from './services/admin-api-key.service.js'
 import { AdminVisibilityService } from './services/admin-visibility.service.js'
 import { AdminAuditService } from './services/admin-audit.service.js'
 import { DestinationResolutionService } from './services/destination-resolution.service.js'
+import { SupabaseAdminAuthService } from './services/supabase-admin-auth.service.js'
 import { mountCourierRoutes } from './routes/v1/couriers.js'
 import { mountRateRoutes } from './routes/v1/rates.js'
 import { mountShipmentRoutes } from './routes/v1/shipments.js'
@@ -50,6 +52,7 @@ export function createApp() {
   const adminConfigRepository = new AdminConfigRepository(prisma)
   const adminAuditRepository = new AdminAuditRepository(prisma)
   const destinationMappingRepository = new DestinationMappingRepository(prisma)
+  const adminOperatorRepository = new AdminOperatorRepository(prisma)
   const rateService = new RateService(registry, rateCacheRepository)
   const shipmentService = new ShipmentService(registry, shipmentRepository, webhookRepository)
   const courierWebhookService = new CourierWebhookService(registry, shipmentRepository, webhookRepository)
@@ -58,6 +61,7 @@ export function createApp() {
   const adminVisibilityService = new AdminVisibilityService(shipmentRepository, webhookRepository)
   const adminAuditService = new AdminAuditService(adminAuditRepository)
   const destinationResolutionService = new DestinationResolutionService(destinationMappingRepository, rateService)
+  const supabaseAdminAuthService = new SupabaseAdminAuthService(adminOperatorRepository)
 
   app.onError((error, c) => {
     if (error instanceof ZodError) return c.json({ error: 'Invalid request', code: 'VALIDATION_ERROR', issues: error.issues }, 400)
@@ -77,7 +81,7 @@ export function createApp() {
   })
   app.get('/openapi.json', (c) => c.json(openApiContract))
   app.use('/admin/*', rateLimit({ keyPrefix: 'admin', windowMs: env.RATE_LIMIT_WINDOW_MS, maxRequests: env.RATE_LIMIT_ADMIN_MAX }))
-  app.use('/admin/*', adminAuth)
+  app.use('/admin/*', adminAuth(supabaseAdminAuthService))
   app.use('/admin/*', adminAudit(adminAuditRepository))
   app.use('/v1/*', rateLimit({ keyPrefix: 'merchant', windowMs: env.RATE_LIMIT_WINDOW_MS, maxRequests: env.RATE_LIMIT_PUBLIC_MAX }))
   app.use('/webhooks/*', rateLimit({ keyPrefix: 'webhook', windowMs: env.RATE_LIMIT_WINDOW_MS, maxRequests: env.RATE_LIMIT_PUBLIC_MAX }))

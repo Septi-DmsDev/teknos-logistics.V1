@@ -1,4 +1,4 @@
-import type { Prisma, PrismaClient } from '@prisma/client'
+import type { AdminOperatorRole, Prisma, PrismaClient } from '@prisma/client'
 import type { AdminAuditLogListQuery } from '../schemas/admin.js'
 
 export interface CreateAdminAuditLogInput {
@@ -9,6 +9,10 @@ export interface CreateAdminAuditLogInput {
   requestId?: string | null
   ipAddress?: string | null
   userAgent?: string | null
+  operatorId?: string | null
+  actorEmail?: string | null
+  actorRole?: AdminOperatorRole | null
+  authProvider?: string | null
 }
 
 export type AdminAuditLogRecord = Awaited<ReturnType<AdminAuditRepository['list']>>[number]
@@ -26,6 +30,10 @@ export class AdminAuditRepository {
         requestId: input.requestId,
         ipAddress: input.ipAddress,
         userAgent: input.userAgent,
+        operatorId: input.operatorId,
+        actorEmail: input.actorEmail,
+        actorRole: input.actorRole,
+        authProvider: input.authProvider,
       },
       select: { id: true },
     })
@@ -46,6 +54,10 @@ export class AdminAuditRepository {
         requestId: true,
         ipAddress: true,
         userAgent: true,
+        operatorId: true,
+        actorEmail: true,
+        actorRole: true,
+        authProvider: true,
         createdAt: true,
       },
     })

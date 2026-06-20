@@ -27,22 +27,18 @@ Codex: **SKIP Task 1, langsung ke Task 2.**
 
 ---
 
-## Task 2 — Definisikan Types (`sap-express.types.ts`)
+## Task 2 — Definisikan Types (`sap-express.types.ts`) — SELESAI
 
-**File yang disentuh:** `src/couriers/sap-express/sap-express.types.ts` (buat baru)
+**Status: Done oleh Claude Code 2026-06-20.**
+File `src/couriers/sap-express/sap-express.types.ts` sudah ada dengan semua interfaces:
+- `SapDistrictItem`, `SapDistrictResponse`
+- `SapRateService` (field cost/minimum_kilo dll pakai `number | string` karena API bisa return keduanya)
+- `SapRateData`, `SapRateResponse`
+- `SapBookingData`, `SapBookingResponse`
+- `SapTrackEvent` (lengkap dari PDF 41 hal. termasuk photo[], proof[], insurance, branch)
+- `SapTrackResponse`
 
-**Langkah:**
-1. Buat file `sap-express.types.ts`
-2. Definisikan interface berdasarkan API contract yang sudah dikonfirmasi di Task 1:
-   - `SapTariffItem` — satu item layanan dari response tariff
-   - `SapTariffResponse` — response lengkap dari endpoint tariff
-   - `SapBookingResult` — response dari endpoint booking/AWB
-   - `SapTrackEvent` — satu event tracking
-   - `SapTrackResponse` — response lengkap dari endpoint tracking
-3. Gunakan optional fields (`?`) untuk field yang tidak selalu ada
-4. Pola: lihat `src/couriers/jne/jne.types.ts` sebagai referensi struktur
-
-**Validasi:** `npm run typecheck` exit 0
+Codex: **SKIP Task 2, langsung ke Task 3.**
 
 ---
 

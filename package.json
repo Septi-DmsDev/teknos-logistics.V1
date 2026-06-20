@@ -37,7 +37,11 @@
     "smoke:admin-ui": "tsx scripts/smoke-admin-ui.ts",
     "sprint9:readiness": "tsx scripts/sprint9-readiness.ts",
     "sprint10:readiness": "tsx scripts/sprint10-readiness.ts",
-    "smoke:rates:resolve": "tsx scripts/smoke-rates-resolve.ts"
+    "smoke:rates:resolve": "tsx scripts/smoke-rates-resolve.ts",
+    "admin:operator:upsert": "tsx scripts/upsert-admin-operator.ts",
+    "sprint11a:readiness": "tsx scripts/sprint11a-readiness.ts",
+    "admin:supabase:bootstrap": "tsx scripts/bootstrap-supabase-admin.ts",
+    "smoke:admin:supabase": "tsx scripts/smoke-supabase-admin-auth.ts"
   },
   "dependencies": {
     "@hono/node-server": "^1.19.6",

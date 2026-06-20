@@ -10,6 +10,10 @@ export interface AdminAuditLogDto {
   requestId: string | null
   ipAddress: string | null
   userAgent: string | null
+  operatorId: string | null
+  actorEmail: string | null
+  actorRole: string | null
+  authProvider: string | null
   createdAt: string
 }
 
@@ -32,6 +36,10 @@ function toAuditLogDto(log: AdminAuditLogRecord): AdminAuditLogDto {
     requestId: log.requestId,
     ipAddress: log.ipAddress,
     userAgent: log.userAgent,
+    operatorId: log.operatorId,
+    actorEmail: log.actorEmail,
+    actorRole: log.actorRole,
+    authProvider: log.authProvider,
     createdAt: log.createdAt.toISOString(),
   }
 }

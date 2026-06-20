@@ -1,4 +1,4 @@
-﻿export const adminHtml = `<!doctype html>
+export const adminHtml = `<!doctype html>
 <html lang="id">
   <head>
     <meta charset="utf-8" />
@@ -44,15 +44,23 @@
         <section id="login-panel" class="panel login-panel" aria-labelledby="login-title">
           <div>
             <p class="eyebrow">Admin Access</p>
-            <h2 id="login-title">Masukkan admin token</h2>
-            <p class="muted">Token hanya digunakan di browser untuk memanggil endpoint admin. Jangan simpan token di file atau URL.</p>
+            <h2 id="login-title">Masuk Admin</h2>
+            <p id="login-help" class="muted">Gunakan login Supabase untuk akses admin production. Token manual hanya fallback sementara untuk staging/dev.</p>
           </div>
           <form id="token-form" class="form-grid">
-            <label>
-              <span>Admin token</span>
-              <input id="admin-token" name="admin-token" type="password" autocomplete="off" placeholder="Bearer token" required />
+            <label data-auth-field="email">
+              <span>Email admin</span>
+              <input id="admin-email" name="admin-email" type="email" autocomplete="username" placeholder="admin@teknos.id" />
             </label>
-            <button class="button" type="submit">Masuk</button>
+            <label data-auth-field="password">
+              <span>Password</span>
+              <input id="admin-password" name="admin-password" type="password" autocomplete="current-password" placeholder="Password Supabase" />
+            </label>
+            <label data-auth-field="token">
+              <span>Admin token</span>
+              <input id="admin-token" name="admin-token" type="password" autocomplete="off" placeholder="Bearer token" />
+            </label>
+            <button id="login-submit" class="button" type="submit">Masuk</button>
           </form>
         </section>
 

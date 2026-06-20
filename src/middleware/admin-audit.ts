@@ -1,5 +1,6 @@
 import type { Context, Next } from 'hono'
 import type { AdminAuditRepository } from '../repositories/admin-audit.repository.js'
+import { getAdminAuth } from './admin-auth.js'
 
 const MUTATION_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE'])
 
@@ -15,6 +16,7 @@ export function adminAudit(audits: AdminAuditRepository) {
     try {
       await next()
     } finally {
+      const auth = getAdminAuth(c)
       const audit = {
         method,
         path: new URL(c.req.url).pathname,
@@ -23,6 +25,10 @@ export function adminAudit(audits: AdminAuditRepository) {
         requestId: c.req.header('x-request-id') ?? null,
         ipAddress: firstHeaderValue(c.req.header('x-forwarded-for')) ?? c.req.header('x-real-ip') ?? null,
         userAgent: c.req.header('user-agent')?.slice(0, 255) ?? null,
+        operatorId: auth.operatorId ?? null,
+        actorEmail: auth.email ?? null,
+        actorRole: auth.role ?? null,
+        authProvider: auth.provider,
       }
 
       console.info('[admin-audit]', audit)

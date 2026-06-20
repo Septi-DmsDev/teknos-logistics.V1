@@ -1,4 +1,5 @@
 export const adminScript = `const TOKEN_KEY = 'teknos-logistics-admin-token'
+const AUTH_PROVIDER_KEY = 'teknos-logistics-auth-provider'
 const DEFAULT_ROUTE = '/dashboard'
 const ROUTES = new Set([
   '/dashboard',
@@ -12,6 +13,9 @@ const ROUTES = new Set([
 
 const state = {
   adminToken: sessionStorage.getItem(TOKEN_KEY) || '',
+  authProvider: sessionStorage.getItem(AUTH_PROVIDER_KEY) || 'static-token',
+  supabaseUrl: '',
+  supabaseAnonKey: '',
   currentRoute: DEFAULT_ROUTE,
   selectedMerchantId: '',
   loading: false,
@@ -22,6 +26,10 @@ const state = {
 const elements = {
   form: document.getElementById('token-form'),
   tokenInput: document.getElementById('admin-token'),
+  emailInput: document.getElementById('admin-email'),
+  passwordInput: document.getElementById('admin-password'),
+  loginHelp: document.getElementById('login-help'),
+  loginSubmit: document.getElementById('login-submit'),
   loginPanel: document.getElementById('login-panel'),
   contentPanel: document.getElementById('content-panel'),
   authStatus: document.getElementById('auth-status'),
@@ -33,24 +41,11 @@ const elements = {
 function bootstrap() {
   elements.form?.addEventListener('submit', (event) => {
     event.preventDefault()
-    const token = elements.tokenInput?.value.trim() || ''
-    if (!token) {
-      showNotice('Admin token wajib diisi.', 'error')
-      return
-    }
-
-    state.adminToken = token
-    state.lastError = ''
-    state.lastSuccess = 'Token tersimpan untuk sesi browser ini.'
-    sessionStorage.setItem(TOKEN_KEY, token)
-    if (elements.tokenInput) elements.tokenInput.value = ''
-    renderAuthState()
-    renderRoute()
-    showNotice(state.lastSuccess, 'success')
+    void handleLoginSubmit()
   })
 
   elements.logoutButton?.addEventListener('click', () => {
-    logout('Token admin dihapus dari sesi browser.')
+    logout(state.authProvider === 'supabase' ? 'Sesi admin dihapus dari browser.' : 'Token admin dihapus dari sesi browser.')
   })
 
   elements.contentPanel?.addEventListener('submit', (event) => {
@@ -70,13 +65,106 @@ function bootstrap() {
     window.location.hash = '#' + DEFAULT_ROUTE
   }
 
-  renderAuthState()
-  parseRoute()
-  renderRoute()
+  void loadAdminUiConfig().finally(() => {
+    configureLoginForm()
+    renderAuthState()
+    parseRoute()
+    renderRoute()
+  })
   window.addEventListener('hashchange', () => {
     parseRoute()
     renderRoute()
   })
+}
+
+async function loadAdminUiConfig() {
+  try {
+    const response = await fetch('/admin-ui/config.json', { cache: 'no-store' })
+    if (!response.ok) throw new Error('Config unavailable')
+    const config = await response.json()
+    state.authProvider = config.authProvider === 'supabase' ? 'supabase' : 'static-token'
+    state.supabaseUrl = typeof config.supabaseUrl === 'string' ? config.supabaseUrl.replace(new RegExp('/$'), '') : ''
+    state.supabaseAnonKey = typeof config.supabaseAnonKey === 'string' ? config.supabaseAnonKey : ''
+    sessionStorage.setItem(AUTH_PROVIDER_KEY, state.authProvider)
+  } catch {
+    state.authProvider = 'static-token'
+    sessionStorage.setItem(AUTH_PROVIDER_KEY, state.authProvider)
+  }
+}
+
+function configureLoginForm() {
+  const isSupabase = state.authProvider === 'supabase'
+  document.querySelectorAll('[data-auth-field="email"], [data-auth-field="password"]').forEach((element) => {
+    element.hidden = !isSupabase
+  })
+  document.querySelectorAll('[data-auth-field="token"]').forEach((element) => {
+    element.hidden = isSupabase
+  })
+  if (elements.emailInput) elements.emailInput.required = isSupabase
+  if (elements.passwordInput) elements.passwordInput.required = isSupabase
+  if (elements.tokenInput) elements.tokenInput.required = !isSupabase
+  if (elements.loginHelp) {
+    elements.loginHelp.textContent = isSupabase
+      ? 'Gunakan email dan password Supabase. Akses admin tetap diverifikasi server-side lewat AdminOperator aktif.'
+      : 'Token hanya digunakan di browser untuk memanggil endpoint admin. Jangan simpan token di file atau URL.'
+  }
+}
+
+async function handleLoginSubmit() {
+  if (state.authProvider === 'supabase') {
+    await loginWithSupabase()
+    return
+  }
+
+  const token = elements.tokenInput?.value.trim() || ''
+  if (!token) {
+    showNotice('Admin token wajib diisi.', 'error')
+    return
+  }
+
+  setAdminSession(token, 'Token tersimpan untuk sesi browser ini.')
+  if (elements.tokenInput) elements.tokenInput.value = ''
+}
+
+async function loginWithSupabase() {
+  const email = elements.emailInput?.value.trim() || ''
+  const password = elements.passwordInput?.value || ''
+  if (!email || !password) {
+    showNotice('Email dan password wajib diisi.', 'error')
+    return
+  }
+  if (!state.supabaseUrl || !state.supabaseAnonKey) {
+    showNotice('Konfigurasi Supabase login belum tersedia.', 'error')
+    return
+  }
+
+  const response = await fetch(state.supabaseUrl + '/auth/v1/token?grant_type=password', {
+    method: 'POST',
+    headers: {
+      apikey: state.supabaseAnonKey,
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify({ email, password }),
+  })
+  const payload = await readJson(response)
+  if (!response.ok || typeof payload?.access_token !== 'string') {
+    showNotice(sanitizeErrorMessage(payload) || 'Login Supabase gagal.', 'error')
+    return
+  }
+
+  if (elements.passwordInput) elements.passwordInput.value = ''
+  setAdminSession(payload.access_token, 'Login admin berhasil.')
+}
+
+function setAdminSession(token, message) {
+  state.adminToken = token
+  state.lastError = ''
+  state.lastSuccess = message
+  sessionStorage.setItem(TOKEN_KEY, token)
+  sessionStorage.setItem(AUTH_PROVIDER_KEY, state.authProvider)
+  renderAuthState()
+  renderRoute()
+  showNotice(message, 'success')
 }
 
 function parseRoute() {
@@ -111,7 +199,7 @@ function renderAuthState() {
   if (elements.contentPanel) elements.contentPanel.hidden = !authenticated
   if (elements.logoutButton) elements.logoutButton.hidden = !authenticated
   if (elements.authStatus) {
-    elements.authStatus.textContent = authenticated ? 'Token active' : 'Token required'
+    elements.authStatus.textContent = authenticated ? (state.authProvider === 'supabase' ? 'Session active' : 'Token active') : (state.authProvider === 'supabase' ? 'Login required' : 'Token required')
     elements.authStatus.className = authenticated
       ? 'status-badge status-success'
       : 'status-badge status-muted'
@@ -1071,7 +1159,7 @@ function renderShipmentsTable(shipments, error) {
     escapeHtml(shipment.externalOrderId),
     escapeHtml(shipment.waybillId || '-'),
     escapeHtml(shipment.serviceCode + (shipment.serviceName ? ' - ' + shipment.serviceName : '')),
-    escapeHtml(shipment.originCode + ' → ' + shipment.destCode),
+    escapeHtml(shipment.originCode + ' -> ' + shipment.destCode),
     escapeHtml(String(shipment.weightGrams) + 'g / ' + (shipment.rateIdr ?? '-')),
     escapeHtml('T:' + (shipment.counts?.tracking ?? 0) + ' E:' + (shipment.counts?.events ?? 0)),
     escapeHtml(formatDate(shipment.createdAt) + ' / ' + formatDate(shipment.updatedAt)),
@@ -1515,6 +1603,7 @@ function sanitizeErrorMessage(payload) {
 
   return rawMessage
     .replace(/Bearer\\s+[A-Za-z0-9._~+/-]+=*/gi, 'Bearer [redacted]')
+    .replace(/eyJ[A-Za-z0-9._-]+/g, '[redacted-token]')
     .replace(/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}/g, '[redacted-email]')
     .replace(/([A-Za-z]:)?[\\\\/][^\\s]+/g, '[redacted-path]')
     .slice(0, 180)
@@ -1525,6 +1614,7 @@ function logout(message, type = 'success') {
   state.lastError = type === 'error' ? message : ''
   state.lastSuccess = type === 'success' ? message : ''
   sessionStorage.removeItem(TOKEN_KEY)
+  sessionStorage.removeItem(AUTH_PROVIDER_KEY)
   renderAuthState()
   if (elements.contentPanel) elements.contentPanel.innerHTML = ''
   showNotice(message, type)
@@ -1584,6 +1674,7 @@ function showNotice(message, type = 'success') {
 function sanitizeNoticeMessage(message) {
   return String(message || '')
     .replace(/Bearer\\s+[A-Za-z0-9._~+/-]+=*/gi, 'Bearer [redacted]')
+    .replace(/eyJ[A-Za-z0-9._-]+/g, '[redacted-token]')
     .slice(0, 180)
 }
 

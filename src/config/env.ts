@@ -1,14 +1,20 @@
-﻿import { existsSync, readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { z } from 'zod'
 
 const optionalSecret = z.string().optional().default('')
+const optionalUrl = z.union([z.string().url(), z.literal('')]).optional().default('')
 
 export const envSchema = z.object({
   DATABASE_URL: z.string().min(1),
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   PORT: z.coerce.number().int().positive().default(3001),
   APP_URL: z.string().url().default('http://localhost:3001'),
+  ADMIN_AUTH_PROVIDER: z.enum(['static-token', 'supabase']).default('static-token'),
   ADMIN_JWT_SECRET: optionalSecret,
+  SUPABASE_URL: optionalUrl,
+  SUPABASE_ANON_KEY: optionalSecret,
+  SUPABASE_JWT_SECRET: optionalSecret,
+  SUPABASE_SERVICE_ROLE_KEY: optionalSecret,
   RATE_LIMIT_WINDOW_MS: z.coerce.number().int().positive().default(60_000),
   RATE_LIMIT_PUBLIC_MAX: z.coerce.number().int().nonnegative().default(120),
   RATE_LIMIT_ADMIN_MAX: z.coerce.number().int().nonnegative().default(60),
@@ -34,6 +40,11 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env): Env {
   const parsed = envSchema.parse(source)
   if (parsed.NODE_ENV === 'production' && parsed.ADMIN_JWT_SECRET.trim().length === 0) {
     throw new Error('ADMIN_JWT_SECRET is required in production')
+  }
+  if (parsed.ADMIN_AUTH_PROVIDER === 'supabase') {
+    if (!parsed.SUPABASE_URL || !parsed.SUPABASE_JWT_SECRET) {
+      throw new Error('SUPABASE_URL and SUPABASE_JWT_SECRET are required when ADMIN_AUTH_PROVIDER=supabase')
+    }
   }
   return parsed
 }

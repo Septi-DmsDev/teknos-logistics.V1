@@ -1,4 +1,4 @@
-# SAP Express Full Integration — Spec (Updated dengan Sandbox Test Results)
+﻿# SAP Express Full Integration — Spec (Updated dengan Sandbox Test Results)
 
 Date: 2026-06-20
 Status: API contract DIKONFIRMASI via live sandbox testing — siap untuk implementasi
@@ -197,22 +197,62 @@ Status: Ada events (HTTP 200):
 
 **Terbaru = elemen TERAKHIR di array `data`.**
 
+
 ---
 
-## 5. Posisi Saat Ini
+## 4b. PREREQUISITE — OriginMapping Gap (Harus selesai sebelum Sprint 11)
 
-File yang sudah ada (skeleton):
+> **BLOCKER** — SAP Express rates tidak akan bisa dipanggil sampai gap ini diselesaikan.
+> Sama berlaku untuk JNE rates jika melewati DestinationResolutionService.
+
+### Masalah
+
+DestinationResolutionService.resolveRates() saat ini meneruskan origin.code
+("origin_mojokerto_main") langsung sebagai params.originCode ke semua adapter kurir.
+
+Masalahnya:
+- JNE butuh format "MJK10008" (JNE TARIFF_CODE)
+- SAP Express butuh format "JI1609" (SAP district_code cabang asal)
+
+Tidak ada konversi per-kurir untuk kode asal saat ini.
+
+### Solusi
+
+Tambahkan model OriginMapping di Prisma schema (simetris dengan DestinationMapping):
+
+`
+OriginMapping: originId + courier + providerCode
+`
+
+Contoh data untuk origin Mojokerto:
+- courier JNE         → providerCode: "MJK10008"
+- courier SAP_EXPRESS → providerCode: "<kode cabang SAP Mojokerto>" (konfirmasi dari tim IT SAP)
+
+DestinationResolutionService harus diupdate agar lookup OriginMapping per kurir,
+bukan memakai origin.code langsung.
+
+### Siapa Yang Mengerjakan
+
+Ini bagian dari teknos-logistics (bukan teknos.id). Bisa dikerjakan paralel dengan Sprint 11
+atau sebagai task pertama Sprint 11 sebelum client/adapter SAP Express dibuat.
+
+Detail lengkap: lihat docs/implementation-notes.md section "Gap: Per-Courier Origin Code Resolution".
+---
+
+## 5. Posisi Saat Ini (diupdate 2026-06-20)
+
+File yang sudah selesai — **JANGAN disentuh atau di-overwrite:**
 ```
 src/couriers/sap-express/
-  sap-express.adapter.ts     ← semua method throw 501 — perlu diisi
-  sap-express.normalizer.ts  ← status mapping ADA tapi SALAH — perlu update
+  sap-express.types.ts       ✅ SELESAI — types lengkap dari PDF 41 hal + sandbox
+  sap-express.normalizer.ts  ✅ SELESAI — 17 status mapping terkonfirmasi dari PDF
 ```
 
-Yang harus dibuat:
+File yang masih perlu dikerjakan Codex:
 ```
 src/couriers/sap-express/
-  sap-express.client.ts      ← HTTP client (buat baru)
-  sap-express.types.ts       ← TypeScript types (buat baru)
+  sap-express.adapter.ts     ← semua method throw 501 — implementasikan
+  sap-express.client.ts      ← HTTP client — buat baru
 ```
 
 ---
@@ -254,137 +294,40 @@ interface CourierRate {
 
 ---
 
-## 7. TypeScript Types (`sap-express.types.ts`)
+## 7. TypeScript Types (`sap-express.types.ts`) — SUDAH ADA
 
+**File sudah dibuat oleh Claude Code 2026-06-20. Gunakan langsung, jangan overwrite.**
+
+Import dari file yang ada:
 ```typescript
-export interface SapDistrictItem {
-  city_code: string
-  district_code: string
-  district_name: string
-  zone_code: string
-  provinsi_code: string
-  city_name: string
-  tlc_branch_code: string
-  provinsi_name: string
-}
-
-export interface SapDistrictResponse {
-  status: 'success' | 'fail' | boolean
-  msg: string
-  data: SapDistrictItem[]
-}
-
-export interface SapRateService {
-  service_type_code: string
-  service_type_name: string
-  cost: number
-  total_cost: number           // gunakan ini untuk priceIdr
-  sla: string                  // "3 - 5 Hari" atau "-"
-  minimum_kilo: number
-  kilo_divider: number
-  insurance_cost: number
-  insurance_admin_cost: number
-  packing_cost: number | string
-  volumetric_kg: number
-  weight: number
-  final_weight: number
-  discount: string
-  surcharge: number
-  markup_percentage: string
-}
-
-export interface SapRateData {
-  origin: string
-  destination: string
-  coverage_cod: boolean
-  services: SapRateService[]
-}
-
-export interface SapRateResponse {
-  status: 'success' | 'fail' | boolean
-  msg: string
-  data: SapRateData | []
-}
-
-export interface SapBookingData {
-  awb_no: string           // waybillId!
-  reference_no: string
-  origin_branch_code: string
-  destination_branch_code: string
-  tlc_branch_code: string
-  label: string
-}
-
-export interface SapBookingResponse {
-  status: 'success' | 'fail' | boolean
-  msg: string
-  data: SapBookingData | []
-}
-
-export interface SapTrackEvent {
-  awb_no: string
-  reference_no: string
-  service_type_code: string
-  origin: string           // human readable, bukan kode
-  destination: string
-  shipping_cost: string
-  rowstate: string
-  rowstate_name: string    // STATUS FIELD — gunakan ini
-  rowstate_web: string
-  pod_status_code: string | null
-  pod_status_name: string | null
-  description: string
-  create_date: string      // "YYYY-MM-DD HH:MM:SS"
-  current_branch_name: string
-  origin_code: string
-  destination_code: string
-  lead_time_order: number
-  lead_time_status: string
-  lead_time_limit: string
-}
-
-export interface SapTrackResponse {
-  status: 'success' | 'fail' | boolean
-  msg: string
-  data: SapTrackEvent[]
-}
+import type {
+  SapDistrictItem, SapDistrictResponse,
+  SapRateService, SapRateData, SapRateResponse,
+  SapBookingData, SapBookingResponse,
+  SapTrackEvent, SapTrackResponse,
+} from './sap-express.types.js'
 ```
+
+Catatan penting dari types:
+- `SapRateService.cost`, `minimum_kilo`, `kilo_divider`, `final_weight` bertipe `number | string` — API bisa return keduanya. Selalu gunakan `Number(s.total_cost)` untuk kalkulasi, jangan langsung compare
+- `SapTrackEvent.rowstate_name` — gunakan `.trim()` karena bisa ada trailing space (contoh: `"DELIVERY "`)
+- `total_cost` di `SapRateService` adalah field yang benar untuk `priceIdr`
 
 ---
 
-## 8. Status Normalizer (`sap-express.normalizer.ts`) — PERLU UPDATE
+## 8. Status Normalizer (`sap-express.normalizer.ts`) — SUDAH ADA
 
-File yang ada saat ini menggunakan string pendek seperti "DELIVERED", "PICKUP" — **SALAH**.
-SAP menggunakan `rowstate_name` dengan format verbose string. Ganti isi normalizer:
+**File sudah diupdate oleh Claude Code 2026-06-20 dengan 17 status dari PDF halaman 34.**
+Jangan diubah. Import `mapSapExpressStatus` langsung:
 
 ```typescript
-import type { ShipmentStatus } from '../types.js'
-
-const SAP_STATUS_MAP: Record<string, ShipmentStatus> = {
-  'ENTRI (SEDANG DI PICKUP)':    'BOOKED',
-  'ENTRI (PENDING PICKUP)':      'BOOKED',
-  'ENTRI (SEDANG PICKUP ULANG)': 'BOOKED',
-  'ENTRI VERIFIED':              'BOOKED',
-  'PICKED UP':                   'PICKED_UP',
-  'VOID':                        'CANCELLED',
-  'VOID_PICKUP':                 'CANCELLED',
-  'MANIFEST OUTGOING':           'IN_TRANSIT',
-  'OUTGOING SMU':                'IN_TRANSIT',
-  'INCOMING':                    'IN_TRANSIT',
-  'DELIVERY':                    'OUT_FOR_DELIVERY',
-  'POD - DELIVERED':             'DELIVERED',
-  'POD - UNDELIVERED':           'FAILED',
-  'OUTGOING RETURN':             'RETURNED',
-  'INCOMING RETURN':             'RETURNED',
-  'DELIVERY RETURN':             'RETURNED',
-  'SHIPMENT RETURN TO CLIENT':   'RETURNED',
-}
-
-export function mapSapExpressStatus(input: string | undefined): ShipmentStatus {
-  if (!input) return 'IN_TRANSIT'
-  return SAP_STATUS_MAP[input.trim()] ?? 'IN_TRANSIT'
-}
+import { mapSapExpressStatus } from './sap-express.normalizer.js'
 ```
+
+Fungsi ini sudah handle:
+- Semua 17 `rowstate_name` dari PDF
+- Trailing space pada `"DELIVERY "` via `.trim()`
+- Unknown status → fallback `'IN_TRANSIT'`
 
 ---
 
@@ -489,7 +432,10 @@ export class SapExpressClient {
 
   async track(waybillId: string): Promise<SapTrackResponse> {
     this.assertConfigured([...SAP_BASE_KEYS])
-    const url = `${this.env.SAP_API_BASE_URL}/v2/shipment/tracking?awb_no=${encodeURIComponent(waybillId)}`
+    // Production tracking host berbeda: track.coresyssap.com
+    // Sandbox keduanya sama. SAP_TRACKING_BASE_URL default ke SAP_API_BASE_URL jika tidak diset
+    const trackingBase = this.env.SAP_TRACKING_BASE_URL ?? this.env.SAP_API_BASE_URL
+    const url = `${trackingBase}/v2/shipment/tracking?awb_no=${encodeURIComponent(waybillId)}`
     return this.request<SapTrackResponse>(
       url,
       { method: 'GET', headers: this.getHeaders() },
@@ -543,12 +489,12 @@ export class SapExpressAdapter implements LogisticsProvider {
     const data = raw.data
     if (!data || Array.isArray(data)) return []
     return (data.services ?? [])
-      .filter(s => s.total_cost > 0)
+      .filter(s => Number(s.total_cost) > 0)  // total_cost bisa string atau number
       .map(s => ({
         courier: 'SAP_EXPRESS' as const,
         serviceCode: s.service_type_code,
         serviceName: s.service_type_name,
-        priceIdr: s.total_cost,
+        priceIdr: Number(s.total_cost),        // coerce ke number untuk keamanan
         etd: s.sla === '-' ? 'Tidak tersedia' : s.sla,
         cached: false as const,
       }))
@@ -615,7 +561,8 @@ Tambahkan ke `src/config/env.ts` (sebagai `optionalSecret`) dan `.env.example`:
 
 ```typescript
 // di envSchema Zod:
-SAP_API_BASE_URL:             optionalSecret,
+SAP_API_BASE_URL:             optionalSecret,  // https://api.coresyssap.com/
+SAP_TRACKING_BASE_URL:        optionalSecret,  // https://track.coresyssap.com/ (production only; sandbox sama dengan API_BASE_URL)
 SAP_API_KEY:                  optionalSecret,
 SAP_CUSTOMER_CODE:            optionalSecret,
 SAP_ORIGIN_DISTRICT_CODE:     optionalSecret,
@@ -623,9 +570,9 @@ SAP_SHIPPER_NAME:             optionalSecret,
 SAP_SHIPPER_ADDRESS:          optionalSecret,
 SAP_SHIPPER_PHONE:            optionalSecret,
 SAP_SHIPPER_CONTACT:          optionalSecret,
-SAP_PICKUP_PLACE:             optionalSecret,
-SAP_SHIPMENT_TYPE_CODE:       optionalSecret,
-SAP_SHIPMENT_CONTENT_CODE:    optionalSecret,
+SAP_PICKUP_PLACE:             optionalSecret,  // default "1" (pickup courier)
+SAP_SHIPMENT_TYPE_CODE:       optionalSecret,  // default "SHTPC"
+SAP_SHIPMENT_CONTENT_CODE:    optionalSecret,  // default "SHTPC"
 SAP_WEBHOOK_TOKEN:            optionalSecret,
 ```
 
@@ -694,12 +641,15 @@ const adapter = new SapExpressAdapter(mockEnv, mockFetcher({ /* SAP response */ 
 
 ## 13. Kriteria Done
 
-- [ ] `sap-express.types.ts` dibuat dengan semua types yang dikonfirmasi dari sandbox
-- [ ] `sap-express.normalizer.ts` diupdate dengan `SAP_STATUS_MAP` yang benar
-- [ ] `sap-express.client.ts` dibuat dengan `Content-Type: application/json` lowercase
-- [ ] `sap-express.adapter.ts` tidak ada method yang throw 501
+Sudah selesai (jangan disentuh):
+- [x] `sap-express.types.ts` — types lengkap dari PDF + sandbox (Claude Code 2026-06-20)
+- [x] `sap-express.normalizer.ts` — 17 status mapping terkonfirmasi (Claude Code 2026-06-20)
+
+Masih perlu dikerjakan Codex:
+- [ ] `sap-express.client.ts` dibuat dengan `Content-Type: application/json` lowercase + `SAP_TRACKING_BASE_URL` untuk tracking endpoint
+- [ ] `sap-express.adapter.ts` tidak ada method yang throw 501; gunakan `Number(s.total_cost)` untuk priceIdr
 - [ ] `capabilities.ts` — `SAP_EXPRESS` status = `ACTIVE`, semua `supports*: true`
-- [ ] `env.ts` schema mencakup semua `SAP_*` vars sebagai `optionalSecret`
+- [ ] `env.ts` schema mencakup semua `SAP_*` vars termasuk `SAP_TRACKING_BASE_URL`
 - [ ] `.env.example` mencantumkan semua `SAP_*` vars
 - [ ] `POST /webhooks/sap-express` handler dibuat
 - [ ] Provider registry mendaftarkan `SapExpressAdapter`
@@ -716,3 +666,4 @@ const adapter = new SapExpressAdapter(mockEnv, mockFetcher({ /* SAP response */ 
 - `src/config/env.ts` — tambahkan `SAP_*` vars
 - `docs/implementation-notes.md` — detail lengkap sandbox test results (Sprint 11 section)
 - `docs/ROADMAP.md` — Sprint 11 context
+
