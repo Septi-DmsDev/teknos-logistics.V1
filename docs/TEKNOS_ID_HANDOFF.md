@@ -1,7 +1,7 @@
 # teknos.id Integration Handoff
 
 Date: 2026-06-19
-Status: Sprint 6 handoff artifact; Sprint 7 admin config foundation complete
+Status: Sprint 6 handoff artifact; Sprint 9 Admin Control Center complete inside `teknos-logistics`
 
 This document is the copy-ready handoff for the future parent `teknos.id` integration. It is intentionally stored in `teknos-logistics`; do not edit parent `teknos.id` from this sprint.
 
@@ -15,7 +15,7 @@ Target model: `teknos.id` owns commerce; `teknos-logistics` owns logistics opera
 - Rates and tracking are safe read flows; JNE shipment booking can create a real AWB/resi and requires explicit operator approval.
 - The current machine-readable contract is available from `GET /openapi.json` and checked by `npm run contract:check`.
 - Before opening a parent-repo implementation task, run `npm run sprint6:readiness` in `teknos-logistics`.
-- Sprint 7 admin config lives entirely inside `teknos-logistics`: merchant/store/origin/courier service assignment, admin visibility, and smoke validation. Parent `teknos.id` should still consume only the simplified merchant API and webhook contract.
+- Sprint 9 Admin Control Center lives entirely inside `teknos-logistics` at `/admin-ui`: merchant/store/origin/courier config, operations visibility, and smoke/readiness validation. Parent `teknos.id` should still consume only the simplified merchant API and webhook contract, not duplicate logistics operations UI.
 
 ## Required Parent Environment
 

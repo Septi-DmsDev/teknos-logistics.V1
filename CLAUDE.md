@@ -163,6 +163,7 @@ src/
 | Sprint 06 | `teknos.id` staging integration | In Progress - OpenAPI contract endpoint and `contract:check` handoff validation added inside `teknos-logistics`; parent `teknos.id` remains read-only |
 | Sprint 07 | Logistics admin config MVP | Done - Tasks 1-7 completed, migration `20260618103000_add_admin_config_models` applied, full validation passed, and admin smoke passed on 2026-06-19 |
 | Sprint 08 | Reliability and security hardening | Done - health/readiness, route rate limiting, persistent admin audit logs, audit visibility, cleanup utility, and runbook/readiness gate completed |
+| Sprint 09 | Admin Control Center minimal | Done - `/admin-ui` dashboard, merchant/store/origin/courier config UI, read-only operations pages, `smoke:admin-ui`, and `sprint9:readiness` completed |
 
 ---
 
@@ -267,3 +268,7 @@ Next sprint should harden the admin/config platform before UI expansion: route-l
 - [ ] Full flow test: end-to-end dari UI sampai DB
 - [ ] Security scan bersih (semgrep, gitleaks, trivy)
 - [ ] Monitoring & alerting aktif
+
+### Sprint 9 Admin Control Center
+
+`/admin-ui` is the minimal internal operator UI served by Hono. It uses browser `sessionStorage` for the operator-entered admin token, calls existing `/admin/*` APIs, and intentionally has no JNE booking, `generatecnote`, or real AWB/resi creation action. Run `npm run smoke:admin-ui` and `npm run sprint9:readiness` before deploy validation.

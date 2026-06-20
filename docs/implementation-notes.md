@@ -106,3 +106,10 @@ See `.env.example`. All JNE credential values must stay server-only and must not
 - Added `npm run audit:cleanup` for dry-run-first audit retention cleanup and `npm run sprint8:readiness` for hardening readiness checks.
 - Added `docs/SPRINT_8_HARDENING_RUNBOOK.md` as the operational deploy/security gate.
 - Sprint 8 is complete; remaining scale follow-up is replacing in-memory rate limiting with Redis/shared storage when running multiple app instances.
+
+## Sprint 9 Admin Control Center - 2026-06-20
+
+- Added server-served Admin Control Center at `/admin-ui` with static HTML/CSS/JS from Hono; no new frontend framework was introduced.
+- UI covers dashboard, merchant/API key/webhook endpoint management, store/origin management, courier service catalog and assignment, and read-only shipments/webhook relays/audit logs.
+- Added `npm run smoke:admin-ui` and `npm run sprint9:readiness`; validation passed with lint, typecheck, build, smoke admin UI, and readiness checks.
+- Sprint 9 has no migration and no JNE booking/resi/generatecnote action. Parent `teknos.id` remains read-only and should consume the simplified API/webhook contract.
