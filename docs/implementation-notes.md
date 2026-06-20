@@ -126,26 +126,347 @@ See `.env.example`. All JNE credential values must stay server-only and must not
 - Do not mirror Biteship envs such as origin area ID, origin postal code, or courier list in parent apps. Those are centralized in `teknos-logistics` Admin Control Center.
 - Next product gap is destination/origin abstraction so parent can send store/destination data without owning raw JNE/JNT/SAP provider codes.
 
-## Sprint 11 SAP Express â€” Research Notes (isi oleh Codex saat mengerjakan)
+## Sprint 11 SAP Express — Sandbox Test Results (2026-06-20)
 
-Sebelum Codex mulai implementasi Task 1, catat temuan API SAP Express di sini:
+**Status: DIKONFIRMASI via sandbox live testing oleh Claude Code 2026-06-20.**
+Codex TIDAK perlu riset API lagi — gunakan data ini langsung.
+
+### Host & Auth
 
 ```
-SAP Express API Base URL (production): [dikonfirmasi dari dok SAP]
-SAP Express API Base URL (sandbox):    [ada/tidak ada]
-Auth method:                           [header x-api-key / Bearer / form-urlencoded]
-Endpoint tariff:                       [PATH + METHOD]
-Endpoint booking:                      [PATH + METHOD]
-Endpoint tracking:                     [PATH + METHOD]
-Webhook format (status fields):        [field names yang dikirim SAP]
-Webhook auth:                          [header name + format]
-Format kode origin/dest:               [contoh kode nyata]
-Format response tariff:                [root array / { data: [] } / { rates: [] }]
-Field nama AWB di booking response:    [waybill_id / awb / connote_no / ...]
-Format ETD:                            ['2-3 hari' / '2' / '2-3' / ...]
+Sandbox:    https://apisanbox.coresyssap.com/
+Production: https://api.coresyssap.com/
+Production tracking (berbeda host): https://track.coresyssap.com/
 ```
 
-Isi bagian ini sebelum menulis kode apapun. Jangan asumsikan format dari API lain.
+**Auth header SETIAP request:**
+```
+api_key: <API_KEY>
+Content-Type: application/json   ← WAJIB lowercase! docs salah tulis “Application/json”
+```
+
+**Dev Credentials (sandbox):**
+```
+api_key:              DEV_m4rK3tPlac3#_2019
+customer_code NonCOD: DEV000   ← gunakan ini untuk e-commerce standard
+customer_code COD:    DEV001   ← butuh field cod_amount tambahan
+```
+
+### District Code Format
+
+Format: `{PROVINSI}{CITY_NUM}` untuk kota, `{PROVINSI}{CITY_NUM}{KEC_NUM}` untuk kecamatan.
+
+Contoh terkonfirmasi:
+```
+JK00   = JAKARTA (kota level)
+JK0702 = GROGOL PETAMBURAN (kecamatan Jakarta Barat)
+JI16   = MOJOKERTO (kota)
+JI1609 = MOJOANYAR, Mojokerto (kecamatan)
+DEV    = DEVELOPMENT (sandbox test area)
+```
+
+Response `district` endpoint (terkonfirmasi):
+```json
+{
+  “city_code”: “JI16”,
+  “district_code”: “JI1609”,
+  “district_name”: “MOJOANYAR”,
+  “zone_code”: “ZCJI1601”,
+  “provinsi_code”: “JI”,
+  “city_name”: “MOJOKERTO”,
+  “tlc_branch_code”: “MJK”,
+  “provinsi_name”: “JAWA TIMUR”
+}
+```
+
+Untuk rates & booking: gunakan `district_code` (bukan `city_code`).
+
+### Endpoint: Coverage Area
+
+```
+GET /v2/master/district/get
+Query (semua optional): provinsi_name, city_name, district_name, provinsi_code, city_code, district_code
+```
+
+### Endpoint: Shipment Cost (Rates) — DIKONFIRMASI
+
+```
+POST /v2/master/shipment_cost
+Content-Type: application/json  ← lowercase wajib
+
+Body:
+{
+  “origin”: “JK00”,           ← SAPX district_code
+  “destination”: “JI16”,      ← SAPX district_code
+  “weight”: 1,                ← integer kg (bukan gram!)
+  “customer_code”: “DEV000”,
+  “volumetric”: “10x10x10”    ← “LxWxH” dalam cm
+}
+
+Response HTTP 200 (success):
+{
+  “status”: “success”,
+  “data”: {
+    “origin”: “JK00”,
+    “destination”: “JI16”,
+    “coverage_cod”: true,
+    “services”: [
+      {
+        “service_type_code”: “UDRREG”,
+        “service_type_name”: “SATRIA REG”,
+        “cost”: 24500,            ← per-kg price
+        “total_cost”: 24500,      ← GUNAKAN INI untuk priceIdr
+        “sla”: “3 - 5 Hari”,     ← atau “-” jika tidak ada SLA
+        “minimum_kilo”: 1,
+        “kilo_divider”: 6000,
+        “insurance_cost”: 0,
+        “insurance_admin_cost”: 0,
+        “packing_cost”: 0,
+        “volumetric_kg”: 0,
+        “weight”: 1,
+        “final_weight”: 1,
+        “discount”: “0%”,
+        “surcharge”: 0,
+        “markup_percentage”: “0”
+      }
+    ]
+  },
+  “msg”: “”
+}
+
+Response HTTP 422 (validasi gagal):
+{ “status”: “fail”, “data”: [], “msg”: “Bagian origin district code harus diisi.” }
+
+Response HTTP 200 (route tidak tersedia):
+{ “status”: “fail”, “data”: [], “msg”: “Harga tidak ditemukan” }
+```
+
+Services terkonfirmasi di sandbox:
+- `UDRREG` → “SATRIA REG” (reguler)
+- `DRGREG` → “SATRIA CARGO” (darat/cargo)
+- `UDRONS` → “SATRIA ODS” (one day service)
+- `UDRSDS` → “SATRIA SDS” (same day — dari PDF, belum test di sandbox)
+
+### Endpoint: Create Order (Booking) — DIKONFIRMASI
+
+```
+POST /v2/shipment/pickup/create
+Content-Type: application/json
+
+Body (semua wajib kecuali disebutkan optional):
+{
+  “customer_code”: “DEV000”,
+  “reference_no”: “TKN-1234567890”,  ← MAX 20 CHARS, hanya - dan _ boleh
+  “service_type_code”: “UDRREG”,
+  “pickup_place”: “1”,               ← “1”=pickup courier, “2”=drop off
+  “koli”: “1”,                       ← jumlah paket (string angka)
+  “weight”: 1,                       ← integer kg
+  “volumetric”: “10x10x10”,          ← “LxWxH” cm
+  “destination_district_code”: “JK00”,
+  “pickup_name”: “Toko Teknos”,
+  “pickup_address”: “Jl. Test 123”,
+  “pickup_phone”: “081234567890”,
+  “pickup_contact”: “Admin”,         ← WAJIB — tidak ada di spec awal
+  “pickup_district_code”: “JI1606”,  ← kode origin
+  “shipment_type_code”: “SHTPC”,
+  “shipment_content_code”: “SHTPC”,
+  “shipper_name”: “Teknos”,
+  “shipper_address”: “Jl. Test 123”,
+  “shipper_phone”: “081234567890”,
+  “shipper_contact”: “Admin Teknos”,
+  “receiver_name”: “Nama Penerima”,
+  “receiver_address”: “Jl. Penerima 456”,
+  “receiver_phone”: “085678901234”,
+  “receiver_contact”: “Nama Penerima”
+}
+
+Response HTTP 200 (success):
+{
+  “status”: “success”,
+  “data”: {
+    “awb_no”: “DEV00845560349”,       ← INI waybillId untuk tracking
+    “reference_no”: “TKN-1781919831”,
+    “origin_branch_code”: “DEV”,
+    “destination_branch_code”: “DEV”,
+    “tlc_branch_code”: “DEV”,
+    “label”: “https://...?awb_no=...&api_key=...”  ← jangan expose ke customer
+  },
+  “msg”: “Pickup transfer success”
+}
+```
+
+**KRITIKAL — idempotency:** SAPX TIDAK idempotent. `reference_no` sama → AWB baru.
+Teknos-logistics harus cegah duplikat via `merchantId + externalOrderId` unique constraint.
+
+**COD:** Gunakan `customer_code: “DEV001”` dan tambah field `cod_amount: 150000`.
+
+### Endpoint: Tracking — DIKONFIRMASI
+
+```
+GET /v2/shipment/tracking?awb_no=<AWB>
+  atau
+GET /v2/shipment/tracking?reference_no=<REF>
+
+Response (AWB ada, belum ada events):
+{ “status”: “success”, “msg”: “Tidak ada status”, “data”: [] }
+
+Response (AWB tidak ditemukan — HTTP 404):
+{ “status”: “fail”, “msg”: “Airwaybill tidak ditemukan” }
+
+Response (AWB ada, ada events):
+{
+  “status”: “success”,
+  “msg”: “”,
+  “data”: [
+    {
+      “awb_no”: “DEV00845560349”,
+      “reference_no”: “TKN-123”,
+      “service_type_code”: “UDRREG”,
+      “origin”: “DEVELOPMENT - District”,  ← human readable, bukan kode
+      “destination”: “JAKARTA”,
+      “rowstate_name”: “ENTRI (PENDING PICKUP)”,  ← GUNAKAN INI untuk status
+      “rowstate_web”: “Proses Pick Up Ditunda”,
+      “description”: “[KURIR: ] [ALAMAT PICKUP: ...] [KETERANGAN: ...]”,
+      “create_date”: “2022-02-09 10:38:45”,
+      “origin_code”: “DEV”,
+      “destination_code”: “JK00”,
+      “lead_time_status”: “late”,
+      ...
+    }
+  ]
+}
+```
+
+**Status terbaru = elemen TERAKHIR di array.**
+
+### Status Mapping rowstate_name → ShipmentStatus
+
+```typescript
+const STATUS_MAP: Record<string, ShipmentStatus> = {
+  'ENTRI (SEDANG DI PICKUP)':    'BOOKED',
+  'ENTRI (PENDING PICKUP)':      'BOOKED',
+  'ENTRI (SEDANG PICKUP ULANG)': 'BOOKED',
+  'ENTRI VERIFIED':              'BOOKED',
+  'PICKED UP':                   'PICKED_UP',
+  'VOID':                        'CANCELLED',
+  'VOID_PICKUP':                 'CANCELLED',
+  'MANIFEST OUTGOING':           'IN_TRANSIT',
+  'OUTGOING SMU':                'IN_TRANSIT',
+  'INCOMING':                    'IN_TRANSIT',
+  'DELIVERY':                    'OUT_FOR_DELIVERY',
+  'POD - DELIVERED':             'DELIVERED',
+  'POD - UNDELIVERED':           'FAILED',
+  'OUTGOING RETURN':             'RETURNED',
+  'INCOMING RETURN':             'RETURNED',
+  'DELIVERY RETURN':             'RETURNED',
+  'SHIPMENT RETURN TO CLIENT':   'RETURNED',
+}
+// Fallback untuk unknown: 'IN_TRANSIT'
+```
+
+### TypeScript Types (Dikonfirmasi)
+
+```typescript
+// sap-express.types.ts
+
+export interface SapDistrictItem {
+  city_code: string
+  district_code: string
+  district_name: string
+  zone_code: string
+  provinsi_code: string
+  city_name: string
+  tlc_branch_code: string
+  provinsi_name: string
+}
+
+export interface SapRateService {
+  service_type_code: string    // “UDRREG”, “DRGREG”, “UDRONS”, “UDRSDS”
+  service_type_name: string    // “SATRIA REG”, “SATRIA CARGO”, dst
+  cost: number                 // per-kg price
+  total_cost: number           // GUNAKAN INI — final price
+  sla: string                  // “3 - 5 Hari” atau “-”
+  minimum_kilo: number
+  kilo_divider: number
+  insurance_cost: number
+  insurance_admin_cost: number
+  packing_cost: number | string
+  volumetric_kg: number
+  weight: number
+  final_weight: number
+  discount: string
+  surcharge: number
+  markup_percentage: string
+}
+
+export interface SapRateResponse {
+  status: 'success' | 'fail' | boolean
+  msg: string
+  data: { origin: string; destination: string; coverage_cod: boolean; services: SapRateService[] } | []
+}
+
+export interface SapBookingData {
+  awb_no: string           // waybillId!
+  reference_no: string
+  origin_branch_code: string
+  destination_branch_code: string
+  tlc_branch_code: string
+  label: string
+}
+
+export interface SapBookingResponse {
+  status: 'success' | 'fail' | boolean
+  msg: string
+  data: SapBookingData | []
+}
+
+export interface SapTrackEvent {
+  awb_no: string
+  reference_no: string
+  service_type_code: string
+  origin: string           // human readable label
+  destination: string
+  shipping_cost: string
+  rowstate: string
+  rowstate_name: string    // STATUS FIELD
+  rowstate_web: string
+  pod_status_code: string | null
+  pod_status_name: string | null
+  description: string
+  create_date: string      // “YYYY-MM-DD HH:MM:SS”
+  current_branch_name: string
+  origin_code: string
+  destination_code: string
+  lead_time_order: number
+  lead_time_status: string
+  lead_time_limit: string
+}
+
+export interface SapTrackResponse {
+  status: 'success' | 'fail' | boolean
+  msg: string
+  data: SapTrackEvent[]
+}
+```
+
+### Env Vars yang Diperlukan
+
+```env
+SAP_API_BASE_URL=             # URL base API SAP
+SAP_API_KEY=                  # API key dari SAP Express
+SAP_CUSTOMER_CODE=            # kode merchant SAP (bukan username)
+SAP_ORIGIN_DISTRICT_CODE=     # kode district kecamatan asal (contoh: JI1606 Kemlagi)
+SAP_SHIPPER_NAME=
+SAP_SHIPPER_ADDRESS=
+SAP_SHIPPER_PHONE=
+SAP_SHIPPER_CONTACT=
+SAP_PICKUP_PLACE=1            # “1”=pickup courier, “2”=drop off
+SAP_SHIPMENT_TYPE_CODE=SHTPC
+SAP_SHIPMENT_CONTENT_CODE=SHTPC
+SAP_WEBHOOK_TOKEN=            # token validasi webhook dari SAP
+```
+
+Tidak perlu `SAP_USERNAME` — auth hanya pakai `api_key` header.
 
 ## Arsitektur Target Jangka Panjang - 2026-06-20
 
