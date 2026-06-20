@@ -8,7 +8,7 @@
   },
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "start": "node dist/server.js",
+    "start": "node dist/src/server.js",
     "build": "prisma generate && tsc -p tsconfig.json",
     "lint": "eslint .",
     "test": "node -e \"console.log('No automated tests configured for bootstrap; F1/F2/F7 covered separately by Claude Code')\"",
