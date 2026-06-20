@@ -143,6 +143,10 @@ function renderRoute() {
   if (state.currentRoute === '/merchant/:id') {
     void loadMerchantDetail(state.selectedMerchantId)
   }
+
+  if (state.currentRoute === '/stores-origins') {
+    void loadStoresOrigins()
+  }
 }
 
 function routeConfig(route) {
@@ -177,7 +181,13 @@ function routeConfig(route) {
   }
 
   if (route === '/stores-origins') {
-    return placeholderPage('Stores & Origins', 'Konfigurasi store dan origin akan ditambahkan tanpa aksi booking resi.')
+    return {
+      title: 'Stores & Origins',
+      eyebrow: 'Merchant Config',
+      description: 'Kelola toko dan titik origin per merchant. Default origin tetap ditegakkan oleh backend.',
+      badge: 'Manage',
+      content: renderStoresOriginsLoading(),
+    }
   }
 
   if (route === '/courier-services') {
@@ -599,6 +609,137 @@ function renderWebhookEndpointList(endpoints) {
     + '</div>'
 }
 
+function renderStoresOriginsLoading() {
+  return '<div id="stores-origins-root" class="management-grid"><div class="form-card wide-card"><h3>Stores & Origins</h3><p class="muted">Memuat merchant, store, dan origin...</p></div></div>'
+}
+
+async function loadStoresOrigins() {
+  const snapshotRoute = state.currentRoute
+  const query = storesOriginsQueryFromHash()
+  let merchants = []
+  let stores = []
+  let origins = []
+  let error = ''
+
+  try {
+    const merchantPayload = await apiGet('/admin/merchants', { limit: 50 })
+    merchants = Array.isArray(merchantPayload?.merchants) ? merchantPayload.merchants : []
+    const selectedMerchantId = query.merchantId || merchants[0]?.id || ''
+    query.merchantId = selectedMerchantId
+
+    if (selectedMerchantId) {
+      const [storePayload, originPayload] = await Promise.all([
+        apiGet('/admin/merchants/' + encodeURIComponent(selectedMerchantId) + '/stores', { limit: 50 }),
+        apiGet('/admin/merchants/' + encodeURIComponent(selectedMerchantId) + '/origins', { store_id: query.storeId, limit: 50 }),
+      ])
+      stores = Array.isArray(storePayload?.stores) ? storePayload.stores : []
+      origins = Array.isArray(originPayload?.origins) ? originPayload.origins : []
+    }
+  } catch {
+    error = 'Store dan origin tidak tersedia saat ini.'
+  }
+
+  if (state.currentRoute !== snapshotRoute || state.currentRoute !== '/stores-origins' || !elements.contentPanel) return
+
+  const route = routeConfig('/stores-origins')
+  const content = renderStoresOriginsContent({ merchants, stores, origins, query, error })
+  elements.contentPanel.innerHTML = renderPageShell({ ...route, content })
+}
+
+function storesOriginsQueryFromHash() {
+  const queryText = (window.location.hash.split('?')[1] || '').trim()
+  const params = new URLSearchParams(queryText)
+  return {
+    merchantId: params.get('merchant_id') || '',
+    storeId: params.get('store_id') || '',
+  }
+}
+
+function storesOriginsHash(query) {
+  const params = new URLSearchParams()
+  if (query.merchantId) params.set('merchant_id', query.merchantId)
+  if (query.storeId) params.set('store_id', query.storeId)
+  return '#/stores-origins?' + params.toString()
+}
+
+function renderStoresOriginsContent({ merchants, stores, origins, query, error }) {
+  return '<div id="stores-origins-root" class="management-grid">'
+    + renderStoresOriginsSelector(merchants, stores, query)
+    + renderStoreCreateForm(query.merchantId)
+    + renderOriginCreateForm(stores, query)
+    + renderStoreList(stores, error)
+    + renderOriginList(origins, error)
+    + '</div>'
+}
+
+function renderStoresOriginsSelector(merchants, stores, query) {
+  const merchantOptions = merchants.map((merchant) => optionHtml(merchant.id, merchant.name + ' (' + merchant.slug + ')', query.merchantId)).join('')
+  const storeOptions = '<option value="">Semua store</option>'
+    + stores.map((store) => optionHtml(store.id, store.name + ' (' + store.slug + ')', query.storeId)).join('')
+  return '<form class="form-card wide-card" data-form="stores-origins-filter"><h3>Pilih merchant</h3><div class="form-grid split-grid">'
+    + '<label><span>Merchant</span><select name="merchant_id" required>' + merchantOptions + '</select></label>'
+    + '<label><span>Filter origin by store</span><select name="store_id">' + storeOptions + '</select></label>'
+    + '<button class="button" type="submit">Load config</button>'
+    + '</div></form>'
+}
+
+function renderStoreCreateForm(merchantId) {
+  return '<form class="form-card" data-form="store-create"><h3>Create store</h3><div class="form-grid">'
+    + '<input type="hidden" name="merchant_id" value="' + escapeHtml(merchantId) + '" />'
+    + '<label><span>Slug</span><input name="slug" required minlength="2" maxlength="64" pattern="[a-z0-9-]+" /></label>'
+    + '<label><span>Name</span><input name="name" required minlength="1" maxlength="120" /></label>'
+    + '<label class="checkbox-row"><input name="is_active" type="checkbox" checked /><span>Active</span></label>'
+    + '<button class="button" type="submit">Create store</button>'
+    + '</div></form>'
+}
+
+function renderOriginCreateForm(stores, query) {
+  const storeOptions = '<option value="">Tanpa store khusus</option>'
+    + stores.map((store) => optionHtml(store.id, store.name + ' (' + store.slug + ')', query.storeId)).join('')
+  return '<form class="form-card" data-form="origin-create"><h3>Create origin</h3><div class="form-grid">'
+    + '<input type="hidden" name="merchant_id" value="' + escapeHtml(query.merchantId) + '" />'
+    + '<label><span>Store</span><select name="store_id">' + storeOptions + '</select></label>'
+    + '<label><span>Code</span><input name="code" required minlength="2" maxlength="32" placeholder="CGK10302" /></label>'
+    + '<label><span>Name</span><input name="name" required maxlength="120" /></label>'
+    + '<label><span>Address</span><textarea name="address" maxlength="500"></textarea></label>'
+    + '<label><span>City</span><input name="city" maxlength="120" /></label>'
+    + '<label><span>Province</span><input name="province" maxlength="120" /></label>'
+    + '<label><span>Postal code</span><input name="postal_code" minlength="3" maxlength="16" /></label>'
+    + '<label><span>Phone</span><input name="phone" minlength="6" maxlength="32" /></label>'
+    + '<label class="checkbox-row"><input name="is_default" type="checkbox" /><span>Default origin</span></label>'
+    + '<label class="checkbox-row"><input name="is_active" type="checkbox" checked /><span>Active</span></label>'
+    + '<button class="button" type="submit">Create origin</button>'
+    + '</div></form>'
+}
+
+function renderStoreList(stores, error) {
+  const rows = stores.map((store) => [
+    escapeHtml(store.slug),
+    escapeHtml(store.name),
+    escapeHtml(store.isActive ? 'Active' : 'Inactive'),
+    escapeHtml(formatDate(store.updatedAt)),
+    '<button class="button button-secondary" data-action="toggle-store" data-id="' + escapeHtml(store.id) + '" data-active="' + escapeHtml(String(!store.isActive)) + '">' + escapeHtml(store.isActive ? 'Deactivate' : 'Activate') + '</button>',
+  ])
+  return '<div class="form-card wide-card"><div class="section-title"><h3>Stores</h3><span>' + escapeHtml(stores.length) + ' stores</span></div>'
+    + renderUnsafeTable({ columns: ['Slug', 'Name', 'Status', 'Updated', 'Action'], rows, emptyMessage: error || 'Belum ada store.' })
+    + '</div>'
+}
+
+function renderOriginList(origins, error) {
+  const rows = origins.map((origin) => [
+    escapeHtml(origin.code),
+    escapeHtml(origin.name),
+    escapeHtml(origin.store?.name || '-'),
+    (origin.isDefault ? renderBadge('Default', 'success') + ' ' : '') + escapeHtml(origin.isActive ? 'Active' : 'Inactive'),
+    escapeHtml([origin.city, origin.province, origin.postalCode].filter(Boolean).join(', ') || '-'),
+    '<button class="button button-secondary" data-action="toggle-origin" data-id="' + escapeHtml(origin.id) + '" data-active="' + escapeHtml(String(!origin.isActive)) + '">' + escapeHtml(origin.isActive ? 'Deactivate' : 'Activate') + '</button> '
+      + '<button class="button button-secondary" data-action="default-origin" data-id="' + escapeHtml(origin.id) + '">Set Default</button>',
+  ])
+  return '<div class="form-card wide-card"><div class="section-title"><h3>Origins</h3><span>' + escapeHtml(origins.length) + ' origins</span></div>'
+    + renderUnsafeTable({ columns: ['Code', 'Name', 'Store', 'Status', 'Location', 'Action'], rows, emptyMessage: error || 'Belum ada origin.' })
+    + '</div>'
+}
+
 async function handleContentForm(form) {
   const formName = form.dataset.form || ''
   if (formName === 'merchant-filter') return applyMerchantFilter(form)
@@ -606,6 +747,9 @@ async function handleContentForm(form) {
   if (formName === 'merchant-update') return updateMerchant(form)
   if (formName === 'api-key-create') return createApiKey(form)
   if (formName === 'webhook-create') return createWebhookEndpoint(form)
+  if (formName === 'stores-origins-filter') return applyStoresOriginsFilter(form)
+  if (formName === 'store-create') return createStore(form)
+  if (formName === 'origin-create') return createOrigin(form)
 }
 
 async function handleContentAction(button) {
@@ -619,6 +763,21 @@ async function handleContentAction(button) {
     await apiJson('PATCH', '/admin/webhook-endpoints/' + encodeURIComponent(button.dataset.id || ''), { is_active: button.dataset.active === 'true' })
     showNotice('Status webhook endpoint diperbarui.', 'success')
     await loadMerchantDetail(state.selectedMerchantId)
+  }
+  if (action === 'toggle-store') {
+    await apiJson('PATCH', '/admin/stores/' + encodeURIComponent(button.dataset.id || ''), { is_active: button.dataset.active === 'true' })
+    showNotice('Status store diperbarui.', 'success')
+    await loadStoresOrigins()
+  }
+  if (action === 'toggle-origin') {
+    await apiJson('PATCH', '/admin/origins/' + encodeURIComponent(button.dataset.id || ''), { is_active: button.dataset.active === 'true' })
+    showNotice('Status origin diperbarui.', 'success')
+    await loadStoresOrigins()
+  }
+  if (action === 'default-origin') {
+    await apiJson('PATCH', '/admin/origins/' + encodeURIComponent(button.dataset.id || ''), { is_default: true })
+    showNotice('Default origin diperbarui.', 'success')
+    await loadStoresOrigins()
   }
 }
 
@@ -678,6 +837,48 @@ async function createWebhookEndpoint(form) {
   form.reset()
   showNotice('Webhook endpoint berhasil dibuat.', 'success')
   await loadMerchantDetail(state.selectedMerchantId)
+}
+
+function applyStoresOriginsFilter(form) {
+  const data = new FormData(form)
+  const query = {
+    merchantId: String(data.get('merchant_id') || ''),
+    storeId: String(data.get('store_id') || ''),
+  }
+  window.location.hash = storesOriginsHash(query).slice(1)
+}
+
+async function createStore(form) {
+  const data = new FormData(form)
+  const merchantId = String(data.get('merchant_id') || '')
+  await apiJson('POST', '/admin/merchants/' + encodeURIComponent(merchantId) + '/stores', {
+    slug: String(data.get('slug') || '').trim(),
+    name: String(data.get('name') || '').trim(),
+    is_active: data.get('is_active') === 'on',
+  })
+  form.reset()
+  showNotice('Store berhasil dibuat.', 'success')
+  await loadStoresOrigins()
+}
+
+async function createOrigin(form) {
+  const data = new FormData(form)
+  const merchantId = String(data.get('merchant_id') || '')
+  await apiJson('POST', '/admin/merchants/' + encodeURIComponent(merchantId) + '/origins', {
+    store_id: optionalString(data.get('store_id')),
+    code: String(data.get('code') || '').trim(),
+    name: String(data.get('name') || '').trim(),
+    address: optionalString(data.get('address')),
+    city: optionalString(data.get('city')),
+    province: optionalString(data.get('province')),
+    postal_code: optionalString(data.get('postal_code')),
+    phone: optionalString(data.get('phone')),
+    is_default: data.get('is_default') === 'on',
+    is_active: data.get('is_active') === 'on',
+  })
+  form.reset()
+  showNotice('Origin berhasil dibuat.', 'success')
+  await loadStoresOrigins()
 }
 
 function optionalString(value) {

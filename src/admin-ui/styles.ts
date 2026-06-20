@@ -112,6 +112,7 @@ a { color: inherit; text-decoration: none; }
 .login-panel { max-width: 720px; display: grid; gap: 18px; }
 
 .form-grid { display: grid; gap: 14px; }
+.split-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: end; }
 .form-grid label { display: grid; gap: 8px; font-weight: 700; }
 .form-grid input, .form-grid select, .form-grid textarea {
   width: 100%;
@@ -324,5 +325,6 @@ th { color: var(--muted); font-size: 0.82rem; text-transform: uppercase; letter-
   .card-grid { grid-template-columns: 1fr; }
   .dashboard-status,
   .dashboard-sections,
-  .management-grid { grid-template-columns: 1fr; }
+  .management-grid,
+  .split-grid { grid-template-columns: 1fr; }
 }`
