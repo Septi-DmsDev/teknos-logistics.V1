@@ -53,6 +53,19 @@ function bootstrap() {
     logout('Token admin dihapus dari sesi browser.')
   })
 
+  elements.contentPanel?.addEventListener('submit', (event) => {
+    const form = event.target
+    if (!(form instanceof HTMLFormElement)) return
+    event.preventDefault()
+    void handleContentForm(form)
+  })
+
+  elements.contentPanel?.addEventListener('click', (event) => {
+    const button = event.target instanceof Element ? event.target.closest('[data-action]') : null
+    if (!(button instanceof HTMLElement)) return
+    void handleContentAction(button)
+  })
+
   if (!window.location.hash) {
     window.location.hash = '#' + DEFAULT_ROUTE
   }
@@ -68,7 +81,8 @@ function bootstrap() {
 
 function parseRoute() {
   const rawRoute = (window.location.hash || '#' + DEFAULT_ROUTE).slice(1) || DEFAULT_ROUTE
-  const normalizedRoute = rawRoute.startsWith('/') ? rawRoute : '/' + rawRoute
+  const routeOnly = rawRoute.split('?')[0] || DEFAULT_ROUTE
+  const normalizedRoute = routeOnly.startsWith('/') ? routeOnly : '/' + routeOnly
   const merchantMatch = normalizedRoute.match(/^\\/merchant\\/([^/?#]+)$/)
 
   if (merchantMatch) {
@@ -121,6 +135,14 @@ function renderRoute() {
   if (state.currentRoute === '/dashboard') {
     void loadDashboard()
   }
+
+  if (state.currentRoute === '/merchants') {
+    void loadMerchants()
+  }
+
+  if (state.currentRoute === '/merchant/:id') {
+    void loadMerchantDetail(state.selectedMerchantId)
+  }
 }
 
 function routeConfig(route) {
@@ -138,12 +160,9 @@ function routeConfig(route) {
     return {
       title: 'Merchants',
       eyebrow: 'Merchant Config',
-      description: 'Daftar dan detail merchant akan memakai endpoint admin pada task lanjutan.',
-      badge: 'Placeholder',
-      content: renderTable({
-        columns: ['Area', 'Status', 'Next step'],
-        rows: [['Merchant list', 'Planned', 'Load /admin/merchants safely']],
-      }),
+      description: 'Kelola merchant, status aktif, dan buka detail API key/webhook endpoint.',
+      badge: 'Manage',
+      content: renderMerchantsLoading(),
     }
   }
 
@@ -151,12 +170,9 @@ function routeConfig(route) {
     return {
       title: 'Merchant Detail',
       eyebrow: 'Merchant Config',
-      description: 'Detail merchant terpilih. ID disimpan di state browser, bukan URL query token.',
+      description: 'Detail merchant, API key, dan webhook endpoint. Secret tidak pernah ditampilkan ulang.',
       badge: 'Selected',
-      content: renderForm({
-        title: 'Selected merchant',
-        fields: [{ label: 'Merchant ID', value: state.selectedMerchantId || '-' }],
-      }),
+      content: renderMerchantDetailLoading(),
     }
   }
 
@@ -363,6 +379,329 @@ function renderQuickLinks() {
   return '<div class="quick-links"><h3>Quick Links</h3><div>'
     + links.map(([label, href]) => '<a href="' + escapeHtml(href) + '">' + escapeHtml(label) + '</a>').join('')
     + '</div></div>'
+}
+
+function renderMerchantsLoading() {
+  return '<div id="merchant-root" class="management-grid">'
+    + renderMerchantFilters({ search: '', isActive: '', limit: 20, offset: 0 })
+    + renderMerchantCreateForm()
+    + '<div class="form-card wide-card"><h3>Merchant list</h3><p class="muted">Memuat merchant...</p></div>'
+    + '</div>'
+}
+
+async function loadMerchants() {
+  const snapshotRoute = state.currentRoute
+  const query = merchantQueryFromHash()
+  let merchants = []
+  let error = ''
+
+  try {
+    const payload = await apiGet('/admin/merchants', {
+      search: query.search,
+      is_active: query.isActive,
+      limit: query.limit,
+      offset: query.offset,
+    })
+    merchants = Array.isArray(payload?.merchants) ? payload.merchants : []
+  } catch {
+    error = 'Merchant tidak tersedia saat ini.'
+  }
+
+  if (state.currentRoute !== snapshotRoute || state.currentRoute !== '/merchants' || !elements.contentPanel) return
+
+  const route = routeConfig('/merchants')
+  const content = '<div id="merchant-root" class="management-grid">'
+    + renderMerchantFilters(query)
+    + renderMerchantCreateForm()
+    + renderMerchantList(merchants, error, query)
+    + '</div>'
+  elements.contentPanel.innerHTML = renderPageShell({ ...route, content })
+}
+
+function merchantQueryFromHash() {
+  const queryText = (window.location.hash.split('?')[1] || '').trim()
+  const params = new URLSearchParams(queryText)
+  return {
+    search: params.get('search') || '',
+    isActive: normalizeActiveFilter(params.get('is_active') || ''),
+    limit: clampNumber(params.get('limit'), 20, 5, 50),
+    offset: clampNumber(params.get('offset'), 0, 0, 100000),
+  }
+}
+
+function normalizeActiveFilter(value) {
+  return value === 'true' || value === 'false' ? value : ''
+}
+
+function clampNumber(value, fallback, min, max) {
+  const parsed = Number(value)
+  if (!Number.isInteger(parsed)) return fallback
+  return Math.min(Math.max(parsed, min), max)
+}
+
+function renderMerchantFilters(query) {
+  return '<form class="form-card" data-form="merchant-filter"><h3>Filter merchant</h3><div class="form-grid">'
+    + '<label><span>Search</span><input name="search" type="search" value="' + escapeHtml(query.search) + '" placeholder="slug atau nama" /></label>'
+    + '<label><span>Status</span><select name="is_active">'
+    + optionHtml('', 'Semua status', query.isActive)
+    + optionHtml('true', 'Active', query.isActive)
+    + optionHtml('false', 'Inactive', query.isActive)
+    + '</select></label>'
+    + '<label><span>Limit</span><input name="limit" type="number" min="5" max="50" value="' + escapeHtml(query.limit) + '" /></label>'
+    + '<label><span>Offset</span><input name="offset" type="number" min="0" value="' + escapeHtml(query.offset) + '" /></label>'
+    + '<button class="button" type="submit">Apply filter</button>'
+    + '</div></form>'
+}
+
+function renderMerchantCreateForm() {
+  return '<form class="form-card" data-form="merchant-create"><h3>Create merchant</h3><div class="form-grid">'
+    + '<label><span>Slug</span><input name="slug" required minlength="2" maxlength="64" pattern="[a-z0-9-]+" placeholder="contoh: teknos-store" /></label>'
+    + '<label><span>Name</span><input name="name" required minlength="2" maxlength="120" placeholder="Nama merchant" /></label>'
+    + '<label class="checkbox-row"><input name="is_active" type="checkbox" checked /><span>Active</span></label>'
+    + '<button class="button" type="submit">Create merchant</button>'
+    + '</div></form>'
+}
+
+function renderMerchantList(merchants, error, query) {
+  const rows = merchants.map((merchant) => [
+    escapeHtml(merchant.slug),
+    escapeHtml(merchant.name),
+    escapeHtml(merchant.isActive ? 'Active' : 'Inactive'),
+    escapeHtml(formatDate(merchant.createdAt) + ' / ' + formatDate(merchant.updatedAt)),
+    '<a class="inline-link" href="#/merchant/' + encodeURIComponent(merchant.id) + '">Detail</a>',
+  ])
+  const table = renderUnsafeTable({
+    columns: ['Slug', 'Name', 'Active', 'Created / Updated', 'Actions'],
+    rows,
+    emptyMessage: error || 'Belum ada merchant.',
+  })
+  const prevOffset = Math.max(query.offset - query.limit, 0)
+  const nextOffset = query.offset + query.limit
+  const prevHref = merchantHash({ ...query, offset: prevOffset })
+  const nextHref = merchantHash({ ...query, offset: nextOffset })
+  return '<div class="form-card wide-card"><div class="section-title"><h3>Merchant list</h3><span>' + escapeHtml(merchants.length) + ' rows</span></div>'
+    + table
+    + '<div class="pagination-row">'
+    + '<a class="button button-secondary" href="' + escapeHtml(prevHref) + '">Prev</a>'
+    + '<a class="button button-secondary" href="' + escapeHtml(nextHref) + '">Next</a>'
+    + '</div></div>'
+}
+
+function merchantHash(query) {
+  const params = new URLSearchParams()
+  if (query.search) params.set('search', query.search)
+  if (query.isActive) params.set('is_active', query.isActive)
+  params.set('limit', String(query.limit))
+  params.set('offset', String(query.offset))
+  return '#/merchants?' + params.toString()
+}
+
+function renderMerchantDetailLoading() {
+  return '<div id="merchant-detail-root" class="management-grid"><div class="form-card wide-card"><h3>Merchant detail</h3><p class="muted">Memuat detail merchant...</p></div></div>'
+}
+
+async function loadMerchantDetail(merchantId) {
+  const snapshotId = merchantId
+  let merchant = null
+  let apiKeys = []
+  let endpoints = []
+  let error = ''
+
+  try {
+    const [merchantPayload, apiKeyPayload, endpointPayload] = await Promise.all([
+      apiGet('/admin/merchants', { limit: 50 }),
+      apiGet('/admin/merchants/' + encodeURIComponent(merchantId) + '/api-keys', { limit: 20 }),
+      apiGet('/admin/merchants/' + encodeURIComponent(merchantId) + '/webhook-endpoints', { limit: 20 }),
+    ])
+    const merchants = Array.isArray(merchantPayload?.merchants) ? merchantPayload.merchants : []
+    merchant = merchants.find((item) => item.id === merchantId) || null
+    apiKeys = Array.isArray(apiKeyPayload?.apiKeys) ? apiKeyPayload.apiKeys : []
+    endpoints = Array.isArray(endpointPayload?.endpoints) ? endpointPayload.endpoints : []
+  } catch {
+    error = 'Detail merchant tidak tersedia saat ini.'
+  }
+
+  if (state.currentRoute !== '/merchant/:id' || state.selectedMerchantId !== snapshotId || !elements.contentPanel) return
+
+  const route = routeConfig('/merchant/:id')
+  const content = renderMerchantDetailContent(merchant, apiKeys, endpoints, error)
+  elements.contentPanel.innerHTML = renderPageShell({ ...route, content })
+}
+
+function renderMerchantDetailContent(merchant, apiKeys, endpoints, error) {
+  if (error) {
+    return '<div class="form-card wide-card"><h3>Merchant detail</h3><p class="muted">' + escapeHtml(error) + '</p></div>'
+  }
+
+  const name = merchant?.name || state.selectedMerchantId
+  return '<div id="merchant-detail-root" class="management-grid">'
+    + renderMerchantUpdateForm(merchant)
+    + renderApiKeyCreateForm()
+    + renderWebhookCreateForm()
+    + renderApiKeyList(apiKeys)
+    + renderWebhookEndpointList(endpoints)
+    + '<div class="form-card wide-card"><h3>Selected merchant</h3><p><strong>' + escapeHtml(name) + '</strong></p><p class="muted">ID: ' + escapeHtml(state.selectedMerchantId) + '</p></div>'
+    + '</div>'
+}
+
+function renderMerchantUpdateForm(merchant) {
+  return '<form class="form-card" data-form="merchant-update"><h3>Update merchant</h3><div class="form-grid">'
+    + '<label><span>Name</span><input name="name" required minlength="2" maxlength="120" value="' + escapeHtml(merchant?.name || '') + '" /></label>'
+    + '<label class="checkbox-row"><input name="is_active" type="checkbox" ' + (merchant?.isActive !== false ? 'checked' : '') + ' /><span>Active</span></label>'
+    + '<button class="button" type="submit">Save merchant</button>'
+    + '</div></form>'
+}
+
+function renderApiKeyCreateForm() {
+  return '<form class="form-card" data-form="api-key-create"><h3>Create API key</h3><div class="form-grid">'
+    + '<label><span>Label</span><input name="label" maxlength="80" placeholder="Staging key / production key" /></label>'
+    + '<label><span>Expires at</span><input name="expires_at" type="datetime-local" /></label>'
+    + '<button class="button" type="submit">Create API key</button>'
+    + '<p class="muted">Plaintext key hanya muncul sekali setelah dibuat.</p>'
+    + '</div></form>'
+}
+
+function renderWebhookCreateForm() {
+  return '<form class="form-card" data-form="webhook-create"><h3>Create webhook endpoint</h3><div class="form-grid">'
+    + '<label><span>HTTPS URL</span><input name="url" required type="url" placeholder="https://example.com/api/logistics/webhook" /></label>'
+    + '<label><span>Secret</span><input name="secret" required minlength="16" maxlength="256" type="password" autocomplete="new-password" /></label>'
+    + '<label class="checkbox-row"><input name="is_active" type="checkbox" checked /><span>Active</span></label>'
+    + '<button class="button" type="submit">Create endpoint</button>'
+    + '<p class="muted">Secret disimpan server-side dan tidak pernah ditampilkan ulang.</p>'
+    + '</div></form>'
+}
+
+function renderApiKeyList(apiKeys) {
+  const rows = apiKeys.map((key) => [
+    escapeHtml(key.keyPrefix),
+    escapeHtml(key.label || '-'),
+    escapeHtml(key.isActive ? 'Active' : 'Inactive'),
+    escapeHtml(formatDate(key.lastUsedAt)),
+    escapeHtml(formatDate(key.expiresAt)),
+    '<button class="button button-secondary" data-action="toggle-api-key" data-id="' + escapeHtml(key.id) + '" data-active="' + escapeHtml(String(!key.isActive)) + '">' + escapeHtml(key.isActive ? 'Deactivate' : 'Activate') + '</button>',
+  ])
+  return '<div class="form-card wide-card"><div class="section-title"><h3>API keys</h3><span>' + escapeHtml(apiKeys.length) + ' keys</span></div>'
+    + '<div id="one-time-key"></div>'
+    + renderUnsafeTable({ columns: ['Prefix', 'Label', 'Status', 'Last used', 'Expires', 'Action'], rows, emptyMessage: 'Belum ada API key.' })
+    + '</div>'
+}
+
+function renderWebhookEndpointList(endpoints) {
+  const rows = endpoints.map((endpoint) => [
+    escapeHtml(endpoint.url),
+    escapeHtml(endpoint.isActive ? 'Active' : 'Inactive'),
+    escapeHtml(String(endpoint.counts?.attempts ?? 0)),
+    escapeHtml(formatDate(endpoint.createdAt)),
+    '<button class="button button-secondary" data-action="toggle-webhook" data-id="' + escapeHtml(endpoint.id) + '" data-active="' + escapeHtml(String(!endpoint.isActive)) + '">' + escapeHtml(endpoint.isActive ? 'Deactivate' : 'Activate') + '</button>',
+  ])
+  return '<div class="form-card wide-card"><div class="section-title"><h3>Webhook endpoints</h3><span>' + escapeHtml(endpoints.length) + ' endpoints</span></div>'
+    + renderUnsafeTable({ columns: ['URL', 'Status', 'Attempts', 'Created', 'Action'], rows, emptyMessage: 'Belum ada webhook endpoint.' })
+    + '</div>'
+}
+
+async function handleContentForm(form) {
+  const formName = form.dataset.form || ''
+  if (formName === 'merchant-filter') return applyMerchantFilter(form)
+  if (formName === 'merchant-create') return createMerchant(form)
+  if (formName === 'merchant-update') return updateMerchant(form)
+  if (formName === 'api-key-create') return createApiKey(form)
+  if (formName === 'webhook-create') return createWebhookEndpoint(form)
+}
+
+async function handleContentAction(button) {
+  const action = button.dataset.action || ''
+  if (action === 'toggle-api-key') {
+    await apiJson('PATCH', '/admin/api-keys/' + encodeURIComponent(button.dataset.id || ''), { is_active: button.dataset.active === 'true' })
+    showNotice('Status API key diperbarui.', 'success')
+    await loadMerchantDetail(state.selectedMerchantId)
+  }
+  if (action === 'toggle-webhook') {
+    await apiJson('PATCH', '/admin/webhook-endpoints/' + encodeURIComponent(button.dataset.id || ''), { is_active: button.dataset.active === 'true' })
+    showNotice('Status webhook endpoint diperbarui.', 'success')
+    await loadMerchantDetail(state.selectedMerchantId)
+  }
+}
+
+function applyMerchantFilter(form) {
+  const data = new FormData(form)
+  const query = {
+    search: String(data.get('search') || '').trim(),
+    isActive: normalizeActiveFilter(String(data.get('is_active') || '')),
+    limit: clampNumber(data.get('limit'), 20, 5, 50),
+    offset: clampNumber(data.get('offset'), 0, 0, 100000),
+  }
+  window.location.hash = merchantHash(query).slice(1)
+}
+
+async function createMerchant(form) {
+  const data = new FormData(form)
+  await apiJson('POST', '/admin/merchants', {
+    slug: String(data.get('slug') || '').trim(),
+    name: String(data.get('name') || '').trim(),
+    is_active: data.get('is_active') === 'on',
+  })
+  form.reset()
+  showNotice('Merchant berhasil dibuat.', 'success')
+  await loadMerchants()
+}
+
+async function updateMerchant(form) {
+  const data = new FormData(form)
+  await apiJson('PATCH', '/admin/merchants/' + encodeURIComponent(state.selectedMerchantId), {
+    name: String(data.get('name') || '').trim(),
+    is_active: data.get('is_active') === 'on',
+  })
+  showNotice('Merchant berhasil diperbarui.', 'success')
+  await loadMerchantDetail(state.selectedMerchantId)
+}
+
+async function createApiKey(form) {
+  const data = new FormData(form)
+  const expiresAt = data.get('expires_at') ? new Date(String(data.get('expires_at'))).toISOString() : undefined
+  const payload = await apiJson('POST', '/admin/merchants/' + encodeURIComponent(state.selectedMerchantId) + '/api-keys', {
+    label: optionalString(data.get('label')),
+    expires_at: expiresAt,
+  })
+  form.reset()
+  showNotice('API key berhasil dibuat. Simpan plaintext sekarang.', 'success')
+  await loadMerchantDetail(state.selectedMerchantId)
+  renderOneTimeKey(payload?.plaintext || '')
+}
+
+async function createWebhookEndpoint(form) {
+  const data = new FormData(form)
+  await apiJson('POST', '/admin/merchants/' + encodeURIComponent(state.selectedMerchantId) + '/webhook-endpoints', {
+    url: String(data.get('url') || '').trim(),
+    secret: String(data.get('secret') || ''),
+    is_active: data.get('is_active') === 'on',
+  })
+  form.reset()
+  showNotice('Webhook endpoint berhasil dibuat.', 'success')
+  await loadMerchantDetail(state.selectedMerchantId)
+}
+
+function optionalString(value) {
+  const text = String(value || '').trim()
+  return text ? text : undefined
+}
+
+function renderOneTimeKey(plaintext) {
+  const target = document.getElementById('one-time-key')
+  if (!target || !plaintext) return
+  target.innerHTML = '<div class="secret-box"><strong>Plaintext API key - tampil sekali</strong><code>' + escapeHtml(plaintext) + '</code></div>'
+}
+
+function optionHtml(value, label, selectedValue) {
+  return '<option value="' + escapeHtml(value) + '" ' + (value === selectedValue ? 'selected' : '') + '>' + escapeHtml(label) + '</option>'
+}
+
+function renderUnsafeTable({ columns, rows, emptyMessage = 'Belum ada data.' }) {
+  const safeColumns = columns.map((column) => '<th scope="col">' + escapeHtml(column) + '</th>').join('')
+  const safeRows = rows.length > 0
+    ? rows.map((row) => '<tr>' + row.map((cell) => '<td>' + String(cell) + '</td>').join('') + '</tr>').join('')
+    : '<tr><td colspan="' + columns.length + '">' + escapeHtml(emptyMessage) + '</td></tr>'
+
+  return '<div class="table-wrap"><table><thead><tr>' + safeColumns + '</tr></thead><tbody>' + safeRows + '</tbody></table></div>'
 }
 
 function highlightActiveRoute() {

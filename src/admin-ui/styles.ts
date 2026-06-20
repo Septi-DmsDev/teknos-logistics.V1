@@ -177,6 +177,53 @@ a { color: inherit; text-decoration: none; }
   padding: 16px;
 }
 .form-card h3 { margin: 0 0 14px; }
+.wide-card { grid-column: 1 / -1; }
+.management-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.checkbox-row {
+  display: flex !important;
+  align-items: center;
+  grid-template-columns: none !important;
+  gap: 10px !important;
+}
+
+.checkbox-row input { width: auto; }
+.section-title,
+.pagination-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.section-title { margin-bottom: 12px; }
+.section-title h3 { margin: 0; }
+.section-title span { color: var(--muted); font-size: 0.86rem; font-weight: 700; }
+.pagination-row { justify-content: flex-end; margin-top: 14px; }
+.inline-link { color: var(--primary); font-weight: 800; }
+.inline-link:hover { color: var(--primary-dark); text-decoration: underline; }
+.secret-box {
+  display: grid;
+  gap: 8px;
+  border: 1px solid #fde68a;
+  border-radius: 14px;
+  background: #fffbeb;
+  color: #713f12;
+  margin-bottom: 14px;
+  padding: 12px;
+}
+
+.secret-box code {
+  overflow-wrap: anywhere;
+  border-radius: 10px;
+  background: white;
+  color: #0f172a;
+  padding: 10px;
+}
 
 .card-grid {
   display: grid;
@@ -276,5 +323,6 @@ th { color: var(--muted); font-size: 0.82rem; text-transform: uppercase; letter-
   .route-header { flex-direction: column; }
   .card-grid { grid-template-columns: 1fr; }
   .dashboard-status,
-  .dashboard-sections { grid-template-columns: 1fr; }
+  .dashboard-sections,
+  .management-grid { grid-template-columns: 1fr; }
 }`
