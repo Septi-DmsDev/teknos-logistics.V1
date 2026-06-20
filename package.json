@@ -35,7 +35,8 @@
     "audit:cleanup": "tsx scripts/cleanup-admin-audit-logs.ts",
     "sprint8:readiness": "tsx scripts/sprint8-readiness.ts",
     "smoke:admin-ui": "tsx scripts/smoke-admin-ui.ts",
-    "sprint9:readiness": "tsx scripts/sprint9-readiness.ts"
+    "sprint9:readiness": "tsx scripts/sprint9-readiness.ts",
+    "sprint10:readiness": "tsx scripts/sprint10-readiness.ts"
   },
   "dependencies": {
     "@hono/node-server": "^1.19.6",

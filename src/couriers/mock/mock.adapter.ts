@@ -1,7 +1,9 @@
+import { courierCapabilities } from '../capabilities.js'
 import type { BookShipmentParams, BookShipmentResult, CourierRate, LogisticsProvider, NormalizedTrackingEvent, RateParams } from '../types.js'
 
 export class MockAdapter implements LogisticsProvider {
   readonly courier = 'MOCK' as const
+  readonly capabilities = courierCapabilities.MOCK
 
   async getRates(_params: RateParams): Promise<CourierRate[]> {
     return [

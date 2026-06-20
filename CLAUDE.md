@@ -164,6 +164,7 @@ src/
 | Sprint 07 | Logistics admin config MVP | Done - Tasks 1-7 completed, migration `20260618103000_add_admin_config_models` applied, full validation passed, and admin smoke passed on 2026-06-19 |
 | Sprint 08 | Reliability and security hardening | Done - health/readiness, route rate limiting, persistent admin audit logs, audit visibility, cleanup utility, and runbook/readiness gate completed |
 | Sprint 09 | Admin Control Center minimal | Done - `/admin-ui` dashboard, merchant/store/origin/courier config UI, read-only operations pages, `smoke:admin-ui`, and `sprint9:readiness` completed |
+| Sprint 10 | Multi-courier foundation | In Progress - JNT/SAP skeleton providers, capability matrix, normalizers, and `/v1/couriers/capabilities` slice started |
 
 ---
 

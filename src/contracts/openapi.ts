@@ -45,7 +45,21 @@ export const openApiContract = {
         },
       },
     },
-    '/v1/rates': {
+    '/v1/couriers/capabilities': {
+      get: {
+        tags: ['Merchant API'],
+        summary: 'List courier capability matrix',
+        description: 'Read-only capability metadata for supported and skeleton courier providers. No secrets or credentials are returned.',
+        security: bearerAuth,
+        responses: {
+          '200': {
+            description: 'Courier capability list',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/CourierCapabilityResponse' } } },
+          },
+          '401': { $ref: '#/components/responses/Unauthorized' },
+        },
+      },
+    },    '/v1/rates': {
       post: {
         tags: ['Merchant API'],
         summary: 'Quote shipment rates',
@@ -162,6 +176,28 @@ export const openApiContract = {
     schemas: {
       CourierCode: { type: 'string', enum: ['JNE', 'JNT', 'SAP_EXPRESS', 'MOCK'] },
       ShipmentStatus: { type: 'string', enum: ['DRAFT', 'BOOKED', 'PICKED_UP', 'IN_TRANSIT', 'OUT_FOR_DELIVERY', 'DELIVERED', 'RETURNED', 'FAILED', 'CANCELLED'] },
+      CourierCapability: {
+        type: 'object',
+        required: ['courier', 'displayName', 'implementationStatus', 'supportsRates', 'supportsBooking', 'supportsTracking', 'supportsWebhook', 'destinationCodeFormat', 'notes'],
+        properties: {
+          courier: { $ref: '#/components/schemas/CourierCode' },
+          displayName: { type: 'string' },
+          implementationStatus: { type: 'string', enum: ['ACTIVE', 'SKELETON', 'PLANNED'] },
+          supportsRates: { type: 'boolean' },
+          supportsBooking: { type: 'boolean' },
+          supportsTracking: { type: 'boolean' },
+          supportsWebhook: { type: 'boolean' },
+          destinationCodeFormat: { type: 'string' },
+          notes: { type: 'array', items: { type: 'string' } },
+        },
+        additionalProperties: false,
+      },
+      CourierCapabilityResponse: {
+        type: 'object',
+        required: ['couriers'],
+        properties: { couriers: { type: 'array', items: { $ref: '#/components/schemas/CourierCapability' } } },
+        additionalProperties: false,
+      },
       RateRequest: {
         type: 'object',
         required: ['origin_code', 'dest_code', 'weight_grams'],

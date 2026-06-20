@@ -1,4 +1,5 @@
-﻿import type { Env } from '../../config/env.js'
+import type { Env } from '../../config/env.js'
+import { courierCapabilities } from '../capabilities.js'
 import type { BookShipmentParams, BookShipmentResult, CourierRate, LogisticsProvider, NormalizedTrackingEvent, RateParams } from '../types.js'
 import { HttpError } from '../../utils/http-error.js'
 import { JneClient } from './jne.client.js'
@@ -7,6 +8,7 @@ import type { JneGenerateCnoteDetail, JneGenerateCnoteResponse, JneTariffItem, J
 
 export class JneAdapter implements LogisticsProvider {
   readonly courier = 'JNE' as const
+  readonly capabilities = courierCapabilities.JNE
   private readonly client: JneClient
 
   constructor(env: Env, fetcher?: typeof fetch) {

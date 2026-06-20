@@ -36,7 +36,7 @@ Strategic direction update (2026-06-18): `teknos-logistics` should become a Bite
 | Sprint 7 | Logistics admin config MVP | Done - Tasks 1-7 completed; admin config schema/routes/services/docs implemented, migration applied, full validation and `npm run smoke:admin-config` passed on 2026-06-19 | Done |
 | Sprint 8 | Reliability and security hardening | Done - health/readiness, route rate limiting, persistent admin audit logs, audit visibility, cleanup utility, and runbook/readiness gate completed | Done |
 | Sprint 9 | Admin Control Center minimal | Done - `/admin-ui`, dashboard, merchant/store/origin/courier config UI, read-only ops pages, smoke/readiness checks | Done |
-| Sprint 10 | Multi-courier foundation | JNT/SAP skeletons, provider capability matrix, per-courier normalizers, service mapping | Planned |
+| Sprint 10 | Multi-courier foundation | In progress - JNT/SAP skeletons, provider capability matrix, normalizers, and capability endpoint | In Progress |
 | Sprint 11 | Reporting, billing, and analytics | Resi recap, volume/cost analytics, courier performance, invoices, B2B/SaaS commercialization foundation | Planned |
 
 ## Ownership Boundary

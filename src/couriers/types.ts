@@ -56,6 +56,7 @@ export interface NormalizedTrackingEvent {
 
 export interface LogisticsProvider {
   readonly courier: CourierCode
+  readonly capabilities?: import('./capabilities.js').CourierCapability
   getRates(params: RateParams): Promise<CourierRate[]>
   bookShipment(params: BookShipmentParams): Promise<BookShipmentResult>
   trackShipment(waybillId: string): Promise<NormalizedTrackingEvent[]>

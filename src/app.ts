@@ -5,6 +5,8 @@ import { prisma } from './db/client.js'
 import { ProviderRegistry } from './couriers/registry.js'
 import { MockAdapter } from './couriers/mock/mock.adapter.js'
 import { JneAdapter } from './couriers/jne/jne.adapter.js'
+import { JntAdapter } from './couriers/jnt/jnt.adapter.js'
+import { SapExpressAdapter } from './couriers/sap-express/sap-express.adapter.js'
 import { MerchantRepository } from './repositories/merchant.repository.js'
 import { RateCacheRepository } from './repositories/rate-cache.repository.js'
 import { ShipmentRepository } from './repositories/shipment.repository.js'
@@ -22,6 +24,7 @@ import { AdminConfigService } from './services/admin-config.service.js'
 import { AdminApiKeyService } from './services/admin-api-key.service.js'
 import { AdminVisibilityService } from './services/admin-visibility.service.js'
 import { AdminAuditService } from './services/admin-audit.service.js'
+import { mountCourierRoutes } from './routes/v1/couriers.js'
 import { mountRateRoutes } from './routes/v1/rates.js'
 import { mountShipmentRoutes } from './routes/v1/shipments.js'
 import { mountJneWebhookRoutes } from './routes/webhooks/jne.js'
@@ -36,7 +39,7 @@ import { sanitizeError } from './utils/http-error.js'
 
 export function createApp() {
   const app = new Hono()
-  const registry = new ProviderRegistry([new MockAdapter(), new JneAdapter(env)])
+  const registry = new ProviderRegistry([new MockAdapter(), new JneAdapter(env), new JntAdapter(), new SapExpressAdapter()])
   const merchantRepository = new MerchantRepository(prisma)
   const rateCacheRepository = new RateCacheRepository(prisma)
   const shipmentRepository = new ShipmentRepository(prisma)
@@ -79,6 +82,7 @@ export function createApp() {
   mountAdminCourierServiceRoutes(app, adminConfigService)
   mountAdminVisibilityRoutes(app, adminVisibilityService)
   mountAdminAuditLogRoutes(app, adminAuditService)
+  mountCourierRoutes(app)
   mountRateRoutes(app, rateService)
   mountShipmentRoutes(app, shipmentService)
   mountJneWebhookRoutes(app, env, courierWebhookService)
