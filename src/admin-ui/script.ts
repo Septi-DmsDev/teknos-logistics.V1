@@ -1,4 +1,4 @@
-﻿export const adminScript = `const TOKEN_KEY = 'teknos-logistics-admin-token'
+export const adminScript = `const TOKEN_KEY = 'teknos-logistics-admin-token'
 const DEFAULT_ROUTE = '/dashboard'
 const ROUTES = new Set([
   '/dashboard',
@@ -147,6 +147,10 @@ function renderRoute() {
   if (state.currentRoute === '/stores-origins') {
     void loadStoresOrigins()
   }
+
+  if (state.currentRoute === '/courier-services') {
+    void loadCourierServicesPage()
+  }
 }
 
 function routeConfig(route) {
@@ -191,7 +195,13 @@ function routeConfig(route) {
   }
 
   if (route === '/courier-services') {
-    return placeholderPage('Courier Services', 'Mapping layanan kurir akan memakai data admin dan tidak mengekspos env.')
+    return {
+      title: 'Courier Services',
+      eyebrow: 'Courier Config',
+      description: 'Kelola katalog layanan kurir dan assignment merchant tanpa credential provider.',
+      badge: 'Manage',
+      content: renderCourierServicesLoading(),
+    }
   }
 
   if (route === '/shipments') {
@@ -740,6 +750,160 @@ function renderOriginList(origins, error) {
     + '</div>'
 }
 
+function renderCourierServicesLoading() {
+  return '<div id="courier-services-root" class="management-grid"><div class="form-card wide-card"><h3>Courier services</h3><p class="muted">Memuat katalog dan assignment...</p></div></div>'
+}
+
+async function loadCourierServicesPage() {
+  const snapshotRoute = state.currentRoute
+  const query = courierQueryFromHash()
+  let merchants = []
+  let services = []
+  let origins = []
+  let assignments = []
+  let error = ''
+
+  try {
+    const [merchantPayload, servicePayload] = await Promise.all([
+      apiGet('/admin/merchants', { limit: 50 }),
+      apiGet('/admin/courier-services', { courier: query.courier, status: query.status, limit: 50 }),
+    ])
+    merchants = Array.isArray(merchantPayload?.merchants) ? merchantPayload.merchants : []
+    services = Array.isArray(servicePayload?.services) ? servicePayload.services : []
+    query.merchantId = query.merchantId || merchants[0]?.id || ''
+
+    if (query.merchantId) {
+      const [originPayload, assignmentPayload] = await Promise.all([
+        apiGet('/admin/merchants/' + encodeURIComponent(query.merchantId) + '/origins', { limit: 50 }),
+        apiGet('/admin/merchants/' + encodeURIComponent(query.merchantId) + '/courier-services', { limit: 50 }),
+      ])
+      origins = Array.isArray(originPayload?.origins) ? originPayload.origins : []
+      assignments = Array.isArray(assignmentPayload?.services) ? assignmentPayload.services : []
+    }
+  } catch {
+    error = 'Courier service config tidak tersedia saat ini.'
+  }
+
+  if (state.currentRoute !== snapshotRoute || state.currentRoute !== '/courier-services' || !elements.contentPanel) return
+
+  const route = routeConfig('/courier-services')
+  const content = renderCourierServicesContent({ merchants, services, origins, assignments, query, error })
+  elements.contentPanel.innerHTML = renderPageShell({ ...route, content })
+}
+
+function courierQueryFromHash() {
+  const queryText = (window.location.hash.split('?')[1] || '').trim()
+  const params = new URLSearchParams(queryText)
+  return {
+    merchantId: params.get('merchant_id') || '',
+    courier: normalizeCourierFilter(params.get('courier') || ''),
+    status: normalizeStatusFilter(params.get('status') || ''),
+  }
+}
+
+function courierHash(query) {
+  const params = new URLSearchParams()
+  if (query.merchantId) params.set('merchant_id', query.merchantId)
+  if (query.courier) params.set('courier', query.courier)
+  if (query.status) params.set('status', query.status)
+  return '#/courier-services?' + params.toString()
+}
+
+function normalizeCourierFilter(value) {
+  return ['MOCK', 'JNE', 'JNT', 'SAP_EXPRESS'].includes(value) ? value : ''
+}
+
+function normalizeStatusFilter(value) {
+  return ['ACTIVE', 'INACTIVE'].includes(value) ? value : ''
+}
+
+function renderCourierServicesContent({ merchants, services, origins, assignments, query, error }) {
+  return '<div id="courier-services-root" class="management-grid">'
+    + renderCourierFilter(merchants, query)
+    + renderCourierServiceForm()
+    + renderCourierAssignmentForm(services, origins, query)
+    + renderCourierServiceList(services, error)
+    + renderCourierAssignmentList(assignments, error)
+    + '</div>'
+}
+
+function renderCourierFilter(merchants, query) {
+  const merchantOptions = merchants.map((merchant) => optionHtml(merchant.id, merchant.name + ' (' + merchant.slug + ')', query.merchantId)).join('')
+  return '<form class="form-card wide-card" data-form="courier-filter"><h3>Filter courier config</h3><div class="form-grid split-grid">'
+    + '<label><span>Merchant assignment</span><select name="merchant_id">' + merchantOptions + '</select></label>'
+    + '<label><span>Courier</span><select name="courier">'
+    + optionHtml('', 'Semua courier', query.courier)
+    + optionHtml('MOCK', 'MOCK', query.courier)
+    + optionHtml('JNE', 'JNE', query.courier)
+    + optionHtml('JNT', 'JNT', query.courier)
+    + optionHtml('SAP_EXPRESS', 'SAP_EXPRESS', query.courier)
+    + '</select></label>'
+    + '<label><span>Status</span><select name="status">'
+    + optionHtml('', 'Semua status', query.status)
+    + optionHtml('ACTIVE', 'ACTIVE', query.status)
+    + optionHtml('INACTIVE', 'INACTIVE', query.status)
+    + '</select></label>'
+    + '<button class="button" type="submit">Load config</button>'
+    + '</div></form>'
+}
+
+function renderCourierServiceForm() {
+  return '<form class="form-card" data-form="courier-service-create"><h3>Create/update service</h3><div class="form-grid">'
+    + '<label><span>Courier</span><select name="courier" required>'
+    + optionHtml('MOCK', 'MOCK', 'MOCK')
+    + optionHtml('JNE', 'JNE', '')
+    + optionHtml('JNT', 'JNT', '')
+    + optionHtml('SAP_EXPRESS', 'SAP_EXPRESS', '')
+    + '</select></label>'
+    + '<label><span>Service code</span><input name="service_code" required maxlength="32" placeholder="REG" /></label>'
+    + '<label><span>Service name</span><input name="service_name" required maxlength="120" placeholder="Regular" /></label>'
+    + '<label><span>Status</span><select name="status">' + optionHtml('ACTIVE', 'ACTIVE', 'ACTIVE') + optionHtml('INACTIVE', 'INACTIVE', '') + '</select></label>'
+    + '<label><span>Metadata JSON</span><textarea name="metadata" placeholder="{}"></textarea></label>'
+    + '<button class="button" type="submit">Save service</button>'
+    + '<p class="muted">Tidak ada credential kurir di UI Sprint 9.</p>'
+    + '</div></form>'
+}
+
+function renderCourierAssignmentForm(services, origins, query) {
+  const serviceOptions = services.map((service) => optionHtml(service.id, service.courier + ' ' + service.serviceCode + ' - ' + service.serviceName, '')).join('')
+  const originOptions = '<option value="">Tanpa origin khusus</option>'
+    + origins.map((origin) => optionHtml(origin.id, origin.code + ' - ' + origin.name, '')).join('')
+  return '<form class="form-card" data-form="courier-assignment-upsert"><h3>Assign to merchant</h3><div class="form-grid">'
+    + '<input type="hidden" name="merchant_id" value="' + escapeHtml(query.merchantId) + '" />'
+    + '<label><span>Courier service</span><select name="courier_service_id" required>' + serviceOptions + '</select></label>'
+    + '<label><span>Origin</span><select name="origin_id">' + originOptions + '</select></label>'
+    + '<label><span>Status</span><select name="status">' + optionHtml('ACTIVE', 'ACTIVE', 'ACTIVE') + optionHtml('INACTIVE', 'INACTIVE', '') + '</select></label>'
+    + '<button class="button" type="submit">Save assignment</button>'
+    + '</div></form>'
+}
+
+function renderCourierServiceList(services, error) {
+  const rows = services.map((service) => [
+    escapeHtml(service.courier),
+    escapeHtml(service.serviceCode),
+    escapeHtml(service.serviceName),
+    escapeHtml(service.status),
+    escapeHtml(formatDate(service.updatedAt)),
+    '<button class="button button-secondary" data-action="toggle-courier-service" data-id="' + escapeHtml(service.id) + '" data-status="' + escapeHtml(service.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE') + '">' + escapeHtml(service.status === 'ACTIVE' ? 'Deactivate' : 'Activate') + '</button>',
+  ])
+  return '<div class="form-card wide-card"><div class="section-title"><h3>Courier service catalog</h3><span>' + escapeHtml(services.length) + ' services</span></div>'
+    + renderUnsafeTable({ columns: ['Courier', 'Code', 'Name', 'Status', 'Updated', 'Action'], rows, emptyMessage: error || 'Belum ada courier service.' })
+    + '</div>'
+}
+
+function renderCourierAssignmentList(assignments, error) {
+  const rows = assignments.map((assignment) => [
+    escapeHtml(assignment.courierService?.courier || '-'),
+    escapeHtml((assignment.courierService?.serviceCode || '-') + ' - ' + (assignment.courierService?.serviceName || '-')),
+    escapeHtml(assignment.origin ? assignment.origin.code + ' - ' + assignment.origin.name : '-'),
+    escapeHtml(assignment.status),
+    escapeHtml(formatDate(assignment.updatedAt)),
+  ])
+  return '<div class="form-card wide-card"><div class="section-title"><h3>Merchant assignments</h3><span>' + escapeHtml(assignments.length) + ' assignments</span></div>'
+    + renderUnsafeTable({ columns: ['Courier', 'Service', 'Origin', 'Status', 'Updated'], rows, emptyMessage: error || 'Belum ada assignment.' })
+    + '</div>'
+}
+
 async function handleContentForm(form) {
   const formName = form.dataset.form || ''
   if (formName === 'merchant-filter') return applyMerchantFilter(form)
@@ -750,6 +914,9 @@ async function handleContentForm(form) {
   if (formName === 'stores-origins-filter') return applyStoresOriginsFilter(form)
   if (formName === 'store-create') return createStore(form)
   if (formName === 'origin-create') return createOrigin(form)
+  if (formName === 'courier-filter') return applyCourierFilter(form)
+  if (formName === 'courier-service-create') return saveCourierService(form)
+  if (formName === 'courier-assignment-upsert') return saveCourierAssignment(form)
 }
 
 async function handleContentAction(button) {
@@ -778,6 +945,11 @@ async function handleContentAction(button) {
     await apiJson('PATCH', '/admin/origins/' + encodeURIComponent(button.dataset.id || ''), { is_default: true })
     showNotice('Default origin diperbarui.', 'success')
     await loadStoresOrigins()
+  }
+  if (action === 'toggle-courier-service') {
+    await apiJson('PATCH', '/admin/courier-services/' + encodeURIComponent(button.dataset.id || ''), { status: button.dataset.status || 'INACTIVE' })
+    showNotice('Status courier service diperbarui.', 'success')
+    await loadCourierServicesPage()
   }
 }
 
@@ -879,6 +1051,60 @@ async function createOrigin(form) {
   form.reset()
   showNotice('Origin berhasil dibuat.', 'success')
   await loadStoresOrigins()
+}
+
+function applyCourierFilter(form) {
+  const data = new FormData(form)
+  const query = {
+    merchantId: String(data.get('merchant_id') || ''),
+    courier: normalizeCourierFilter(String(data.get('courier') || '')),
+    status: normalizeStatusFilter(String(data.get('status') || '')),
+  }
+  window.location.hash = courierHash(query).slice(1)
+}
+
+async function saveCourierService(form) {
+  const data = new FormData(form)
+  const metadata = parseMetadataJson(String(data.get('metadata') || '').trim())
+  if (metadata === null) return
+
+  await apiJson('POST', '/admin/courier-services', {
+    courier: String(data.get('courier') || ''),
+    service_code: String(data.get('service_code') || '').trim(),
+    service_name: String(data.get('service_name') || '').trim(),
+    status: String(data.get('status') || 'ACTIVE'),
+    metadata,
+  })
+  form.reset()
+  showNotice('Courier service berhasil disimpan.', 'success')
+  await loadCourierServicesPage()
+}
+
+async function saveCourierAssignment(form) {
+  const data = new FormData(form)
+  const merchantId = String(data.get('merchant_id') || '')
+  const serviceId = String(data.get('courier_service_id') || '')
+  await apiJson('PUT', '/admin/merchants/' + encodeURIComponent(merchantId) + '/courier-services/' + encodeURIComponent(serviceId), {
+    origin_id: optionalString(data.get('origin_id')),
+    status: String(data.get('status') || 'ACTIVE'),
+  })
+  showNotice('Courier assignment berhasil disimpan.', 'success')
+  await loadCourierServicesPage()
+}
+
+function parseMetadataJson(value) {
+  if (!value) return {}
+  try {
+    const parsed = JSON.parse(value)
+    if (!parsed || Array.isArray(parsed) || typeof parsed !== 'object') {
+      showNotice('Metadata harus berupa JSON object.', 'error')
+      return null
+    }
+    return parsed
+  } catch {
+    showNotice('Metadata JSON tidak valid.', 'error')
+    return null
+  }
 }
 
 function optionalString(value) {
