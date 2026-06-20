@@ -70,6 +70,34 @@ export const adminOriginUpdateSchema = adminOriginCreateSchema
   .partial()
   .refine((value) => Object.keys(value).length > 0, { message: 'At least one origin field is required' })
 
+const adminDestinationMappingBaseSchema = z.object({
+  merchant_id: idSchema,
+  courier: courierCodeSchema,
+  country: z.string().trim().min(2).max(2).default('ID'),
+  province: optionalTextSchema,
+  city: optionalTextSchema,
+  district: optionalTextSchema,
+  subdistrict: optionalTextSchema,
+  postal_code: z.string().trim().min(3).max(16).optional(),
+  provider_code: z.string().trim().min(2).max(64),
+  label: z.string().trim().min(1).max(120).optional(),
+  is_active: z.boolean().default(true),
+})
+
+export const adminDestinationMappingCreateSchema = adminDestinationMappingBaseSchema.refine((value) => Boolean(value.postal_code || value.city || value.subdistrict), {
+  message: 'Destination mapping requires at least postal_code, city, or subdistrict',
+})
+
+export const adminDestinationMappingUpdateSchema = adminDestinationMappingBaseSchema
+  .omit({ merchant_id: true, courier: true })
+  .partial()
+  .refine((value) => Object.keys(value).length > 0, { message: 'At least one destination mapping field is required' })
+
+export const adminDestinationMappingListQuerySchema = adminPaginationSchema.extend({
+  courier: courierCodeSchema.optional(),
+  is_active: z.coerce.boolean().optional(),
+})
+
 export const adminCourierServiceCreateSchema = z.object({
   courier: courierCodeSchema,
   service_code: z.string().trim().min(1).max(32),
@@ -145,6 +173,9 @@ export type AdminStoreCreateInput = z.infer<typeof adminStoreCreateSchema>
 export type AdminStoreUpdateInput = z.infer<typeof adminStoreUpdateSchema>
 export type AdminOriginCreateInput = z.infer<typeof adminOriginCreateSchema>
 export type AdminOriginUpdateInput = z.infer<typeof adminOriginUpdateSchema>
+export type AdminDestinationMappingCreateInput = z.infer<typeof adminDestinationMappingCreateSchema>
+export type AdminDestinationMappingUpdateInput = z.infer<typeof adminDestinationMappingUpdateSchema>
+export type AdminDestinationMappingListQuery = z.infer<typeof adminDestinationMappingListQuerySchema>
 export type AdminCourierServiceCreateInput = z.infer<typeof adminCourierServiceCreateSchema>
 export type AdminCourierServiceUpdateInput = z.infer<typeof adminCourierServiceUpdateSchema>
 export type AdminMerchantCourierServiceUpsertInput = z.infer<typeof adminMerchantCourierServiceUpsertSchema>

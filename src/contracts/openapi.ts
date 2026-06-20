@@ -59,7 +59,8 @@ export const openApiContract = {
           '401': { $ref: '#/components/responses/Unauthorized' },
         },
       },
-    },    '/v1/rates': {
+    },
+    '/v1/rates': {
       post: {
         tags: ['Merchant API'],
         summary: 'Quote shipment rates',
@@ -76,6 +77,28 @@ export const openApiContract = {
           },
           '400': { $ref: '#/components/responses/ValidationError' },
           '401': { $ref: '#/components/responses/Unauthorized' },
+          '503': { $ref: '#/components/responses/ProviderUnavailable' },
+        },
+      },
+    },
+    '/v1/rates/resolve': {
+      post: {
+        tags: ['Merchant API'],
+        summary: 'Quote rates with managed origin and destination mapping',
+        description: 'Non-mutating merchant endpoint. Parent apps send origin_id and destination fields; teknos-logistics resolves provider origin/destination codes from admin configuration before rating.',
+        security: bearerAuth,
+        requestBody: {
+          required: true,
+          content: { 'application/json': { schema: { $ref: '#/components/schemas/RateResolveRequest' } } },
+        },
+        responses: {
+          '200': {
+            description: 'Resolved mapping metadata and normalized courier rates',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/RateResolveResponse' } } },
+          },
+          '400': { $ref: '#/components/responses/ValidationError' },
+          '401': { $ref: '#/components/responses/Unauthorized' },
+          '422': { description: 'Origin or destination mapping was not found for the merchant/courier' },
           '503': { $ref: '#/components/responses/ProviderUnavailable' },
         },
       },
@@ -206,6 +229,68 @@ export const openApiContract = {
           dest_code: { type: 'string', minLength: 3, maxLength: 32 },
           weight_grams: { type: 'integer', minimum: 1, maximum: 100000 },
           couriers: { type: 'array', minItems: 1, items: { $ref: '#/components/schemas/CourierCode' } },
+        },
+        additionalProperties: false,
+      },
+      DestinationInput: {
+        type: 'object',
+        properties: {
+          country: { type: 'string', minLength: 2, maxLength: 2, default: 'ID' },
+          province: { type: 'string', maxLength: 120 },
+          city: { type: 'string', maxLength: 120 },
+          district: { type: 'string', maxLength: 120 },
+          subdistrict: { type: 'string', maxLength: 120 },
+          postal_code: { type: 'string', maxLength: 16 },
+          address: { type: 'string', maxLength: 500 },
+        },
+        additionalProperties: false,
+      },
+      RateResolveRequest: {
+        type: 'object',
+        required: ['origin_id', 'destination', 'weight_grams'],
+        properties: {
+          origin_id: { type: 'string', minLength: 1, maxLength: 64 },
+          destination: { $ref: '#/components/schemas/DestinationInput' },
+          weight_grams: { type: 'integer', minimum: 1, maximum: 100000 },
+          couriers: { type: 'array', minItems: 1, items: { $ref: '#/components/schemas/CourierCode' } },
+        },
+        additionalProperties: false,
+      },
+      ResolvedOrigin: {
+        type: 'object',
+        required: ['id', 'code', 'name'],
+        properties: {
+          id: { type: 'string' },
+          code: { type: 'string' },
+          name: { type: 'string' },
+        },
+        additionalProperties: false,
+      },
+      ResolvedDestinationMapping: {
+        type: 'object',
+        required: ['courier', 'providerCode', 'mappingId'],
+        properties: {
+          courier: { $ref: '#/components/schemas/CourierCode' },
+          providerCode: { type: 'string' },
+          mappingId: { type: ['string', 'null'] },
+        },
+        additionalProperties: false,
+      },
+      RateResolveResponse: {
+        type: 'object',
+        required: ['origin', 'destination', 'rates'],
+        properties: {
+          origin: { $ref: '#/components/schemas/ResolvedOrigin' },
+          destination: {
+            type: 'object',
+            required: ['input', 'mappings'],
+            properties: {
+              input: { $ref: '#/components/schemas/DestinationInput' },
+              mappings: { type: 'array', items: { $ref: '#/components/schemas/ResolvedDestinationMapping' } },
+            },
+            additionalProperties: false,
+          },
+          rates: { type: 'array', items: { $ref: '#/components/schemas/Rate' } },
         },
         additionalProperties: false,
       },

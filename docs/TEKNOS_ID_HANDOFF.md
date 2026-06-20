@@ -1,7 +1,7 @@
 # teknos.id Integration Handoff
 
-Date: 2026-06-19
-Status: Sprint 6 handoff artifact; Sprint 9 Admin Control Center complete inside `teknos-logistics`
+Date: 2026-06-20
+Status: Sprint 6 handoff artifact; Sprint 10 destination abstraction in progress inside `teknos-logistics`
 
 This document is the copy-ready handoff for the future parent `teknos.id` integration. It is intentionally stored in `teknos-logistics`; do not edit parent `teknos.id` from this sprint.
 
@@ -14,8 +14,9 @@ Target model: `teknos.id` owns commerce; `teknos-logistics` owns logistics opera
 - Keep parent integration minimal: API URL, API key, webhook HMAC secret, feature flag, rates call, shipment creation call, tracking read, and webhook receiver. Do not add origin area/postal code/courier-list envs to parent; configure them in `teknos-logistics`.
 - Rates and tracking are safe read flows; JNE shipment booking can create a real AWB/resi and requires explicit operator approval.
 - The current machine-readable contract is available from `GET /openapi.json` and checked by `npm run contract:check`.
-- Before opening a parent-repo implementation task, run `npm run sprint6:readiness` in `teknos-logistics`.
+- Before opening a parent-repo implementation task, run `npm run sprint6:readiness`, `npm run contract:check`, and the current sprint readiness gate in `teknos-logistics`.
 - Sprint 9 Admin Control Center lives entirely inside `teknos-logistics` at `/admin-ui`: merchant/store/origin/courier config, operations visibility, and smoke/readiness validation. Parent `teknos.id` should still consume only the simplified merchant API and webhook contract, not duplicate logistics operations UI.
+- Sprint 10 adds `POST /v1/rates/resolve` so parent can send `origin_id` plus human-readable destination fields; raw provider `dest_code` should become fallback/legacy only.
 
 ## Required Parent Environment
 
@@ -46,6 +47,20 @@ interface LogisticsClientOptions {
 interface RateRequest {
   origin_code: string
   dest_code: string
+  weight_grams: number
+  couriers?: CourierCode[]
+}
+
+interface RateResolveRequest {
+  origin_id: string
+  destination: {
+    postal_code?: string
+    province?: string
+    city?: string
+    district?: string
+    subdistrict?: string
+    address?: string
+  }
   weight_grams: number
   couriers?: CourierCode[]
 }
@@ -94,6 +109,13 @@ export function createLogisticsClient(options: LogisticsClientOptions) {
   return {
     getRates(input: RateRequest) {
       return request<{ rates: unknown[] }>('/v1/rates', {
+        method: 'POST',
+        body: JSON.stringify(input),
+      })
+    },
+
+    getResolvedRates(input: RateResolveRequest) {
+      return request<{ origin: unknown; destination: unknown; rates: unknown[] }>('/v1/rates/resolve', {
         method: 'POST',
         body: JSON.stringify(input),
       })

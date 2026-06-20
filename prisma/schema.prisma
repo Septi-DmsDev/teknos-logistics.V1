@@ -50,6 +50,7 @@ model Merchant {
   stores          Store[]
   origins         Origin[]
   courierServices MerchantCourierService[]
+  destinationMappings DestinationMapping[]
 
   @@index([isActive, createdAt])
 }
@@ -126,6 +127,29 @@ model MerchantCourierService {
 
   @@unique([merchantId, courierServiceId, originId])
   @@index([merchantId, status])
+}
+
+model DestinationMapping {
+  id           String      @id @default(cuid())
+  merchantId   String
+  courier      CourierCode
+  country      String      @default("ID")
+  province     String?
+  city         String?
+  district     String?
+  subdistrict  String?
+  postalCode   String?
+  providerCode String
+  label        String?
+  isActive     Boolean     @default(true)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  merchant Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+
+  @@unique([merchantId, courier, providerCode])
+  @@index([merchantId, courier, postalCode, isActive])
+  @@index([merchantId, courier, city, isActive])
 }
 
 model ApiKey {

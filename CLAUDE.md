@@ -164,7 +164,50 @@ src/
 | Sprint 07 | Logistics admin config MVP | Done - Tasks 1-7 completed, migration `20260618103000_add_admin_config_models` applied, full validation passed, and admin smoke passed on 2026-06-19 |
 | Sprint 08 | Reliability and security hardening | Done - health/readiness, route rate limiting, persistent admin audit logs, audit visibility, cleanup utility, and runbook/readiness gate completed |
 | Sprint 09 | Admin Control Center minimal | Done - `/admin-ui` dashboard, merchant/store/origin/courier config UI, read-only operations pages, `smoke:admin-ui`, and `sprint9:readiness` completed |
-| Sprint 10 | Multi-courier foundation | In Progress - JNT/SAP skeleton providers, capability matrix, normalizers, and `/v1/couriers/capabilities` slice started |
+| Sprint 10 | Multi-courier foundation + destination abstraction | In Progress - JNT/SAP skeleton providers, capability matrix, `/v1/couriers/capabilities`, `DestinationMapping`, and `/v1/rates/resolve` slice added |
+| Sprint 11 (SAP Express) | SAP Express full integration | Planned - `sap-express.client.ts`, `sap-express.types.ts`, complete adapter, env vars, webhook handler, and tests; spec/plan draft tersedia di `docs/superpowers/` |
+
+---
+
+## Arah Arsitektur API Jangka Panjang (2026-06-20)
+
+Diklarifikasi oleh user: tujuan akhir teknos-logistics adalah menjadi agregator logistik internal seperti Biteship, di mana parent `teknos.id` **tidak perlu tahu format kode internal kurir apapun**.
+
+**Target payload dari teknos.id ke teknos-logistics:**
+```json
+{
+  "origin_id": "origin_mojokerto_main",
+  "destination": {
+    "postal_code": "61382",
+    "subdistrict": "Magersari",
+    "city": "Mojokerto",
+    "province": "Jawa Timur",
+    "address": "Jl. ...",
+    "phone": "08..."
+  },
+  "weight_grams": 1000,
+  "couriers": ["JNE", "JNT", "SAP_EXPRESS"]
+}
+```
+
+**Teknos-logistics yang resolve:**
+- `origin_id` → kode origin per kurir (dari store/origin config di admin panel)
+- `postal_code + subdistrict + city + province` → kode tujuan per kurir (destination mapping per provider)
+- `couriers` → filter provider yang aktif dan available
+- Agregasi rates dari semua kurir dalam satu response
+- Normalisasi tracking dan webhook ke format tunggal
+
+**Status implementasi Sprint 10:**
+- Legacy `POST /v1/rates` tetap menerima `origin_code` dan `dest_code` untuk backward compatibility.
+- New `POST /v1/rates/resolve` menerima `origin_id`, `destination`, `weight_grams`, dan `couriers`; service resolve origin aktif milik merchant dan destination mapping per kurir.
+- `DestinationMapping` menjadi admin-owned config untuk mapping postal/kecamatan/kota ke kode provider; parent tidak perlu menyimpan kode tujuan JNE/JNT/SAP saat memakai endpoint resolve.
+- `MOCK` boleh fallback dari postal/city untuk smoke; kurir nyata wajib punya destination mapping dan tidak boleh membuat AWB/resi dari endpoint rates.
+
+**Sprint lanjutan yang diperlukan:**
+- Sprint 11: SAP Express full integration.
+- Sprint 12: Origin Store Registry per-kurir jika satu origin internal membutuhkan kode origin berbeda per provider.
+- Sprint 13: import/bulk management destination mapping per provider.
+- Sprint 14: aggregated rates UX/policy hardening untuk service selection dan courier rules.
 
 ---
 
@@ -197,8 +240,14 @@ npm run build
 ```
 DATABASE_URL              Server-side Postgres connection string. Use tunnel localhost:5433 for local migration/dev.
 TEKNOS_INTERNAL_API_KEY   Local-only merchant API key for manual testing; stored in ignored .env.local, never commit.
-LOGISTICS_PROVIDER        Provider selector: mock or jne.
+LOGISTICS_PROVIDER        Provider selector: mock or jne. Akan ditambah sap_express setelah Sprint 11.
 JNE_*                     Server-only JNE credentials/configuration. Tariff requires base URL/user/key/origin; booking additionally requires shipper/cust/branch values.
+SAP_API_BASE_URL          URL base API SAP Express (ditambahkan Sprint 11).
+SAP_USERNAME              Username / merchant code SAP (Sprint 11).
+SAP_API_KEY               API key SAP Express (Sprint 11).
+SAP_ORIGIN_CODE           Kode origin SAP (kota/cabang pengirim) (Sprint 11).
+SAP_SHIPPER_*             Data pengirim untuk booking SAP: NAME, ADDRESS, CITY, PHONE, ZIP (Sprint 11).
+SAP_WEBHOOK_TOKEN         Token untuk validasi webhook dari SAP (Sprint 11).
 JNE_WEBHOOK_TOKEN         Shared token for courier webhook ingress validation; required by POST /webhooks/jne.
 RATE_LIMIT_WINDOW_MS      In-memory rate limit window in milliseconds; default 60000.
 RATE_LIMIT_PUBLIC_MAX     Max requests per window for `/v1/*` and `/webhooks/*`; default 120; set 0 only for controlled local testing.

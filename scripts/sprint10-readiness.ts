@@ -7,6 +7,13 @@ const checks = [
   checkFileIncludes('src/app.ts', ['new JntAdapter()', 'new SapExpressAdapter()', 'mountCourierRoutes(app)']),
   checkFileIncludes('src/routes/v1/couriers.ts', ['/v1/couriers/capabilities', 'listCourierCapabilities']),
   checkFileIncludes('src/contracts/openapi.ts', ['/v1/couriers/capabilities', 'CourierCapabilityResponse']),
+  checkFileIncludes('prisma/schema.prisma', ['model DestinationMapping', 'destinationMappings', '@@unique([merchantId, courier, providerCode])']),
+  checkFileIncludes('prisma/migrations/20260620103000_add_destination_mappings/migration.sql', ['CREATE TABLE "DestinationMapping"', 'DestinationMapping_merchantId_courier_providerCode_key']),
+  checkFileIncludes('src/repositories/destination-mapping.repository.ts', ['DestinationMappingRepository', 'findActiveOriginForMerchant', 'resolve']),
+  checkFileIncludes('src/services/destination-resolution.service.ts', ['DestinationResolutionService', 'resolveRates', 'DESTINATION_MAPPING_NOT_FOUND']),
+  checkFileIncludes('src/routes/v1/rates.ts', ['/v1/rates/resolve', 'rateResolveRequestSchema', 'destinationResolution.resolveRates']),
+  checkFileIncludes('src/routes/admin/destination-mappings.ts', ['/admin/merchants/:merchantId/destination-mappings', '/admin/destination-mappings/:mappingId']),
+  checkFileIncludes('src/contracts/openapi.ts', ['/v1/rates/resolve', 'RateResolveRequest', 'RateResolveResponse']),
 ]
 
 const ok = checks.every((check) => check.ok)

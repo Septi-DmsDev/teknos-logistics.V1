@@ -45,7 +45,7 @@ export function mountAdminMerchantRoutes(
   })
 
   app.post('/admin/merchants/:merchantId/api-keys', async (c) => {
-    const input = await parseJson(c, adminApiKeyCreateSchema)
+    const input = await parseJson(c, adminApiKeyCreateSchema.omit({ merchant_id: true }))
     const result = await apiKeys.createApiKey({ ...input, merchant_id: c.req.param('merchantId') })
     return c.json(result, 201)
   })

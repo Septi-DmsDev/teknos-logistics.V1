@@ -13,6 +13,7 @@ import { ShipmentRepository } from './repositories/shipment.repository.js'
 import { WebhookRepository } from './repositories/webhook.repository.js'
 import { AdminConfigRepository } from './repositories/admin-config.repository.js'
 import { AdminAuditRepository } from './repositories/admin-audit.repository.js'
+import { DestinationMappingRepository } from './repositories/destination-mapping.repository.js'
 import { apiKeyAuth } from './middleware/api-key-auth.js'
 import { adminAuth } from './middleware/admin-auth.js'
 import { adminAudit } from './middleware/admin-audit.js'
@@ -24,6 +25,7 @@ import { AdminConfigService } from './services/admin-config.service.js'
 import { AdminApiKeyService } from './services/admin-api-key.service.js'
 import { AdminVisibilityService } from './services/admin-visibility.service.js'
 import { AdminAuditService } from './services/admin-audit.service.js'
+import { DestinationResolutionService } from './services/destination-resolution.service.js'
 import { mountCourierRoutes } from './routes/v1/couriers.js'
 import { mountRateRoutes } from './routes/v1/rates.js'
 import { mountShipmentRoutes } from './routes/v1/shipments.js'
@@ -33,6 +35,7 @@ import { mountAdminStoreRoutes } from './routes/admin/stores.js'
 import { mountAdminCourierServiceRoutes } from './routes/admin/courier-services.js'
 import { mountAdminVisibilityRoutes } from './routes/admin/visibility.js'
 import { mountAdminAuditLogRoutes } from './routes/admin/audit-logs.js'
+import { mountAdminDestinationMappingRoutes } from './routes/admin/destination-mappings.js'
 import { mountAdminUiRoutes } from './routes/admin-ui.js'
 import { openApiContract } from './contracts/openapi.js'
 import { sanitizeError } from './utils/http-error.js'
@@ -46,6 +49,7 @@ export function createApp() {
   const webhookRepository = new WebhookRepository(prisma)
   const adminConfigRepository = new AdminConfigRepository(prisma)
   const adminAuditRepository = new AdminAuditRepository(prisma)
+  const destinationMappingRepository = new DestinationMappingRepository(prisma)
   const rateService = new RateService(registry, rateCacheRepository)
   const shipmentService = new ShipmentService(registry, shipmentRepository, webhookRepository)
   const courierWebhookService = new CourierWebhookService(registry, shipmentRepository, webhookRepository)
@@ -53,6 +57,7 @@ export function createApp() {
   const adminApiKeyService = new AdminApiKeyService(merchantRepository)
   const adminVisibilityService = new AdminVisibilityService(shipmentRepository, webhookRepository)
   const adminAuditService = new AdminAuditService(adminAuditRepository)
+  const destinationResolutionService = new DestinationResolutionService(destinationMappingRepository, rateService)
 
   app.onError((error, c) => {
     if (error instanceof ZodError) return c.json({ error: 'Invalid request', code: 'VALIDATION_ERROR', issues: error.issues }, 400)
@@ -82,8 +87,9 @@ export function createApp() {
   mountAdminCourierServiceRoutes(app, adminConfigService)
   mountAdminVisibilityRoutes(app, adminVisibilityService)
   mountAdminAuditLogRoutes(app, adminAuditService)
+  mountAdminDestinationMappingRoutes(app, destinationMappingRepository)
   mountCourierRoutes(app)
-  mountRateRoutes(app, rateService)
+  mountRateRoutes(app, rateService, destinationResolutionService)
   mountShipmentRoutes(app, shipmentService)
   mountJneWebhookRoutes(app, env, courierWebhookService)
 

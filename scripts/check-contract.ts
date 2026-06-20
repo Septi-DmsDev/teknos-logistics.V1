@@ -6,7 +6,7 @@ const response = await app.fetch(new Request('http://localhost/openapi.json'))
 if (!response.ok) throw new Error(`OpenAPI contract returned HTTP ${response.status}`)
 
 const contract = await response.json() as OpenApiLike
-const requiredPaths = ['/v1/couriers/capabilities', '/v1/rates', '/v1/shipments', '/v1/shipments/{id}/tracking', '/webhooks/jne'] as const
+const requiredPaths = ['/v1/couriers/capabilities', '/v1/rates', '/v1/rates/resolve', '/v1/shipments', '/v1/shipments/{id}/tracking', '/webhooks/jne'] as const
 const missingPaths = requiredPaths.filter((path) => !contract.paths[path])
 
 if (missingPaths.length > 0) throw new Error(`OpenAPI contract missing paths: ${missingPaths.join(', ')}`)
@@ -15,12 +15,14 @@ if (!contract.components?.securitySchemes?.bearerAuth) throw new Error('OpenAPI 
 
 const capabilities = contract.paths['/v1/couriers/capabilities']?.get
 const rates = contract.paths['/v1/rates']?.post
+const resolvedRates = contract.paths['/v1/rates/resolve']?.post
 const shipments = contract.paths['/v1/shipments']?.post
 const tracking = contract.paths['/v1/shipments/{id}/tracking']?.get
 const jneWebhook = contract.paths['/webhooks/jne']?.post
 
 if (!capabilities?.security?.length) throw new Error('/v1/couriers/capabilities must require bearer auth')
 if (!rates?.security?.length) throw new Error('/v1/rates must require bearer auth')
+if (!resolvedRates?.security?.length) throw new Error('/v1/rates/resolve must require bearer auth')
 if (!shipments?.security?.length) throw new Error('/v1/shipments must require bearer auth')
 if (!tracking?.security?.length) throw new Error('/v1/shipments/{id}/tracking must require bearer auth')
 if (!jneWebhook?.parameters?.some((parameter) => parameter.name === 'x-jne-token')) throw new Error('/webhooks/jne must document x-jne-token')

@@ -37,8 +37,12 @@ Strategic direction update (2026-06-20): `teknos-logistics` should become a Bite
 | Sprint 7 | Logistics admin config MVP | Done - Tasks 1-7 completed; admin config schema/routes/services/docs implemented, migration applied, full validation and `npm run smoke:admin-config` passed on 2026-06-19 | Done |
 | Sprint 8 | Reliability and security hardening | Done - health/readiness, route rate limiting, persistent admin audit logs, audit visibility, cleanup utility, and runbook/readiness gate completed | Done |
 | Sprint 9 | Admin Control Center minimal | Done - `/admin-ui`, dashboard, merchant/store/origin/courier config UI, read-only ops pages, smoke/readiness checks | Done |
-| Sprint 10 | Multi-courier foundation | In progress - JNT/SAP skeletons, provider capability matrix, normalizers, and capability endpoint | In Progress |
-| Sprint 11 | Reporting, billing, and analytics | Resi recap, volume/cost analytics, courier performance, invoices, B2B/SaaS commercialization foundation | Planned |
+| Sprint 10 | Multi-courier foundation + destination abstraction | In progress - JNT/SAP skeletons, provider capability matrix, normalizers, capability endpoint, `DestinationMapping`, and `POST /v1/rates/resolve` | In Progress |
+| Sprint 11 | SAP Express full integration | `sap-express.client.ts` + `sap-express.types.ts` + complete adapter (rates/booking/tracking/webhook) + env vars + tests; spec + plan draft tersedia di `docs/superpowers/` | Planned |
+| Sprint 12 | Origin Store Registry | Optional per-courier origin resolver if one internal origin needs different provider origin codes; parent keeps sending internal `origin_id` | Planned |
+| Sprint 13 | Destination Mapping Ops | Admin/import tooling for postal_code + kecamatan + kota + provinsi → kode tujuan per provider at scale | Planned |
+| Sprint 14 | Aggregated multi-courier rates policy | Service selection rules, courier enablement rules, ranking, and fallback behavior for resolved rates | Planned |
+| Sprint 15 | Reporting, billing, and analytics | Resi recap, volume/cost analytics, courier performance, invoices, B2B/SaaS commercialization foundation | Planned |
 
 ## Ownership Boundary
 
