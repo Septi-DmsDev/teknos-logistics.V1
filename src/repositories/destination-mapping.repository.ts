@@ -141,6 +141,16 @@ export class DestinationMappingRepository {
   }
 
   async resolve(merchantId: string, courier: CourierCode, destination: DestinationLookupInput): Promise<DestinationMappingRecord | null> {
+    const exactWhere = exactLookupWhere(merchantId, courier, destination)
+    if (exactWhere) {
+      const exact = await this.prisma.destinationMapping.findFirst({
+        where: exactWhere,
+        select: destinationMappingSelect,
+        orderBy: [{ updatedAt: 'desc' }, { id: 'asc' }],
+      })
+      if (exact) return exact
+    }
+
     const filters: Prisma.DestinationMappingWhereInput[] = []
     if (destination.postalCode) filters.push({ postalCode: destination.postalCode })
     if (destination.city) filters.push({ city: { equals: destination.city, mode: 'insensitive' } })
@@ -160,6 +170,34 @@ export class DestinationMappingRepository {
 
     return candidates.sort((left, right) => score(right, destination) - score(left, destination))[0] ?? null
   }
+}
+
+function exactLookupWhere(merchantId: string, courier: CourierCode, destination: DestinationLookupInput): Prisma.DestinationMappingWhereInput | null {
+  const where: Prisma.DestinationMappingWhereInput = { merchantId, courier, isActive: true }
+  let matchFields = 0
+
+  if (destination.postalCode) {
+    where.postalCode = destination.postalCode
+    matchFields += 1
+  }
+  if (destination.province) {
+    where.province = { equals: destination.province, mode: 'insensitive' }
+    matchFields += 1
+  }
+  if (destination.city) {
+    where.city = { equals: destination.city, mode: 'insensitive' }
+    matchFields += 1
+  }
+  if (destination.district) {
+    where.district = { equals: destination.district, mode: 'insensitive' }
+    matchFields += 1
+  }
+  if (destination.subdistrict) {
+    where.subdistrict = { equals: destination.subdistrict, mode: 'insensitive' }
+    matchFields += 1
+  }
+
+  return matchFields >= 2 ? where : null
 }
 
 function score(mapping: DestinationMappingRecord, destination: DestinationLookupInput): number {

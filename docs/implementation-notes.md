@@ -691,3 +691,11 @@ sebelum Sprint 6 teknos-logistics integration (teknos.id -> teknos-logistics) di
 - `npm run test` now runs `tsx --test tests/**/*.test.ts` instead of the bootstrap placeholder.
 - Test coverage includes rates normalization/filtering, missing config errors, booking response handling, tracking normalization, webhook normalization, and empty tracking behavior.
 - No SAP network call or real booking is performed by these tests.
+
+## Sprint 13 Runtime Import and Resolve Smoke - 2026-06-21
+
+- Applied pending migrations `20260620143000_add_origin_mappings` and `20260620152000_make_destination_mappings_importable` through the active tunnel `localhost:5434 -> 10.0.8.12:5432`.
+- Imported 82,959 JNE destination rows for merchant `teknos`; DB verification counted 82,959 active JNE `DestinationMapping` rows and 7,353 unique JNE provider codes.
+- Updated JNE origin mapping for `origin_mojokerto_main` to use the active `JNE_ORIGIN_CODE` value (`MJK10000` in local env) instead of the stale fallback `MJK10008`; `scripts/upsert-origin-mappings.ts` now falls back to `JNE_ORIGIN_CODE` before the hardcoded default.
+- Fixed destination resolution to prefer exact full-address matches before broad postal/city candidates. This prevents exact rows like Cideng/Gambir/Jakarta Pusat from being displaced by another row sharing the same postal/city fields.
+- Validation: `npm run smoke:rates:resolve` passed with `MOCK`; JNE tariff-only `/v1/rates/resolve` passed for Mojokerto origin to `CGK10302` with 7 returned rates. No booking, AWB, or resi creation was performed.

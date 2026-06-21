@@ -16,7 +16,7 @@ const prisma = createPrismaClient()
 
 const MERCHANT_SLUG = process.env.ORIGIN_MAPPING_MERCHANT_SLUG ?? 'teknos'
 const ORIGIN_CODE = process.env.ORIGIN_MAPPING_ORIGIN_CODE ?? 'origin_mojokerto_main'
-const JNE_PROVIDER_CODE = process.env.JNE_ORIGIN_PROVIDER_CODE ?? 'MJK10008'
+const JNE_PROVIDER_CODE = process.env.JNE_ORIGIN_PROVIDER_CODE ?? process.env.JNE_ORIGIN_CODE ?? 'MJK10008'
 const SAP_PROVIDER_CODE = process.env.SAP_ORIGIN_PROVIDER_CODE ?? 'TBD_FROM_SAP_IT'
 
 try {
