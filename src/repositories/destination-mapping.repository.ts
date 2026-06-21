@@ -16,6 +16,14 @@ export interface DestinationMappingListParams {
   offset?: number
 }
 
+export interface ProviderOriginCatalogSearchParams {
+  courier?: CourierCode
+  search?: string
+  isActive?: boolean
+  limit?: number
+  offset?: number
+}
+
 export interface DestinationMappingCreateInput extends DestinationLookupInput {
   merchant_id: string
   courier: CourierCode
@@ -35,6 +43,7 @@ export interface DestinationMappingUpdateInput extends Partial<DestinationLookup
 export type DestinationMappingRecord = Prisma.DestinationMappingGetPayload<{ select: typeof destinationMappingSelect }>
 export type OriginMappingRecord = Prisma.OriginMappingGetPayload<{ select: typeof originMappingSelect }>
 export type OriginResolutionRecord = Prisma.OriginGetPayload<{ select: typeof originResolutionSelect }>
+export type ProviderOriginCatalogRecord = Prisma.ProviderOriginCatalogGetPayload<{ select: typeof providerOriginCatalogSelect }>
 
 export class DestinationMappingRepository {
   constructor(private readonly prisma: PrismaClient) {}
@@ -89,6 +98,36 @@ export class DestinationMappingRepository {
       select: { providerCode: true },
     })
     return mapping?.providerCode ?? null
+  }
+
+  async searchProviderOrigins(params: ProviderOriginCatalogSearchParams = {}): Promise<ProviderOriginCatalogRecord[]> {
+    const limit = params.limit ?? 20
+    const offset = params.offset ?? 0
+    const search = params.search?.trim()
+    const searchWhere: Prisma.ProviderOriginCatalogWhereInput[] = search
+      ? [
+          { providerCode: { contains: search, mode: 'insensitive' } },
+          { branchCode: { contains: search, mode: 'insensitive' } },
+          { label: { contains: search, mode: 'insensitive' } },
+          { province: { contains: search, mode: 'insensitive' } },
+          { city: { contains: search, mode: 'insensitive' } },
+          { district: { contains: search, mode: 'insensitive' } },
+          { subdistrict: { contains: search, mode: 'insensitive' } },
+          { postalCode: { contains: search, mode: 'insensitive' } },
+        ]
+      : []
+
+    return this.prisma.providerOriginCatalog.findMany({
+      where: {
+        courier: params.courier,
+        isActive: params.isActive,
+        OR: searchWhere.length > 0 ? searchWhere : undefined,
+      },
+      select: providerOriginCatalogSelect,
+      orderBy: [{ courier: 'asc' }, { providerCode: 'asc' }, { label: 'asc' }],
+      take: limit,
+      skip: offset,
+    })
   }
 
   async list(params: DestinationMappingListParams = {}): Promise<DestinationMappingRecord[]> {
@@ -250,4 +289,22 @@ const originResolutionSelect = {
   name: true,
   isDefault: true,
   isActive: true,
+} as const
+
+const providerOriginCatalogSelect = {
+  id: true,
+  courier: true,
+  country: true,
+  province: true,
+  city: true,
+  district: true,
+  subdistrict: true,
+  postalCode: true,
+  providerCode: true,
+  branchCode: true,
+  label: true,
+  sourceKey: true,
+  isActive: true,
+  createdAt: true,
+  updatedAt: true,
 } as const

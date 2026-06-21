@@ -98,6 +98,12 @@ export const adminDestinationMappingListQuerySchema = adminPaginationSchema.exte
   is_active: z.coerce.boolean().optional(),
 })
 
+export const adminProviderOriginCatalogSearchQuerySchema = adminPaginationSchema.extend({
+  courier: courierCodeSchema.default('JNE'),
+  search: z.string().trim().min(1).max(120).optional(),
+  is_active: z.coerce.boolean().default(true),
+})
+
 export const adminOriginMappingUpsertSchema = z.object({
   merchant_id: idSchema,
   origin_id: idSchema,
@@ -184,6 +190,7 @@ export type AdminOriginUpdateInput = z.infer<typeof adminOriginUpdateSchema>
 export type AdminDestinationMappingCreateInput = z.infer<typeof adminDestinationMappingCreateSchema>
 export type AdminDestinationMappingUpdateInput = z.infer<typeof adminDestinationMappingUpdateSchema>
 export type AdminDestinationMappingListQuery = z.infer<typeof adminDestinationMappingListQuerySchema>
+export type AdminProviderOriginCatalogSearchQuery = z.infer<typeof adminProviderOriginCatalogSearchQuerySchema>
 export type AdminOriginMappingUpsertInput = z.infer<typeof adminOriginMappingUpsertSchema>
 export type AdminCourierServiceCreateInput = z.infer<typeof adminCourierServiceCreateSchema>
 export type AdminCourierServiceUpdateInput = z.infer<typeof adminCourierServiceUpdateSchema>

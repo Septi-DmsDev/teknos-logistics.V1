@@ -6,6 +6,7 @@ import { env } from '../config/env.js'
 
 export function mountAdminUiRoutes(app: Hono): void {
   app.get('/admin-ui', (c) => c.html(adminHtml))
+  app.get('/admin-ui/login', (c) => c.html(adminHtml))
   app.get('/admin-ui/config.json', (c) => c.json({
     authProvider: env.ADMIN_AUTH_PROVIDER,
     supabaseUrl: env.ADMIN_AUTH_PROVIDER === 'supabase' ? env.SUPABASE_URL : '',

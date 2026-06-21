@@ -11,8 +11,9 @@ const { createApp } = await import('../src/app.js')
 const app = createApp()
 const adminHeaders = { authorization: `Bearer ${process.env.ADMIN_JWT_SECRET}` }
 
-const [html, css, js, health, ready, merchants, auditLogs] = await Promise.all([
+const [html, loginHtml, css, js, health, ready, merchants, auditLogs] = await Promise.all([
   get('/admin-ui'),
+  get('/admin-ui/login'),
   get('/admin-ui/assets/styles.css'),
   get('/admin-ui/assets/app.js'),
   get('/health'),
@@ -22,6 +23,7 @@ const [html, css, js, health, ready, merchants, auditLogs] = await Promise.all([
 ])
 
 const htmlText = await html.response.text()
+const loginHtmlText = await loginHtml.response.text()
 const cssText = await css.response.text()
 const jsText = await js.response.text()
 const healthBody = await readJson(health.response)
@@ -31,6 +33,7 @@ const auditLogsBody = await readJson(auditLogs.response)
 
 const checks = [
   check('admin-ui html route', html.status === 200 && html.contentType.includes('text/html') && htmlText.includes('Admin Control Center')),
+  check('admin-ui login route', loginHtml.status === 200 && loginHtml.contentType.includes('text/html') && loginHtmlText.includes('Masuk Admin')),
   check('admin-ui css route', css.status === 200 && css.contentType.includes('text/css') && cssText.includes('.admin-shell')),
   check('admin-ui js route', js.status === 200 && js.contentType.includes('application/javascript') && jsText.includes('loadDashboard')),
   check('health route', health.status === 200 && healthBody?.ok === true),

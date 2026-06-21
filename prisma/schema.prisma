@@ -163,6 +163,30 @@ model DestinationMapping {
   @@index([merchantId, courier, city, isActive])
 }
 
+model ProviderOriginCatalog {
+  id           String      @id @default(cuid())
+  courier      CourierCode
+  country      String      @default("ID")
+  province     String?
+  city         String?
+  district     String?
+  subdistrict  String?
+  postalCode   String?
+  providerCode String
+  branchCode   String?
+  label        String?
+  sourceKey    String
+  isActive     Boolean     @default(true)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  @@unique([courier, sourceKey])
+  @@index([courier, providerCode])
+  @@index([courier, city, isActive])
+  @@index([courier, district, isActive])
+  @@index([courier, postalCode, isActive])
+}
+
 model OriginMapping {
   id           String      @id @default(cuid())
   merchantId   String

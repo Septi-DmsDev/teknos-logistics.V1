@@ -7,30 +7,31 @@ export const adminHtml = `<!doctype html>
     <link rel="stylesheet" href="/admin-ui/assets/styles.css" />
   </head>
   <body>
-    <div id="app" class="admin-shell" data-app="teknos-logistics-admin">
+    <div id="app" class="admin-shell is-unauthenticated" data-app="teknos-logistics-admin">
       <aside class="sidebar" aria-label="Admin navigation">
         <div class="brand">
           <span class="brand-mark">TL</span>
           <div>
             <strong>Teknos Logistics</strong>
-            <small>Control Center</small>
+            <small>Operator Console</small>
           </div>
         </div>
         <nav class="nav-list">
-          <a href="#/dashboard" data-route="dashboard">Dashboard</a>
-          <a href="#/merchants" data-route="merchants">Merchants</a>
-          <a href="#/stores-origins" data-route="stores-origins">Stores &amp; Origins</a>
-          <a href="#/courier-services" data-route="courier-services">Courier Services</a>
+          <a href="#/setup" data-route="setup">Setup</a>
+          <a href="#/dashboard" data-route="dashboard">Overview</a>
+          <a href="#/merchants" data-route="merchants">Merchants &amp; Keys</a>
+          <a href="#/stores-origins" data-route="stores-origins">Origins</a>
+          <a href="#/destination-mappings" data-route="destination-mappings">Mappings</a>
+          <a href="#/courier-services" data-route="courier-services">Services</a>
           <a href="#/shipments" data-route="shipments">Shipments</a>
-          <a href="#/webhook-relays" data-route="webhook-relays">Webhook Relays</a>
-          <a href="#/audit-logs" data-route="audit-logs">Audit Logs</a>
+          <a href="#/webhook-relays" data-route="webhook-relays">Webhook Relay</a>
+          <a href="#/audit-logs" data-route="audit-logs">Audit</a>
         </nav>
       </aside>
 
       <main class="main-panel">
         <header class="topbar">
           <div>
-            <p class="eyebrow">Internal Operations</p>
             <h1 id="page-title">Admin Control Center</h1>
           </div>
           <div class="topbar-actions">
@@ -41,12 +42,19 @@ export const adminHtml = `<!doctype html>
 
         <section id="notice" class="notice" hidden></section>
 
-        <section id="login-panel" class="panel login-panel" aria-labelledby="login-title">
-          <div>
-            <p class="eyebrow">Admin Access</p>
-            <h2 id="login-title">Masuk Admin</h2>
-            <p id="login-help" class="muted">Gunakan login Supabase untuk akses admin production. Token manual hanya fallback sementara untuk staging/dev.</p>
-          </div>
+        <section id="login-panel" class="login-panel" aria-labelledby="login-title">
+          <div class="login-card">
+            <div class="login-brand">
+              <span class="brand-mark">TL</span>
+              <div>
+                <strong>Teknos Logistics</strong>
+                <small>Admin Control Center</small>
+              </div>
+            </div>
+            <div class="login-copy">
+              <h2 id="login-title">Masuk Admin</h2>
+              <p id="login-help" class="muted">Gunakan login Supabase untuk akses admin production. Token manual hanya fallback sementara untuk staging/dev.</p>
+            </div>
           <form id="token-form" class="form-grid">
             <label data-auth-field="email">
               <span>Email admin</span>
@@ -62,30 +70,17 @@ export const adminHtml = `<!doctype html>
             </label>
             <button id="login-submit" class="button" type="submit">Masuk</button>
           </form>
+          <div class="login-footnote">
+            <span>Token dan sesi hanya disimpan di browser session.</span>
+            <span>Tidak ada credential kurir yang ditampilkan di UI ini.</span>
+          </div>
+          </div>
         </section>
 
         <section id="content-panel" class="content-stack" hidden>
           <section class="panel">
-            <p class="eyebrow">Sprint 9</p>
-            <h2>Control Center shell siap</h2>
-            <p class="muted">UI shell sudah aktif. Dashboard dan halaman operasional akan diisi pada task berikutnya.</p>
-            <div class="card-grid">
-              <article class="metric-card">
-                <span class="metric-label">API Boundary</span>
-                <strong>/admin/*</strong>
-                <p class="muted">Semua data operasional tetap lewat admin API.</p>
-              </article>
-              <article class="metric-card">
-                <span class="metric-label">Safety</span>
-                <strong>No AWB Action</strong>
-                <p class="muted">Shell ini tidak memiliki aksi membuat resi nyata.</p>
-              </article>
-              <article class="metric-card">
-                <span class="metric-label">Next</span>
-                <strong>Client Foundation</strong>
-                <p class="muted">Task 2 akan menambahkan router, state, dan API client.</p>
-              </article>
-            </div>
+            <h2>Memuat konsol</h2>
+            <p class="muted">Jika halaman tidak berubah, periksa token admin dan koneksi server lokal.</p>
           </section>
         </section>
       </main>

@@ -46,6 +46,8 @@
     "sprint11b:readiness": "tsx scripts/sprint11b-readiness.ts",
     "origin:mappings:upsert": "tsx scripts/upsert-origin-mappings.ts",
     "sprint12:readiness": "tsx scripts/sprint12-readiness.ts",
+    "import:jne:origins": "tsx scripts/import-jne-origins.ts",
+    "import:jne:origins:apply": "tsx scripts/import-jne-origins.ts --apply",
     "import:jne:destinations": "tsx scripts/import-jne-destinations.ts",
     "sprint13:readiness": "tsx scripts/sprint13-readiness.ts",
     "smoke:webhook:signature": "tsx scripts/smoke-webhook-signature.ts"

@@ -10,6 +10,8 @@ Source spec: `docs/superpowers/specs/2026-06-17-teknos-logistics-platform-design
 
 Strategic direction update (2026-06-20): `teknos-logistics` should become a Biteship-like logistics platform for Teknos with stronger centralization than Biteship-style env setup. `teknos.id` owns commerce; `teknos-logistics` owns logistics operations. Parent web apps should only keep `LOGISTICS_API_URL`, `LOGISTICS_API_KEY`, `LOGISTICS_WEBHOOK_SECRET`, and `LOGISTICS_ENABLED`. Courier configuration, branch/store origins, provider origin/destination code mapping, enabled courier lists, service mapping, AWB/resi recap, tracking history, webhook logs, retry/dead-letter behavior, merchant relay, and logistics reporting should live here.
 
+Credential architecture note (2026-06-21): current `JNE_*` env values are a global Teknos credential fallback for the early/internal phase. The scalable target is per-merchant courier credentials stored server-side in `teknos-logistics` and encrypted at rest, so clients with their own JNE account can be billed/recapped by JNE under their own `JNE_USERNAME`/`JNE_API_KEY` instead of sharing Teknos credentials. Parent apps must still never receive courier credentials.
+
 ## Execution Principles
 
 - Keep `teknos.id` checkout and shipping flows unchanged until staging integration is proven.
@@ -21,6 +23,7 @@ Strategic direction update (2026-06-20): `teknos-logistics` should become a Bite
 - Keep mock provider usable for development and staging even when JNE credentials are unavailable.
 - Treat API key auth, courier webhooks, merchant webhook relay, env/secrets, and Prisma migrations as security-sensitive surfaces.
 - Never hardcode courier credentials or merchant API keys.
+- Do not model multi-client courier credentials as many env vars; use encrypted per-merchant provider credentials when clients bring their own courier account.
 - Document decisions in repo docs, not only in chat.
 
 ## Sprint Plan
@@ -41,9 +44,10 @@ Strategic direction update (2026-06-20): `teknos-logistics` should become a Bite
 | Sprint 11A | Supabase Admin Auth Foundation | In progress - env placeholders, `AdminOperator`, Supabase JWT verifier, provider switch, audit identity fields, bootstrap script, readiness gate | In Progress |
 | Sprint 11B | SAP Express full integration | Implemented offline - SAP JSON client, active adapter rates/booking/tracking/webhook normalize, `/webhooks/sap-express`, capability ACTIVE, mock smoke, readiness gate. Runtime SAP/DB QA waits for server/tunnel recovery. | In Progress |
 | Sprint 12 | Origin Store Registry | Optional per-courier origin resolver if one internal origin needs different provider origin codes; parent keeps sending internal `origin_id` | Planned |
-| Sprint 13 | Destination Mapping data import | Tooling ready offline - JNE XLSX dry-run parses 82,959 rows / 7,353 tariff codes; schema adjusted with `sourceKey`; DB apply waits for tunnel/migration. | In Progress |
+| Sprint 13 | Destination Mapping data import | Tooling ready offline - JNE XLSX dry-run parses 82,959 rows / 7,353 tariff codes; schema adjusted with `sourceKey`; provider origin catalog/search added for admin origin mapping. DB apply waits for tunnel/migration. | In Progress |
 | Sprint 14 | Aggregated multi-courier rates policy | Service selection rules, courier enablement rules, ranking, and fallback behavior for resolved rates | Planned |
 | Sprint 15 | Reporting, billing, and analytics | Resi recap, volume/cost analytics, courier performance, invoices, B2B/SaaS commercialization foundation | Planned |
+| Sprint 16 | Per-merchant courier credentials | Encrypted courier account storage, admin credential UI, per-merchant credential resolver, rotation/audit, and JNE recap separation by client account | Planned |
 
 ## Ownership Boundary
 
@@ -57,6 +61,7 @@ Strategic direction update (2026-06-20): `teknos-logistics` should become a Bite
 `teknos-logistics` should own:
 
 - courier credentials and provider configuration,
+- encrypted per-merchant courier account credentials when a client owns its own provider account,
 - store/branch/origin configuration,
 - rate quoting, booking, AWB/resi creation, and resi recap,
 - tracking history and normalized lifecycle,
@@ -106,3 +111,4 @@ LOGISTICS_ENABLED=false
 Do not add Biteship-like parent envs for origin area, origin postal code, or courier list. Those values belong in `teknos-logistics` admin configuration and destination/origin mapping.
 
 - 2026-06-20 Sprint 12: OriginMapping offline implementation added; DB deploy pending server/tunnel recovery.
+- 2026-06-21 Provider origin catalog: migration `20260621143000_add_provider_origin_catalog`, `GET /admin/provider-origins`, and `npm run import:jne:origins` added so Admin UI can search JNE origin codes while keeping `Origin.code` as an internal merchant code.

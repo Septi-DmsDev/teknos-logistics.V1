@@ -12,6 +12,7 @@ Target model: `teknos.id` owns commerce; `teknos-logistics` owns logistics opera
 - Parent `teknos.id` remains read-only until the user opens a separate explicit parent-repo task.
 - All API keys and webhook secrets are server-only.
 - Keep parent integration minimal: API URL, API key, webhook HMAC secret, feature flag, rates call, shipment creation call, tracking read, and webhook receiver. Do not add origin area/postal code/courier-list envs to parent; configure them in `teknos-logistics`.
+- Do not add courier provider credentials to parent env. If a future merchant/client has its own JNE account, `teknos-logistics` must select encrypted per-merchant courier credentials server-side based on the authenticated merchant API key.
 - Rates and tracking are safe read flows; JNE shipment booking can create a real AWB/resi and requires explicit operator approval.
 - The current machine-readable contract is available from `GET /openapi.json` and checked by `npm run contract:check`.
 - Before opening a parent-repo implementation task, run `npm run sprint6:readiness`, `npm run contract:check`, and the current sprint readiness gate in `teknos-logistics`.
@@ -23,6 +24,8 @@ Target model: `teknos.id` owns commerce; `teknos-logistics` owns logistics opera
 ## Required Parent Environment
 
 This is intentionally different from Biteship-style envs. Parent `teknos.id` should not own `BITESHIP_ORIGIN_AREA_ID`, `BITESHIP_ORIGIN_POSTAL_CODE`, or `BITESHIP_COURIERS` equivalents. Those are admin-managed in `teknos-logistics`.
+
+Parent apps also must not own `JNE_USERNAME`, `JNE_API_KEY`, `JNE_CUST_NO`, `JNE_BRANCH_CODE`, or similar courier-provider credentials. JNE account ownership is a `teknos-logistics` concern because JNE recap/billing can depend on the credential pair used for the request.
 
 ```env
 LOGISTICS_API_URL="https://<teknos-logistics-host>"

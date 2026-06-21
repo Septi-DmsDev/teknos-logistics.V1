@@ -1,7 +1,9 @@
 import { execFileSync } from 'node:child_process'
+import { randomUUID } from 'node:crypto'
 import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { basename, join, resolve } from 'node:path'
+import { Prisma } from '@prisma/client'
 
 interface JneDestinationRow {
   country: string
@@ -18,6 +20,7 @@ const DEFAULT_XLSX = 'docs/Docs API Expedisi/JNE/Live doc/suport file/list_dest.
 const args = new Set(process.argv.slice(2))
 const apply = args.has('--apply')
 const limit = readNumberArg('--limit')
+const batchSize = readNumberArg('--batch-size') ?? 1000
 const file = readStringArg('--file') ?? DEFAULT_XLSX
 const merchantSlug = readStringArg('--merchant') ?? process.env.JNE_DESTINATION_IMPORT_MERCHANT_SLUG ?? 'teknos'
 
@@ -41,42 +44,67 @@ try {
   if (!merchant) throw new Error(`Merchant not found: ${merchantSlug}`)
 
   let imported = 0
-  for (const row of selectedRows) {
-    await prisma.destinationMapping.upsert({
-      where: { merchantId_courier_sourceKey: { merchantId: merchant.id, courier: 'JNE', sourceKey: row.sourceKey } },
-      create: {
-        merchantId: merchant.id,
-        courier: 'JNE',
-        country: row.country,
-        province: row.province,
-        city: row.city,
-        district: row.district,
-        subdistrict: row.subdistrict,
-        postalCode: row.postalCode,
-        providerCode: row.providerCode,
-        sourceKey: row.sourceKey,
-        label: `${row.city} - ${row.district} - ${row.subdistrict}`.slice(0, 120),
-        isActive: true,
-      },
-      update: {
-        country: row.country,
-        province: row.province,
-        city: row.city,
-        district: row.district,
-        subdistrict: row.subdistrict,
-        postalCode: row.postalCode,
-        providerCode: row.providerCode,
-        label: `${row.city} - ${row.district} - ${row.subdistrict}`.slice(0, 120),
-        isActive: true,
-      },
-    })
-    imported += 1
-    if (imported % 1000 === 0) console.log(JSON.stringify({ imported, total: selectedRows.length }))
+  for (let index = 0; index < selectedRows.length; index += batchSize) {
+    const chunk = selectedRows.slice(index, index + batchSize)
+    await upsertDestinationBatch(merchant.id, chunk)
+    imported += chunk.length
+    console.log(JSON.stringify({ imported, total: selectedRows.length }))
   }
 
   console.log(JSON.stringify({ ok: true, mode: 'apply', merchantId: merchant.id, imported, uniqueProviderCodes: uniqueProviderCodes.size }, null, 2))
 } finally {
   await prisma.$disconnect()
+}
+
+async function upsertDestinationBatch(merchantId: string, rows: JneDestinationRow[]): Promise<void> {
+  const values = rows.map((row) => Prisma.sql`(
+    ${randomUUID()},
+    ${merchantId},
+    CAST(${'JNE'} AS "CourierCode"),
+    ${row.country},
+    ${row.province},
+    ${row.city},
+    ${row.district},
+    ${row.subdistrict},
+    ${row.postalCode},
+    ${row.providerCode},
+    ${row.sourceKey},
+    ${`${row.city} - ${row.district} - ${row.subdistrict}`.slice(0, 120)},
+    ${true},
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP
+  )`)
+
+  await prisma.$executeRaw`
+    INSERT INTO "DestinationMapping" (
+      "id",
+      "merchantId",
+      "courier",
+      "country",
+      "province",
+      "city",
+      "district",
+      "subdistrict",
+      "postalCode",
+      "providerCode",
+      "sourceKey",
+      "label",
+      "isActive",
+      "createdAt",
+      "updatedAt"
+    ) VALUES ${Prisma.join(values)}
+    ON CONFLICT ("merchantId", "courier", "sourceKey") DO UPDATE SET
+      "country" = EXCLUDED."country",
+      "province" = EXCLUDED."province",
+      "city" = EXCLUDED."city",
+      "district" = EXCLUDED."district",
+      "subdistrict" = EXCLUDED."subdistrict",
+      "postalCode" = EXCLUDED."postalCode",
+      "providerCode" = EXCLUDED."providerCode",
+      "label" = EXCLUDED."label",
+      "isActive" = EXCLUDED."isActive",
+      "updatedAt" = CURRENT_TIMESTAMP
+  `
 }
 
 export function readJneDestinationRows(xlsxPath: string): JneDestinationRow[] {

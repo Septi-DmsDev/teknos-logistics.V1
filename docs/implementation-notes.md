@@ -699,3 +699,91 @@ sebelum Sprint 6 teknos-logistics integration (teknos.id -> teknos-logistics) di
 - Updated JNE origin mapping for `origin_mojokerto_main` to use the active `JNE_ORIGIN_CODE` value (`MJK10000` in local env) instead of the stale fallback `MJK10008`; `scripts/upsert-origin-mappings.ts` now falls back to `JNE_ORIGIN_CODE` before the hardcoded default.
 - Fixed destination resolution to prefer exact full-address matches before broad postal/city candidates. This prevents exact rows like Cideng/Gambir/Jakarta Pusat from being displaced by another row sharing the same postal/city fields.
 - Validation: `npm run smoke:rates:resolve` passed with `MOCK`; JNE tariff-only `/v1/rates/resolve` passed for Mojokerto origin to `CGK10302` with 7 returned rates. No booking, AWB, or resi creation was performed.
+
+## Future Architecture: Per-Merchant Courier Credentials - 2026-06-21
+
+## Provider Origin Catalog and Admin Lookup - 2026-06-21
+
+- Added migration `20260621143000_add_provider_origin_catalog` with global `ProviderOriginCatalog` rows per courier.
+- Added `GET /admin/provider-origins` for admin-only read/search by provider code, label, area fields, or postal code.
+- Added `npm run import:jne:origins` for dry-run and `npm run import:jne:origins:apply` for DB upsert from `docs/Docs API Expedisi/JNE/Live doc/suport file/list_origin.xls`.
+- Admin UI Origin mapping now has search-assisted selection in both `#/setup` and `#/destination-mappings`, while keeping manual provider code entry available.
+- `Origin.code` remains an internal merchant/origin identifier; do not use examples such as `CGK10302` there because provider origin codes belong in `OriginMapping.providerCode`.
+- Current JNE `list_origin.xls` only contains `Origin code` and `Origin name`; district/subdistrict-level origin catalog fields are schema-ready but not populated from that source.
+
+### Problem
+
+The current `JNE_*` environment variables are global to one `teknos-logistics` deployment. That is acceptable for the internal Teknos phase, where every merchant can use the same Teknos JNE account. It is not scalable for multi-client operation when a client brings its own JNE username, API key, customer number, branch code, or shipper profile.
+
+JNE can recap operational data internally based on the credential/account used for API calls. If multiple clients share one global `JNE_USERNAME`/`JNE_API_KEY`, JNE-side recap can mix client activity under the Teknos account. If each client has its own JNE account, `teknos-logistics` must call JNE using that merchant's credential so provider-side recap remains separated.
+
+### Decision
+
+Do not model client-specific courier credentials as new env vars such as `CLIENT_A_JNE_API_KEY` or `MAHARATU_JNE_API_KEY`. Env should remain for global service bootstrapping, static-token fallback, rate limits, encryption keys, and temporary/global provider fallback only.
+
+The target model is encrypted per-merchant courier credentials stored in the `teknos-logistics` database and selected server-side after merchant API key authentication.
+
+### Conceptual Data Model
+
+```prisma
+model MerchantCourierCredential {
+  id               String      @id @default(cuid())
+  merchantId       String
+  courier          CourierCode
+  label            String?
+  mode             String      // sandbox | production, provider-specific if needed
+  usernameCipher   String?
+  apiKeyCipher     String?
+  customerNoCipher String?
+  branchCodeCipher String?
+  metadataCipher   String?
+  keyVersion       String
+  isActive         Boolean     @default(true)
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+
+  merchant Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+
+  @@unique([merchantId, courier, mode])
+  @@index([courier, isActive])
+}
+```
+
+Field names may change during implementation, but the security properties should remain: secrets encrypted at rest, masked in the UI, never returned in plaintext after save, and audited on create/update/disable.
+
+### Runtime Flow
+
+1. Parent app sends `Authorization: Bearer <merchant LOGISTICS_API_KEY>`.
+2. `teknos-logistics` resolves the authenticated `merchantId` from the hashed API key.
+3. Rates/booking/tracking service selects active credential for `(merchantId, courier, mode)`.
+4. Courier adapter receives a credential object, not global env directly.
+5. JNE API call uses that merchant's `JNE_USERNAME`, `JNE_API_KEY`, customer number, branch code, and shipper profile.
+6. Audit logs record credential record id/key prefix/masked account metadata, not secret values.
+
+### Fallback Rule
+
+Until per-merchant credentials exist, `JNE_*` env remains the global Teknos fallback. Once implemented, fallback should be explicit and observable:
+
+- production merchant with own credential: use DB credential;
+- internal Teknos merchant without DB credential: may use global env fallback if configured;
+- external/client merchant without DB credential: fail closed with `COURIER_CREDENTIAL_NOT_CONFIGURED` rather than silently using Teknos credentials.
+
+### Admin UI Requirements
+
+- Add a dedicated Credentials/Courier Accounts admin page or a merchant detail tab.
+- Operators can create, rotate, disable, and label credentials per merchant/courier.
+- UI shows masked values only, for example `username: MAH***` and `api key: ****493c`.
+- Plaintext is accepted only on create/rotate and is never displayed back.
+- Changes must write admin audit logs with operator identity when Supabase admin auth is active.
+
+### Security Requirements
+
+- Add a server-only encryption key env such as `CREDENTIAL_ENCRYPTION_KEY` before storing provider secrets in DB.
+- Do not expose provider credentials through merchant APIs, admin list responses, logs, errors, screenshots, or docs.
+- Use allowlisted credential fields per courier; avoid storing arbitrary plaintext blobs.
+- Keep key rotation/versioning in the schema so encrypted records can be rotated later.
+- Ensure booking/resi creation remains operator-approved in production QA because JNE `generatecnote` is mutating.
+
+### Parent Boundary
+
+Parent apps such as `teknos.id` or a future client store still only keep `LOGISTICS_API_URL`, `LOGISTICS_API_KEY`, `LOGISTICS_WEBHOOK_SECRET`, `LOGISTICS_ORIGIN_ID`, and `LOGISTICS_ENABLED`. Courier-provider credentials belong only in `teknos-logistics`.

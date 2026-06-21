@@ -1,9 +1,21 @@
 import type { Hono } from 'hono'
-import type { DestinationMappingRepository, DestinationMappingRecord, OriginMappingRecord } from '../../repositories/destination-mapping.repository.js'
-import { adminDestinationMappingCreateSchema, adminDestinationMappingListQuerySchema, adminDestinationMappingUpdateSchema, adminOriginMappingUpsertSchema } from '../../schemas/admin.js'
+import type { DestinationMappingRepository, DestinationMappingRecord, OriginMappingRecord, ProviderOriginCatalogRecord } from '../../repositories/destination-mapping.repository.js'
+import { adminDestinationMappingCreateSchema, adminDestinationMappingListQuerySchema, adminDestinationMappingUpdateSchema, adminOriginMappingUpsertSchema, adminProviderOriginCatalogSearchQuerySchema } from '../../schemas/admin.js'
 import { parseJson, parseQuery } from './helpers.js'
 
 export function mountAdminDestinationMappingRoutes(app: Hono, mappingsRepository: DestinationMappingRepository): void {
+  app.get('/admin/provider-origins', async (c) => {
+    const query = parseQuery(c, adminProviderOriginCatalogSearchQuerySchema)
+    const origins = await mappingsRepository.searchProviderOrigins({
+      courier: query.courier,
+      search: query.search,
+      isActive: query.is_active,
+      limit: query.limit,
+      offset: query.offset,
+    })
+    return c.json({ origins: origins.map(toProviderOriginDto) })
+  })
+
   app.get('/admin/merchants/:merchantId/destination-mappings', async (c) => {
     const query = parseQuery(c, adminDestinationMappingListQuerySchema)
     const result = await mappingsRepository.list({
@@ -102,5 +114,25 @@ function toOriginMappingDto(mapping: OriginMappingRecord) {
     isActive: mapping.isActive,
     createdAt: mapping.createdAt.toISOString(),
     updatedAt: mapping.updatedAt.toISOString(),
+  }
+}
+
+function toProviderOriginDto(origin: ProviderOriginCatalogRecord) {
+  return {
+    id: origin.id,
+    courier: origin.courier,
+    country: origin.country,
+    province: origin.province,
+    city: origin.city,
+    district: origin.district,
+    subdistrict: origin.subdistrict,
+    postalCode: origin.postalCode,
+    providerCode: origin.providerCode,
+    branchCode: origin.branchCode,
+    label: origin.label,
+    sourceKey: origin.sourceKey,
+    isActive: origin.isActive,
+    createdAt: origin.createdAt.toISOString(),
+    updatedAt: origin.updatedAt.toISOString(),
   }
 }

@@ -15,6 +15,7 @@ Standalone logistics aggregator service for Teknos internal and future B2B merch
 - `docs/ROADMAP.md` - structured sprint roadmap and cutover policy.
 - `docs/implementation-notes.md` - technical migration notes and JNE assumptions.
 - `docs/teknos-id-integration-plan.md` - future integration plan for `teknos.id`.
+- `docs/COOLIFY_PRODUCTION_DEPLOY.md` - production deploy checklist and Coolify env handoff.
 
 ## Commands
 

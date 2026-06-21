@@ -1,0 +1,27 @@
+.git
+.gitignore
+.env
+.env.*
+!.env.example
+!.env.production.example
+
+node_modules
+dist
+coverage
+test-results
+playwright-report
+.playwright-mcp
+*.log
+npm-debug.log*
+tsconfig.tsbuildinfo
+
+docs/Docs API Expedisi/**/*.pdf
+docs/superpowers
+tests
+
+Dockerfile
+docker-compose.yml
+README.md
+AGENTS.md
+CLAUDE.md
+SECURITY.md

@@ -348,3 +348,7 @@ Decision date: 2026-06-20. Real courier rates must not use the internal `Origin.
 ### Sprint 13 JNE Destination Import Tooling
 
 Decision date: 2026-06-20. Full JNE destination import requires granular rows, not one row per tariff code. `DestinationMapping` now uses nullable `sourceKey` as the import idempotency key and provider code is indexed, not unique. `npm run import:jne:destinations` is dry-run by default; `--apply` writes to DB and must wait until tunnel/migrations are healthy. No new XLSX dependency was added.
+
+### Provider Origin Catalog Lookup
+
+Decision date: 2026-06-21. Migration `20260621143000_add_provider_origin_catalog` adds global provider origin catalog rows per courier. `GET /admin/provider-origins` is admin-only read/search and powers the Origin mapping picker in Admin UI setup/mappings. `npm run import:jne:origins` is dry-run; `npm run import:jne:origins:apply` upserts from the JNE `list_origin.xls` support file. `Origin.code` remains an internal merchant origin code; JNE codes such as `MJK10000` belong in `OriginMapping.providerCode`.

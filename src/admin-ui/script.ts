@@ -1,10 +1,12 @@
 export const adminScript = `const TOKEN_KEY = 'teknos-logistics-admin-token'
 const AUTH_PROVIDER_KEY = 'teknos-logistics-auth-provider'
-const DEFAULT_ROUTE = '/dashboard'
+const DEFAULT_ROUTE = '/setup'
 const ROUTES = new Set([
+  '/setup',
   '/dashboard',
   '/merchants',
   '/stores-origins',
+  '/destination-mappings',
   '/courier-services',
   '/shipments',
   '/webhook-relays',
@@ -23,7 +25,10 @@ const state = {
   lastSuccess: '',
 }
 
+let providerOriginLookupTimer = 0
+
 const elements = {
+  appShell: document.getElementById('app'),
   form: document.getElementById('token-form'),
   tokenInput: document.getElementById('admin-token'),
   emailInput: document.getElementById('admin-email'),
@@ -59,6 +64,12 @@ function bootstrap() {
     const button = event.target instanceof Element ? event.target.closest('[data-action]') : null
     if (!(button instanceof HTMLElement)) return
     void handleContentAction(button)
+  })
+
+  elements.contentPanel?.addEventListener('input', (event) => {
+    const input = event.target instanceof Element ? event.target.closest('[data-provider-origin-search]') : null
+    if (!(input instanceof HTMLInputElement)) return
+    scheduleProviderOriginLookup(input)
   })
 
   if (!window.location.hash) {
@@ -107,6 +118,9 @@ function configureLoginForm() {
     elements.loginHelp.textContent = isSupabase
       ? 'Gunakan email dan password Supabase. Akses admin tetap diverifikasi server-side lewat AdminOperator aktif.'
       : 'Token hanya digunakan di browser untuk memanggil endpoint admin. Jangan simpan token di file atau URL.'
+  }
+  if (elements.loginSubmit) {
+    elements.loginSubmit.textContent = isSupabase ? 'Masuk dengan Supabase' : 'Masuk dengan token'
   }
 }
 
@@ -195,9 +209,11 @@ function safeDecode(value) {
 
 function renderAuthState() {
   const authenticated = state.adminToken.length > 0
+  if (elements.appShell) elements.appShell.classList.toggle('is-unauthenticated', !authenticated)
   if (elements.loginPanel) elements.loginPanel.hidden = authenticated
   if (elements.contentPanel) elements.contentPanel.hidden = !authenticated
   if (elements.logoutButton) elements.logoutButton.hidden = !authenticated
+  if (elements.pageTitle && !authenticated) elements.pageTitle.textContent = 'Masuk Admin'
   if (elements.authStatus) {
     elements.authStatus.textContent = authenticated ? (state.authProvider === 'supabase' ? 'Session active' : 'Token active') : (state.authProvider === 'supabase' ? 'Login required' : 'Token required')
     elements.authStatus.className = authenticated
@@ -220,6 +236,10 @@ function renderRoute() {
 
   elements.contentPanel.innerHTML = renderPageShell(route)
 
+  if (state.currentRoute === '/setup') {
+    void loadSetupPage()
+  }
+
   if (state.currentRoute === '/dashboard') {
     void loadDashboard()
   }
@@ -234,6 +254,10 @@ function renderRoute() {
 
   if (state.currentRoute === '/stores-origins') {
     void loadStoresOrigins()
+  }
+
+  if (state.currentRoute === '/destination-mappings') {
+    void loadDestinationMappingsPage()
   }
 
   if (state.currentRoute === '/courier-services') {
@@ -254,6 +278,16 @@ function renderRoute() {
 }
 
 function routeConfig(route) {
+  if (route === '/setup') {
+    return {
+      title: 'Setup Merchant',
+      eyebrow: 'Configuration',
+      description: 'Alur konfigurasi dari nol untuk menghubungkan aplikasi merchant ke teknos-logistics.',
+      badge: 'Guided',
+      content: renderSetupLoading(),
+    }
+  }
+
   if (route === '/dashboard') {
     return {
       title: 'Dashboard',
@@ -291,6 +325,16 @@ function routeConfig(route) {
       description: 'Kelola toko dan titik origin per merchant. Default origin tetap ditegakkan oleh backend.',
       badge: 'Manage',
       content: renderStoresOriginsLoading(),
+    }
+  }
+
+  if (route === '/destination-mappings') {
+    return {
+      title: 'Mappings',
+      eyebrow: 'Courier Config',
+      description: 'Kelola mapping origin dan destination agar request merchant tidak perlu tahu kode internal kurir.',
+      badge: 'Configure',
+      content: renderDestinationMappingsLoading(),
     }
   }
 
@@ -377,6 +421,154 @@ function renderDashboardLoading() {
     + '</div>'
     + renderQuickLinks()
     + '</div>'
+}
+
+function renderSetupLoading() {
+  return '<div id="setup-root" class="setup-layout">'
+    + '<div class="form-card wide-card"><h3>Setup</h3><p class="muted">Memuat konfigurasi merchant...</p></div>'
+    + '</div>'
+}
+
+async function loadSetupPage() {
+  const snapshotRoute = state.currentRoute
+  const query = setupQueryFromHash()
+  let merchants = []
+  let selectedMerchant = null
+  let stores = []
+  let origins = []
+  let originMappings = []
+  let apiKeys = []
+  let endpoints = []
+  let destinationMappings = []
+  let error = ''
+
+  try {
+    const merchantPayload = await apiGet('/admin/merchants', { limit: 100, is_active: true })
+    merchants = Array.isArray(merchantPayload?.merchants) ? merchantPayload.merchants : []
+    const selectedMerchantId = query.merchantId || merchants[0]?.id || ''
+    selectedMerchant = merchants.find((merchant) => merchant.id === selectedMerchantId) || null
+    query.merchantId = selectedMerchant?.id || ''
+
+    if (selectedMerchant) {
+      const [storePayload, originPayload, apiKeyPayload, endpointPayload, destinationPayload] = await Promise.all([
+        apiGet('/admin/merchants/' + encodeURIComponent(selectedMerchant.id) + '/stores', { limit: 50 }),
+        apiGet('/admin/merchants/' + encodeURIComponent(selectedMerchant.id) + '/origins', { limit: 50 }),
+        apiGet('/admin/merchants/' + encodeURIComponent(selectedMerchant.id) + '/api-keys', { limit: 20 }),
+        apiGet('/admin/merchants/' + encodeURIComponent(selectedMerchant.id) + '/webhook-endpoints', { limit: 20 }),
+        apiGet('/admin/merchants/' + encodeURIComponent(selectedMerchant.id) + '/destination-mappings', { courier: 'JNE', is_active: true, limit: 1 }),
+      ])
+      stores = Array.isArray(storePayload?.stores) ? storePayload.stores : []
+      origins = Array.isArray(originPayload?.origins) ? originPayload.origins : []
+      apiKeys = Array.isArray(apiKeyPayload?.apiKeys) ? apiKeyPayload.apiKeys : []
+      endpoints = Array.isArray(endpointPayload?.endpoints) ? endpointPayload.endpoints : []
+      destinationMappings = Array.isArray(destinationPayload?.mappings) ? destinationPayload.mappings : []
+      const defaultOrigin = origins.find((origin) => origin.isDefault && origin.isActive) || origins.find((origin) => origin.isActive) || origins[0]
+      if (defaultOrigin) {
+        const mappingPayload = await apiGet('/admin/merchants/' + encodeURIComponent(selectedMerchant.id) + '/origins/' + encodeURIComponent(defaultOrigin.id) + '/mappings')
+        originMappings = Array.isArray(mappingPayload?.mappings) ? mappingPayload.mappings : []
+      }
+    }
+  } catch {
+    error = 'Setup config tidak tersedia saat ini.'
+  }
+
+  if (state.currentRoute !== snapshotRoute || state.currentRoute !== '/setup' || !elements.contentPanel) return
+  const route = routeConfig('/setup')
+  const content = renderSetupContent({ merchants, selectedMerchant, stores, origins, originMappings, apiKeys, endpoints, destinationMappings, query, error })
+  elements.contentPanel.innerHTML = renderPageShell({ ...route, content })
+}
+
+function setupQueryFromHash() {
+  const queryText = (window.location.hash.split('?')[1] || '').trim()
+  const params = new URLSearchParams(queryText)
+  return { merchantId: params.get('merchant_id') || '' }
+}
+
+function setupHash(query) {
+  const params = new URLSearchParams()
+  if (query.merchantId) params.set('merchant_id', query.merchantId)
+  return '#/setup?' + params.toString()
+}
+
+function renderSetupContent({ merchants, selectedMerchant, stores, origins, originMappings, apiKeys, endpoints, destinationMappings, query, error }) {
+  const activeOrigins = origins.filter((origin) => origin.isActive)
+  const defaultOrigin = origins.find((origin) => origin.isDefault && origin.isActive) || activeOrigins[0] || origins[0] || null
+  const activeApiKeys = apiKeys.filter((key) => key.isActive)
+  const activeEndpoints = endpoints.filter((endpoint) => endpoint.isActive)
+  const activeJneOriginMapping = originMappings.find((mapping) => mapping.courier === 'JNE' && mapping.isActive)
+  const hasDestinationMapping = destinationMappings.some((mapping) => mapping.courier === 'JNE' && mapping.isActive)
+
+  const status = {
+    merchant: Boolean(selectedMerchant?.isActive),
+    origin: Boolean(defaultOrigin),
+    originMapping: Boolean(activeJneOriginMapping),
+    destinationMapping: hasDestinationMapping,
+    apiKey: activeApiKeys.length > 0,
+    webhook: activeEndpoints.length > 0,
+  }
+
+  return '<div id="setup-root" class="setup-layout">'
+    + (error ? '<div class="notice is-error">' + escapeHtml(error) + '</div>' : '')
+    + renderSetupSummary(status, selectedMerchant, defaultOrigin)
+    + '<div class="setup-grid">'
+    + '<div class="setup-steps">'
+    + renderSetupStep(1, 'Merchant', status.merchant, selectedMerchant ? selectedMerchant.name + ' (' + selectedMerchant.slug + ')' : 'Belum ada merchant aktif', '#/merchants')
+    + renderSetupStep(2, 'Origin pickup', status.origin, defaultOrigin ? defaultOrigin.code + ' - ' + defaultOrigin.name : 'Buat origin gudang/toko', '#/stores-origins')
+    + renderSetupStep(3, 'Origin mapping JNE', status.originMapping, activeJneOriginMapping ? 'JNE -> ' + activeJneOriginMapping.providerCode : 'Set provider code origin JNE', '#/destination-mappings')
+    + renderSetupStep(4, 'Destination mapping', status.destinationMapping, status.destinationMapping ? 'Minimal satu mapping JNE aktif tersedia' : 'Tambah mapping tujuan untuk smoke checkout', '#/destination-mappings')
+    + renderSetupStep(5, 'API key', status.apiKey, status.apiKey ? activeApiKeys.length + ' active key' : 'Generate key untuk aplikasi merchant', selectedMerchant ? '#/merchant/' + encodeURIComponent(selectedMerchant.id) : '#/merchants')
+    + renderSetupStep(6, 'Webhook', status.webhook, status.webhook ? activeEndpoints.length + ' active endpoint' : 'Daftarkan endpoint webhook parent', selectedMerchant ? '#/merchant/' + encodeURIComponent(selectedMerchant.id) : '#/merchants')
+    + '</div>'
+    + renderSetupActions({ merchants, selectedMerchant, stores, origins, defaultOrigin, query })
+    + '</div>'
+    + renderParentEnvBox(selectedMerchant, defaultOrigin)
+    + '</div>'
+}
+
+function renderSetupSummary(status, selectedMerchant, defaultOrigin) {
+  const complete = Object.values(status).filter(Boolean).length
+  return '<div class="config-summary">'
+    + summaryTile('Merchant', selectedMerchant ? selectedMerchant.slug : 'empty')
+    + summaryTile('Origin', defaultOrigin ? defaultOrigin.code : 'empty')
+    + summaryTile('Ready steps', complete + '/6')
+    + summaryTile('Mode', 'manual')
+    + '</div>'
+}
+
+function summaryTile(label, value) {
+  return '<article class="summary-tile"><span>' + escapeHtml(label) + '</span><strong>' + escapeHtml(value) + '</strong></article>'
+}
+
+function renderSetupStep(index, title, done, detail, href) {
+  return '<article class="setup-step ' + (done ? 'is-done' : 'is-blocked') + '">'
+    + '<span class="setup-step-number">' + index + '</span>'
+    + '<div><h3>' + escapeHtml(title) + '</h3><p class="muted">' + escapeHtml(detail) + '</p></div>'
+    + '<a class="button button-ghost" href="' + escapeHtml(href) + '">Open</a>'
+    + '</article>'
+}
+
+function renderSetupActions({ merchants, selectedMerchant, stores, origins, defaultOrigin, query }) {
+  const merchantOptions = merchants.map((merchant) => optionHtml(merchant.id, merchant.name + ' (' + merchant.slug + ')', query.merchantId || selectedMerchant?.id || '')).join('')
+  return '<div class="form-card">'
+    + '<h3>Manual setup</h3>'
+    + (merchants.length > 0 ? '<form class="form-grid" data-form="setup-filter"><label><span>Merchant aktif</span><select name="merchant_id">' + merchantOptions + '</select></label><button class="button" type="submit">Load merchant</button></form>' : renderMerchantCreateForm())
+    + (selectedMerchant ? renderSetupForms(selectedMerchant, stores, origins, defaultOrigin) : '')
+    + '</div>'
+}
+
+function renderSetupForms(merchant, stores, origins, defaultOrigin) {
+  return '<div class="form-grid" style="margin-top:14px">'
+    + (origins.length === 0 ? renderOriginCreateForm(stores, { merchantId: merchant.id, storeId: '' }) : '')
+    + (defaultOrigin ? renderOriginMappingForm(merchant.id, defaultOrigin) : '')
+    + renderDestinationMappingCreateForm(merchant.id)
+    + renderApiKeyCreateForm(merchant.id)
+    + renderWebhookCreateForm(merchant.id)
+    + '</div>'
+}
+
+function renderParentEnvBox(merchant, origin) {
+  const envText = 'LOGISTICS_API_URL="http://localhost:3001"\\nLOGISTICS_API_KEY="<plaintext API key yang tampil sekali>"\\nLOGISTICS_WEBHOOK_SECRET="<secret webhook yang dibuat>"\\nLOGISTICS_ORIGIN_ID="' + (origin?.id || '<origin id>') + '"\\nLOGISTICS_ENABLED="true"'
+  return '<div class="env-box"><strong>Parent .env.local</strong><code>' + escapeHtml(envText) + '</code></div>'
 }
 
 function metricCard(label, value, description, tone = 'muted') {
@@ -507,14 +699,16 @@ function auditRows(items) {
 
 function renderQuickLinks() {
   const links = [
-    ['Merchants', '#/merchants'],
-    ['Stores & Origins', '#/stores-origins'],
-    ['Courier Services', '#/courier-services'],
+    ['Setup merchant', '#/setup'],
+    ['Merchants & keys', '#/merchants'],
+    ['Origins', '#/stores-origins'],
+    ['Mappings', '#/destination-mappings'],
+    ['Services', '#/courier-services'],
     ['Shipments', '#/shipments'],
-    ['Webhook Relays', '#/webhook-relays'],
-    ['Audit Logs', '#/audit-logs'],
+    ['Webhook relay', '#/webhook-relays'],
+    ['Audit', '#/audit-logs'],
   ]
-  return '<div class="quick-links"><h3>Quick Links</h3><div>'
+  return '<div class="quick-links"><h3>Quick links</h3><div>'
     + links.map(([label, href]) => '<a href="' + escapeHtml(href) + '">' + escapeHtml(label) + '</a>').join('')
     + '</div></div>'
 }
@@ -690,18 +884,21 @@ function renderMerchantUpdateForm(merchant) {
     + '</div></form>'
 }
 
-function renderApiKeyCreateForm() {
+function renderApiKeyCreateForm(merchantId = '') {
   return '<form class="form-card" data-form="api-key-create"><h3>Create API key</h3><div class="form-grid">'
+    + '<input type="hidden" name="merchant_id" value="' + escapeHtml(merchantId) + '" />'
     + '<label><span>Label</span><input name="label" maxlength="80" placeholder="Staging key / production key" /></label>'
     + '<label><span>Expires at</span><input name="expires_at" type="datetime-local" /></label>'
     + '<button class="button" type="submit">Create API key</button>'
     + '<p class="muted">Plaintext key hanya muncul sekali setelah dibuat.</p>'
+    + '<div id="one-time-key"></div>'
     + '</div></form>'
 }
 
-function renderWebhookCreateForm() {
+function renderWebhookCreateForm(merchantId = '') {
   return '<form class="form-card" data-form="webhook-create"><h3>Create webhook endpoint</h3><div class="form-grid">'
-    + '<label><span>HTTPS URL</span><input name="url" required type="url" placeholder="https://example.com/api/logistics/webhook" /></label>'
+    + '<input type="hidden" name="merchant_id" value="' + escapeHtml(merchantId) + '" />'
+    + '<label><span>Webhook URL</span><input name="url" required type="url" placeholder="http://localhost:3000/api/webhooks/logistics" /></label>'
     + '<label><span>Secret</span><input name="secret" required minlength="16" maxlength="256" type="password" autocomplete="new-password" /></label>'
     + '<label class="checkbox-row"><input name="is_active" type="checkbox" checked /><span>Active</span></label>'
     + '<button class="button" type="submit">Create endpoint</button>'
@@ -827,7 +1024,7 @@ function renderOriginCreateForm(stores, query) {
   return '<form class="form-card" data-form="origin-create"><h3>Create origin</h3><div class="form-grid">'
     + '<input type="hidden" name="merchant_id" value="' + escapeHtml(query.merchantId) + '" />'
     + '<label><span>Store</span><select name="store_id">' + storeOptions + '</select></label>'
-    + '<label><span>Code</span><input name="code" required minlength="2" maxlength="32" placeholder="CGK10302" /></label>'
+    + '<label><span>Code</span><input name="code" required minlength="2" maxlength="32" placeholder="origin_mojokerto_main" /></label>'
     + '<label><span>Name</span><input name="name" required maxlength="120" /></label>'
     + '<label><span>Address</span><textarea name="address" maxlength="500"></textarea></label>'
     + '<label><span>City</span><input name="city" maxlength="120" /></label>'
@@ -865,6 +1062,148 @@ function renderOriginList(origins, error) {
   ])
   return '<div class="form-card wide-card"><div class="section-title"><h3>Origins</h3><span>' + escapeHtml(origins.length) + ' origins</span></div>'
     + renderUnsafeTable({ columns: ['Code', 'Name', 'Store', 'Status', 'Location', 'Action'], rows, emptyMessage: error || 'Belum ada origin.' })
+    + '</div>'
+}
+
+function renderOriginMappingForm(merchantId, origin) {
+  return '<form class="form-card" data-form="origin-mapping-upsert"><h3>Origin mapping</h3><div class="form-grid">'
+    + '<input type="hidden" name="merchant_id" value="' + escapeHtml(merchantId) + '" />'
+    + '<input type="hidden" name="origin_id" value="' + escapeHtml(origin.id) + '" />'
+    + '<label><span>Origin</span><input value="' + escapeHtml(origin.code + ' - ' + origin.name) + '" disabled /></label>'
+    + '<label><span>Courier</span><select name="courier" required>' + courierOptions('JNE') + '</select></label>'
+    + '<label><span>Search provider origin</span><input name="provider_origin_search" data-provider-origin-search="true" autocomplete="off" maxlength="120" placeholder="Mojokerto / MJK10000" /></label>'
+    + '<div class="lookup-results" data-provider-origin-results></div>'
+    + '<label><span>Provider origin code</span><input name="provider_code" required minlength="2" maxlength="64" placeholder="MJK10000" /></label>'
+    + '<label><span>Label</span><input name="label" maxlength="120" placeholder="JNE Mojokerto" /></label>'
+    + '<label class="checkbox-row"><input name="is_active" type="checkbox" checked /><span>Active</span></label>'
+    + '<button class="button" type="submit">Save origin mapping</button>'
+    + '</div></form>'
+}
+
+function renderDestinationMappingCreateForm(merchantId) {
+  return '<form class="form-card" data-form="destination-mapping-create"><h3>Destination mapping</h3><div class="form-grid two-grid">'
+    + '<input type="hidden" name="merchant_id" value="' + escapeHtml(merchantId) + '" />'
+    + '<label><span>Courier</span><select name="courier" required>' + courierOptions('JNE') + '</select></label>'
+    + '<label><span>Provider destination code</span><input name="provider_code" required minlength="2" maxlength="64" placeholder="MJK10004" /></label>'
+    + '<label><span>Postal code</span><input name="postal_code" minlength="3" maxlength="16" placeholder="61351" /></label>'
+    + '<label><span>Province</span><input name="province" maxlength="120" placeholder="Jawa Timur" /></label>'
+    + '<label><span>City</span><input name="city" maxlength="120" placeholder="Mojokerto" /></label>'
+    + '<label><span>District</span><input name="district" maxlength="120" placeholder="Kemlagi" /></label>'
+    + '<label><span>Subdistrict</span><input name="subdistrict" maxlength="120" placeholder="Batankrajan" /></label>'
+    + '<label><span>Label</span><input name="label" maxlength="120" placeholder="Mojokerto Kemlagi" /></label>'
+    + '<label class="checkbox-row"><input name="is_active" type="checkbox" checked /><span>Active</span></label>'
+    + '<button class="button" type="submit">Save destination mapping</button>'
+    + '</div></form>'
+}
+
+function renderDestinationMappingsLoading() {
+  return '<div id="destination-mappings-root" class="management-grid"><div class="form-card wide-card"><h3>Mappings</h3><p class="muted">Memuat origin dan destination mapping...</p></div></div>'
+}
+
+async function loadDestinationMappingsPage() {
+  const snapshotRoute = state.currentRoute
+  const query = destinationMappingQueryFromHash()
+  let merchants = []
+  let origins = []
+  let originMappings = []
+  let destinationMappings = []
+  let error = ''
+
+  try {
+    const merchantPayload = await apiGet('/admin/merchants', { limit: 100, is_active: true })
+    merchants = Array.isArray(merchantPayload?.merchants) ? merchantPayload.merchants : []
+    query.merchantId = query.merchantId || merchants[0]?.id || ''
+
+    if (query.merchantId) {
+      const [originPayload, destinationPayload] = await Promise.all([
+        apiGet('/admin/merchants/' + encodeURIComponent(query.merchantId) + '/origins', { limit: 50 }),
+        apiGet('/admin/merchants/' + encodeURIComponent(query.merchantId) + '/destination-mappings', { courier: query.courier, is_active: query.isActive, limit: 50 }),
+      ])
+      origins = Array.isArray(originPayload?.origins) ? originPayload.origins : []
+      destinationMappings = Array.isArray(destinationPayload?.mappings) ? destinationPayload.mappings : []
+      const selectedOrigin = origins.find((origin) => origin.id === query.originId) || origins.find((origin) => origin.isDefault && origin.isActive) || origins[0]
+      query.originId = selectedOrigin?.id || ''
+      if (selectedOrigin) {
+        const originMappingPayload = await apiGet('/admin/merchants/' + encodeURIComponent(query.merchantId) + '/origins/' + encodeURIComponent(selectedOrigin.id) + '/mappings')
+        originMappings = Array.isArray(originMappingPayload?.mappings) ? originMappingPayload.mappings : []
+      }
+    }
+  } catch {
+    error = 'Mapping tidak tersedia saat ini.'
+  }
+
+  if (state.currentRoute !== snapshotRoute || state.currentRoute !== '/destination-mappings' || !elements.contentPanel) return
+  const route = routeConfig('/destination-mappings')
+  const content = renderDestinationMappingsContent({ merchants, origins, originMappings, destinationMappings, query, error })
+  elements.contentPanel.innerHTML = renderPageShell({ ...route, content })
+}
+
+function destinationMappingQueryFromHash() {
+  const queryText = (window.location.hash.split('?')[1] || '').trim()
+  const params = new URLSearchParams(queryText)
+  return {
+    merchantId: params.get('merchant_id') || '',
+    originId: params.get('origin_id') || '',
+    courier: normalizeCourierFilter(params.get('courier') || 'JNE') || 'JNE',
+    isActive: normalizeActiveFilter(params.get('is_active') || 'true') || 'true',
+  }
+}
+
+function destinationMappingHash(query) {
+  const params = new URLSearchParams()
+  if (query.merchantId) params.set('merchant_id', query.merchantId)
+  if (query.originId) params.set('origin_id', query.originId)
+  if (query.courier) params.set('courier', query.courier)
+  if (query.isActive) params.set('is_active', query.isActive)
+  return '#/destination-mappings?' + params.toString()
+}
+
+function renderDestinationMappingsContent({ merchants, origins, originMappings, destinationMappings, query, error }) {
+  const selectedOrigin = origins.find((origin) => origin.id === query.originId) || origins[0]
+  return '<div id="destination-mappings-root" class="management-grid">'
+    + renderDestinationMappingFilter(merchants, origins, query)
+    + (selectedOrigin ? renderOriginMappingForm(query.merchantId, selectedOrigin) : '<div class="form-card"><h3>Origin mapping</h3><p class="muted">Buat origin terlebih dahulu.</p></div>')
+    + renderDestinationMappingCreateForm(query.merchantId)
+    + renderOriginMappingList(originMappings, error)
+    + renderDestinationMappingList(destinationMappings, error)
+    + '</div>'
+}
+
+function renderDestinationMappingFilter(merchants, origins, query) {
+  const merchantOptions = merchants.map((merchant) => optionHtml(merchant.id, merchant.name + ' (' + merchant.slug + ')', query.merchantId)).join('')
+  const originOptions = origins.map((origin) => optionHtml(origin.id, origin.code + ' - ' + origin.name, query.originId)).join('')
+  return '<form class="form-card wide-card" data-form="destination-mapping-filter"><h3>Filter mappings</h3><div class="form-grid split-grid">'
+    + '<label><span>Merchant</span><select name="merchant_id">' + merchantOptions + '</select></label>'
+    + '<label><span>Origin</span><select name="origin_id"><option value="">Default/first origin</option>' + originOptions + '</select></label>'
+    + '<label><span>Courier</span><select name="courier">' + courierOptions(query.courier) + '</select></label>'
+    + '<label><span>Status</span><select name="is_active">' + optionHtml('true', 'Active', query.isActive) + optionHtml('false', 'Inactive', query.isActive) + optionHtml('', 'All', query.isActive) + '</select></label>'
+    + '<button class="button" type="submit">Load mappings</button>'
+    + '</div></form>'
+}
+
+function renderOriginMappingList(mappings, error) {
+  const rows = mappings.map((mapping) => [
+    escapeHtml(mapping.courier),
+    escapeHtml(mapping.providerCode),
+    escapeHtml(mapping.label || '-'),
+    escapeHtml(mapping.isActive ? 'Active' : 'Inactive'),
+  ])
+  return '<div class="form-card wide-card"><div class="section-title"><h3>Origin mappings</h3><span>' + escapeHtml(mappings.length) + ' rows</span></div>'
+    + renderUnsafeTable({ columns: ['Courier', 'Provider origin', 'Label', 'Status'], rows, emptyMessage: error || 'Belum ada origin mapping.' })
+    + '</div>'
+}
+
+function renderDestinationMappingList(mappings, error) {
+  const rows = mappings.map((mapping) => [
+    escapeHtml(mapping.courier),
+    escapeHtml(mapping.providerCode),
+    escapeHtml(mapping.postalCode || '-'),
+    escapeHtml([mapping.subdistrict, mapping.district, mapping.city, mapping.province].filter(Boolean).join(', ') || '-'),
+    escapeHtml(mapping.isActive ? 'Active' : 'Inactive'),
+    '<button class="button button-secondary" data-action="toggle-destination-mapping" data-id="' + escapeHtml(mapping.id) + '" data-active="' + escapeHtml(String(!mapping.isActive)) + '">' + escapeHtml(mapping.isActive ? 'Deactivate' : 'Activate') + '</button>',
+  ])
+  return '<div class="form-card wide-card"><div class="section-title"><h3>Destination mappings</h3><span>' + escapeHtml(mappings.length) + ' rows</span></div>'
+    + renderUnsafeTable({ columns: ['Courier', 'Provider dest', 'Postal', 'Area', 'Status', 'Action'], rows, emptyMessage: error || 'Belum ada destination mapping.' })
     + '</div>'
 }
 
@@ -1262,8 +1601,79 @@ function longText(value) {
   return '<span class="truncate-text" title="' + safeValue + '">' + safeValue + '</span>'
 }
 
+function scheduleProviderOriginLookup(input) {
+  window.clearTimeout(providerOriginLookupTimer)
+  providerOriginLookupTimer = window.setTimeout(() => {
+    void loadProviderOriginLookup(input)
+  }, 280)
+}
+
+async function loadProviderOriginLookup(input) {
+  const form = input.closest('form')
+  const results = form?.querySelector('[data-provider-origin-results]')
+  if (!(results instanceof HTMLElement)) return
+
+  const search = input.value.trim()
+  if (search.length < 2) {
+    results.innerHTML = ''
+    return
+  }
+
+  const courierInput = form?.querySelector('select[name="courier"]')
+  const courier = courierInput instanceof HTMLSelectElement ? courierInput.value : 'JNE'
+  results.innerHTML = '<div class="lookup-state">Mencari area...</div>'
+
+  try {
+    const payload = await apiGet('/admin/provider-origins', { courier, search, is_active: true, limit: 8 })
+    const origins = Array.isArray(payload?.origins) ? payload.origins : []
+    results.innerHTML = origins.length > 0
+      ? origins.map(renderProviderOriginOption).join('')
+      : '<div class="lookup-state">Belum ada hasil. Import katalog origin atau isi kode manual.</div>'
+  } catch {
+    results.innerHTML = '<div class="lookup-state is-error">Lookup origin belum tersedia.</div>'
+  }
+}
+
+function renderProviderOriginOption(origin) {
+  const label = providerOriginLabel(origin)
+  const detail = [origin.subdistrict, origin.district, origin.city, origin.province, origin.postalCode].filter(Boolean).join(', ')
+  return '<button class="lookup-option" type="button" data-action="select-provider-origin" data-provider-code="'
+    + escapeHtml(origin.providerCode || '')
+    + '" data-provider-label="'
+    + escapeHtml(label)
+    + '"><strong>'
+    + escapeHtml(origin.providerCode || '-')
+    + '</strong><span>'
+    + escapeHtml(label)
+    + '</span><small>'
+    + escapeHtml(detail || origin.courier || '-')
+    + '</small></button>'
+}
+
+function providerOriginLabel(origin) {
+  return String(origin.label || [origin.subdistrict, origin.district, origin.city, origin.province].filter(Boolean).join(', ') || origin.providerCode || '').trim()
+}
+
+function selectProviderOrigin(button) {
+  const form = button.closest('form')
+  if (!(form instanceof HTMLFormElement)) return
+  const providerCodeInput = form.querySelector('input[name="provider_code"]')
+  const labelInput = form.querySelector('input[name="label"]')
+  const searchInput = form.querySelector('input[name="provider_origin_search"]')
+  const results = form.querySelector('[data-provider-origin-results]')
+  const providerCode = button.dataset.providerCode || ''
+  const label = button.dataset.providerLabel || ''
+
+  if (providerCodeInput instanceof HTMLInputElement) providerCodeInput.value = providerCode
+  if (labelInput instanceof HTMLInputElement) labelInput.value = label
+  if (searchInput instanceof HTMLInputElement) searchInput.value = providerCode + (label ? ' - ' + label : '')
+  if (results instanceof HTMLElement) results.innerHTML = ''
+  showNotice('Provider origin dipilih.', 'success')
+}
+
 async function handleContentForm(form) {
   const formName = form.dataset.form || ''
+  if (formName === 'setup-filter') return applySetupFilter(form)
   if (formName === 'merchant-filter') return applyMerchantFilter(form)
   if (formName === 'merchant-create') return createMerchant(form)
   if (formName === 'merchant-update') return updateMerchant(form)
@@ -1272,6 +1682,9 @@ async function handleContentForm(form) {
   if (formName === 'stores-origins-filter') return applyStoresOriginsFilter(form)
   if (formName === 'store-create') return createStore(form)
   if (formName === 'origin-create') return createOrigin(form)
+  if (formName === 'origin-mapping-upsert') return upsertOriginMapping(form)
+  if (formName === 'destination-mapping-filter') return applyDestinationMappingFilter(form)
+  if (formName === 'destination-mapping-create') return createDestinationMapping(form)
   if (formName === 'courier-filter') return applyCourierFilter(form)
   if (formName === 'courier-service-create') return saveCourierService(form)
   if (formName === 'courier-assignment-upsert') return saveCourierAssignment(form)
@@ -1282,6 +1695,10 @@ async function handleContentForm(form) {
 
 async function handleContentAction(button) {
   const action = button.dataset.action || ''
+  if (action === 'select-provider-origin') {
+    selectProviderOrigin(button)
+    return
+  }
   if (action === 'toggle-api-key') {
     await apiJson('PATCH', '/admin/api-keys/' + encodeURIComponent(button.dataset.id || ''), { is_active: button.dataset.active === 'true' })
     showNotice('Status API key diperbarui.', 'success')
@@ -1312,6 +1729,16 @@ async function handleContentAction(button) {
     showNotice('Status courier service diperbarui.', 'success')
     await loadCourierServicesPage()
   }
+  if (action === 'toggle-destination-mapping') {
+    await apiJson('PATCH', '/admin/destination-mappings/' + encodeURIComponent(button.dataset.id || ''), { is_active: button.dataset.active === 'true' })
+    showNotice('Status destination mapping diperbarui.', 'success')
+    await loadDestinationMappingsPage()
+  }
+}
+
+function applySetupFilter(form) {
+  const data = new FormData(form)
+  window.location.hash = setupHash({ merchantId: String(data.get('merchant_id') || '').trim() }).slice(1)
 }
 
 function applyMerchantFilter(form) {
@@ -1327,13 +1754,19 @@ function applyMerchantFilter(form) {
 
 async function createMerchant(form) {
   const data = new FormData(form)
-  await apiJson('POST', '/admin/merchants', {
+  const payload = await apiJson('POST', '/admin/merchants', {
     slug: String(data.get('slug') || '').trim(),
     name: String(data.get('name') || '').trim(),
     is_active: data.get('is_active') === 'on',
   })
   form.reset()
   showNotice('Merchant berhasil dibuat.', 'success')
+  if (state.currentRoute === '/setup') {
+    const merchantId = payload?.merchant?.id || payload?.id || ''
+    if (merchantId) window.location.hash = setupHash({ merchantId }).slice(1)
+    else await loadSetupPage()
+    return
+  }
   await loadMerchants()
 }
 
@@ -1349,27 +1782,40 @@ async function updateMerchant(form) {
 
 async function createApiKey(form) {
   const data = new FormData(form)
+  const merchantId = String(data.get('merchant_id') || state.selectedMerchantId || '').trim()
+  if (!merchantId) {
+    showNotice('Pilih merchant sebelum membuat API key.', 'error')
+    return
+  }
   const expiresAt = data.get('expires_at') ? new Date(String(data.get('expires_at'))).toISOString() : undefined
-  const payload = await apiJson('POST', '/admin/merchants/' + encodeURIComponent(state.selectedMerchantId) + '/api-keys', {
+  const payload = await apiJson('POST', '/admin/merchants/' + encodeURIComponent(merchantId) + '/api-keys', {
     label: optionalString(data.get('label')),
     expires_at: expiresAt,
   })
   form.reset()
   showNotice('API key berhasil dibuat. Simpan plaintext sekarang.', 'success')
-  await loadMerchantDetail(state.selectedMerchantId)
+  if (state.currentRoute === '/setup') await loadSetupPage()
+  else await loadMerchantDetail(state.selectedMerchantId)
   renderOneTimeKey(payload?.plaintext || '')
 }
 
 async function createWebhookEndpoint(form) {
   const data = new FormData(form)
-  await apiJson('POST', '/admin/merchants/' + encodeURIComponent(state.selectedMerchantId) + '/webhook-endpoints', {
+  const merchantId = String(data.get('merchant_id') || state.selectedMerchantId || '').trim()
+  if (!merchantId) {
+    showNotice('Pilih merchant sebelum membuat webhook endpoint.', 'error')
+    return
+  }
+  await apiJson('POST', '/admin/merchants/' + encodeURIComponent(merchantId) + '/webhook-endpoints', {
+    merchant_id: merchantId,
     url: String(data.get('url') || '').trim(),
     secret: String(data.get('secret') || ''),
     is_active: data.get('is_active') === 'on',
   })
   form.reset()
   showNotice('Webhook endpoint berhasil dibuat.', 'success')
-  await loadMerchantDetail(state.selectedMerchantId)
+  if (state.currentRoute === '/setup') await loadSetupPage()
+  else await loadMerchantDetail(state.selectedMerchantId)
 }
 
 function applyStoresOriginsFilter(form) {
@@ -1391,6 +1837,10 @@ async function createStore(form) {
   })
   form.reset()
   showNotice('Store berhasil dibuat.', 'success')
+  if (state.currentRoute === '/setup') {
+    await loadSetupPage()
+    return
+  }
   await loadStoresOrigins()
 }
 
@@ -1411,7 +1861,68 @@ async function createOrigin(form) {
   })
   form.reset()
   showNotice('Origin berhasil dibuat.', 'success')
+  if (state.currentRoute === '/setup') {
+    await loadSetupPage()
+    return
+  }
   await loadStoresOrigins()
+}
+
+function applyDestinationMappingFilter(form) {
+  const data = new FormData(form)
+  const query = {
+    merchantId: String(data.get('merchant_id') || '').trim(),
+    originId: String(data.get('origin_id') || '').trim(),
+    courier: normalizeCourierFilter(String(data.get('courier') || '')),
+    isActive: normalizeActiveFilter(String(data.get('is_active') || '')),
+  }
+  window.location.hash = destinationMappingHash(query).slice(1)
+}
+
+async function upsertOriginMapping(form) {
+  const data = new FormData(form)
+  const merchantId = String(data.get('merchant_id') || '').trim()
+  const originId = String(data.get('origin_id') || '').trim()
+  if (!merchantId || !originId) {
+    showNotice('Merchant dan origin wajib dipilih sebelum menyimpan mapping origin.', 'error')
+    return
+  }
+
+  await apiJson('POST', '/admin/merchants/' + encodeURIComponent(merchantId) + '/origins/' + encodeURIComponent(originId) + '/mappings', {
+    courier: String(data.get('courier') || '').trim(),
+    provider_code: String(data.get('provider_code') || '').trim(),
+    label: optionalString(data.get('label')),
+    is_active: data.get('is_active') === 'on',
+  })
+  form.reset()
+  showNotice('Origin mapping berhasil disimpan.', 'success')
+  if (state.currentRoute === '/setup') await loadSetupPage()
+  else await loadDestinationMappingsPage()
+}
+
+async function createDestinationMapping(form) {
+  const data = new FormData(form)
+  const merchantId = String(data.get('merchant_id') || '').trim()
+  if (!merchantId) {
+    showNotice('Pilih merchant sebelum membuat destination mapping.', 'error')
+    return
+  }
+
+  await apiJson('POST', '/admin/merchants/' + encodeURIComponent(merchantId) + '/destination-mappings', {
+    courier: String(data.get('courier') || '').trim(),
+    provider_code: String(data.get('provider_code') || '').trim(),
+    postal_code: optionalString(data.get('postal_code')),
+    province: optionalString(data.get('province')),
+    city: optionalString(data.get('city')),
+    district: optionalString(data.get('district')),
+    subdistrict: optionalString(data.get('subdistrict')),
+    label: optionalString(data.get('label')),
+    is_active: data.get('is_active') === 'on',
+  })
+  form.reset()
+  showNotice('Destination mapping berhasil disimpan.', 'success')
+  if (state.currentRoute === '/setup') await loadSetupPage()
+  else await loadDestinationMappingsPage()
 }
 
 function applyCourierFilter(form) {
