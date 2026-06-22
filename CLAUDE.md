@@ -166,7 +166,7 @@ src/
 | Sprint 09 | Admin Control Center minimal | Done - `/admin-ui` dashboard, merchant/store/origin/courier config UI, read-only operations pages, `smoke:admin-ui`, and `sprint9:readiness` completed |
 | Sprint 10 | Multi-courier foundation + destination abstraction | In Progress - JNT/SAP skeleton providers, capability matrix, `/v1/couriers/capabilities`, `DestinationMapping`, and `/v1/rates/resolve` slice added |
 | Sprint 11A | Supabase Admin Auth Foundation | In Progress - env placeholders, `AdminOperator`, Supabase JWT verifier, provider-switched admin middleware, audit identity fields, bootstrap script, and readiness gate added |
-| Sprint 11B (SAP Express) | SAP Express full integration | In Progress - offline implementation added: SAP JSON client, active adapter rates/booking/tracking/webhook normalize, `/webhooks/sap-express`, capability ACTIVE, mock smoke, and readiness gate. Runtime SAP/DB QA waits for server/tunnel recovery. |
+| Sprint 11B (SAP Express) | SAP Express full integration | In Progress - offline implementation added: SAP JSON client, active adapter rates/booking/tracking/webhook normalize, `/webhooks/sap-express`, capability ACTIVE, mock smoke, readiness gate, and split COD/non-COD customer code env. Runtime SAP pricing QA for Teknos Mojokerto origin waits for SAPX route enablement. |
 
 ---
 
@@ -251,7 +251,9 @@ SUPABASE_SERVICE_ROLE_KEY Server-only service role key for controlled admin boot
 LOGISTICS_PROVIDER        Legacy provider selector: mock or jne. Multi-courier registry now includes SAP_EXPRESS; merchant payload should use courier field/capabilities.
 JNE_*                     Server-only JNE credentials/configuration. Tariff requires base URL/user/key/origin; booking additionally requires shipper/cust/branch values.
 SAP_API_BASE_URL          URL base API SAP Express (ditambahkan Sprint 11B).
-SAP_CUSTOMER_CODE         Customer/merchant code SAP Express (Sprint 11B).
+SAP_CUSTOMER_CODE         Legacy fallback customer/merchant code SAP Express; prefer COD/non-COD split below.
+SAP_CUSTOMER_CODE_NON_COD Customer code SAP Express untuk order non-COD, contoh akun Teknos non-COD.
+SAP_CUSTOMER_CODE_COD     Customer code SAP Express untuk order COD, contoh akun Teknos COD.
 SAP_API_KEY               API key SAP Express (Sprint 11B).
 SAP_ORIGIN_DISTRICT_CODE  Default pickup district code for direct SAP booking; Sprint 12 OriginMapping will resolve per origin/courier.
 SAP_SHIPPER_*             Data pengirim untuk booking SAP: NAME, ADDRESS, PHONE, CONTACT (Sprint 11B).

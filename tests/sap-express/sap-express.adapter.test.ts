@@ -36,6 +36,8 @@ const baseEnv = {
   SAP_TRACKING_BASE_URL: 'https://track.sap.example.test',
   SAP_API_KEY: 'sap-api-key',
   SAP_CUSTOMER_CODE: 'CUST01',
+  SAP_CUSTOMER_CODE_NON_COD: 'CUST-NON-COD',
+  SAP_CUSTOMER_CODE_COD: 'CUST-COD',
   SAP_ORIGIN_DISTRICT_CODE: 'JI1606',
   SAP_PICKUP_PLACE: '1',
   SAP_SHIPMENT_TYPE_CODE: 'SHTPC',
@@ -75,11 +77,29 @@ test('getRates returns normalized CourierRate array and filters zero price', asy
   })
   assert.equal(calls[0]?.url, 'https://sap.example.test/v2/master/shipment_cost')
   assert.equal(calls[0]?.headers.api_key, 'sap-api-key')
-  assert.equal(JSON.parse(String(calls[0]?.body)).weight, 2)
+  const body = JSON.parse(String(calls[0]?.body)) as Record<string, unknown>
+  assert.equal(body.customer_code, 'CUST-NON-COD')
+  assert.equal(body.weight, 2)
+})
+
+test('getRates uses SAP COD customer code for COD requests', async () => {
+  const calls: RequestCall[] = []
+  const adapter = new SapExpressAdapter(baseEnv, mockFetcher(calls, {
+    '/v2/master/shipment_cost': {
+      status: 'success',
+      msg: 'ok',
+      data: { services: [sapRateService('UDRREG', 24500)] },
+    },
+  }))
+
+  await adapter.getRates({ originCode: 'JI1606', destCode: 'JK00', weightGrams: 1000, isCod: true })
+
+  const body = JSON.parse(String(calls[0]?.body)) as Record<string, unknown>
+  assert.equal(body.customer_code, 'CUST-COD')
 })
 
 test('getRates throws 503 if SAP customer code is missing', async () => {
-  const adapter = new SapExpressAdapter({ ...baseEnv, SAP_CUSTOMER_CODE: '' }, mockFetcher([], {}))
+  const adapter = new SapExpressAdapter({ ...baseEnv, SAP_CUSTOMER_CODE: '', SAP_CUSTOMER_CODE_NON_COD: '' }, mockFetcher([], {}))
   await assert.rejects(() => adapter.getRates({ originCode: 'JI1606', destCode: 'JK00', weightGrams: 1000 }), (error) => {
     assert(error instanceof HttpError)
     assert.equal(error.status, 503)
@@ -128,9 +148,36 @@ test('bookShipment returns booking result with waybill id', async () => {
 
   assert.deepEqual(result, { courier: 'SAP_EXPRESS', courierOrderId: 'ORDER-1', waybillId: 'SAP123456789', status: 'BOOKED' })
   const body = JSON.parse(String(calls[0]?.body)) as Record<string, unknown>
+  assert.equal(body.customer_code, 'CUST-NON-COD')
   assert.equal(body.reference_no, 'ORDER-1-TEST-WITH-LO')
   assert.equal(body.weight, 1)
   assert.equal(body.destination_district_code, 'JK00')
+})
+
+test('bookShipment uses SAP COD customer code for COD bookings', async () => {
+  const calls: RequestCall[] = []
+  const adapter = new SapExpressAdapter(baseEnv, mockFetcher(calls, {
+    '/v2/shipment/pickup/create': {
+      status: 'success',
+      msg: 'ok',
+      data: { awb_no: 'SAP123456789', reference_no: 'ORDER-1' },
+    },
+  }))
+
+  await adapter.bookShipment({
+    externalOrderId: 'ORDER-1',
+    serviceCode: 'UDRREG',
+    originCode: 'JI1606',
+    destCode: 'JK00',
+    weightGrams: 1000,
+    recipientName: 'Customer',
+    recipientPhone: '08123456780',
+    recipientAddress: 'Jl Customer',
+    isCod: true,
+  })
+
+  const body = JSON.parse(String(calls[0]?.body)) as Record<string, unknown>
+  assert.equal(body.customer_code, 'CUST-COD')
 })
 
 test('bookShipment throws 502 if response missing waybill', async () => {

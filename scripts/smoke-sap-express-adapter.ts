@@ -33,6 +33,8 @@ const env = loadEnv({
   SAP_API_BASE_URL: 'https://sap.example.test/',
   SAP_TRACKING_BASE_URL: 'https://track.sap.example.test/',
   SAP_CUSTOMER_CODE: 'CUST01',
+  SAP_CUSTOMER_CODE_NON_COD: 'CUST-NON-COD',
+  SAP_CUSTOMER_CODE_COD: 'CUST-COD',
   SAP_ORIGIN_DISTRICT_CODE: 'JI1606',
   SAP_PICKUP_PLACE: '1',
   SAP_SHIPMENT_TYPE_CODE: 'SHTPC',
@@ -71,6 +73,7 @@ assert(webhook?.status === 'DELIVERED', 'expected delivered webhook status')
 const firstCall = calls[0]
 assert(firstCall?.init.headers && (firstCall.init.headers as Record<string, string>).api_key === 'sap-test-key', 'expected api_key header')
 assert(firstCall?.url === 'https://sap.example.test/v2/master/shipment_cost', 'expected trimmed SAP base URL')
+assert(JSON.parse(String(firstCall.init.body)).customer_code === 'CUST-NON-COD', 'expected non-COD SAP customer code by default')
 
 console.log(JSON.stringify({ ok: true, calls: calls.length, rates: rates.length, waybillId: booking.waybillId }, null, 2))
 

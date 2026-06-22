@@ -1,0 +1,276 @@
+{
+  "generatedAt": "2026-06-22T08:03:39.621Z",
+  "note": "Sanitized SAPX read-only trial responses. API key and customer code are not included.",
+  "config": {
+    "apiBaseUrl": "https://apisanbox.coresyssap.com",
+    "customerCode": "<SET>",
+    "originDistrictCode": "JI1606",
+    "pickupPlace": "1"
+  },
+  "coverage": [
+    {
+      "endpoint": "GET /v2/master/district/get",
+      "query": {
+        "city_name": "MOJOKERTO"
+      },
+      "httpStatus": 200,
+      "status": "success",
+      "msg": "",
+      "count": 22,
+      "sample": [
+        {
+          "provinsi_code": "JI",
+          "provinsi_name": "JAWA TIMUR",
+          "city_code": "JI16",
+          "city_name": "MOJOKERTO",
+          "district_code": "JI16",
+          "district_name": "MOJOKERTO"
+        },
+        {
+          "provinsi_code": "JI",
+          "provinsi_name": "JAWA TIMUR",
+          "city_code": "JI16",
+          "city_name": "MOJOKERTO",
+          "district_code": "JI1601",
+          "district_name": "BANGSAL"
+        },
+        {
+          "provinsi_code": "JI",
+          "provinsi_name": "JAWA TIMUR",
+          "city_code": "JI16",
+          "city_name": "MOJOKERTO",
+          "district_code": "JI1602",
+          "district_name": "DAWAR BLANDONG"
+        },
+        {
+          "provinsi_code": "JI",
+          "provinsi_name": "JAWA TIMUR",
+          "city_code": "JI16",
+          "city_name": "MOJOKERTO",
+          "district_code": "JI1603",
+          "district_name": "DLANGGU"
+        },
+        {
+          "provinsi_code": "JI",
+          "provinsi_name": "JAWA TIMUR",
+          "city_code": "JI16",
+          "city_name": "MOJOKERTO",
+          "district_code": "JI1604",
+          "district_name": "GEDEG"
+        },
+        {
+          "provinsi_code": "JI",
+          "provinsi_name": "JAWA TIMUR",
+          "city_code": "JI16",
+          "city_name": "MOJOKERTO",
+          "district_code": "JI1605",
+          "district_name": "JATIREJO"
+        },
+        {
+          "provinsi_code": "JI",
+          "provinsi_name": "JAWA TIMUR",
+          "city_code": "JI16",
+          "city_name": "MOJOKERTO",
+          "district_code": "JI1606",
+          "district_name": "KEMLAGI"
+        },
+        {
+          "provinsi_code": "JI",
+          "provinsi_name": "JAWA TIMUR",
+          "city_code": "JI16",
+          "city_name": "MOJOKERTO",
+          "district_code": "JI1607",
+          "district_name": "KUTOREJO"
+        },
+        {
+          "provinsi_code": "JI",
+          "provinsi_name": "JAWA TIMUR",
+          "city_code": "JI16",
+          "city_name": "MOJOKERTO",
+          "district_code": "JI1608",
+          "district_name": "MAGERSARI"
+        },
+        {
+          "provinsi_code": "JI",
+          "provinsi_name": "JAWA TIMUR",
+          "city_code": "JI16",
+          "city_name": "MOJOKERTO",
+          "district_code": "JI1609",
+          "district_name": "MOJOANYAR"
+        },
+        {
+          "provinsi_code": "JI",
+          "provinsi_name": "JAWA TIMUR",
+          "city_code": "JI16",
+          "city_name": "MOJOKERTO",
+          "district_code": "JI1610",
+          "district_name": "MOJOSARI"
+        },
+        {
+          "provinsi_code": "JI",
+          "provinsi_name": "JAWA TIMUR",
+          "city_code": "JI16",
+          "city_name": "MOJOKERTO",
+          "district_code": "JI1611",
+          "district_name": "PRAJURIT KULON"
+        },
+        {
+          "provinsi_code": "JI",
+          "provinsi_name": "JAWA TIMUR",
+          "city_code": "JI16",
+          "city_name": "MOJOKERTO",
+          "district_code": "JI1612",
+          "district_name": "PUNGGING"
+        },
+        {
+          "provinsi_code": "JI",
+          "provinsi_name": "JAWA TIMUR",
+          "city_code": "JI16",
+          "city_name": "MOJOKERTO",
+          "district_code": "JI1613",
+          "district_name": "PURI"
+        },
+        {
+          "provinsi_code": "JI",
+          "provinsi_name": "JAWA TIMUR",
+          "city_code": "JI16",
+          "city_name": "MOJOKERTO",
+          "district_code": "JI1614",
+          "district_name": "TRAWAS"
+        },
+        {
+          "provinsi_code": "JI",
+          "provinsi_name": "JAWA TIMUR",
+          "city_code": "JI16",
+          "city_name": "MOJOKERTO",
+          "district_code": "JI1615",
+          "district_name": "TROWULAN"
+        },
+        {
+          "provinsi_code": "JI",
+          "provinsi_name": "JAWA TIMUR",
+          "city_code": "JI16",
+          "city_name": "MOJOKERTO",
+          "district_code": "JI1616",
+          "district_name": "GONDANG"
+        },
+        {
+          "provinsi_code": "JI",
+          "provinsi_name": "JAWA TIMUR",
+          "city_code": "JI16",
+          "city_name": "MOJOKERTO",
+          "district_code": "JI1617",
+          "district_name": "JETIS"
+        },
+        {
+          "provinsi_code": "JI",
+          "provinsi_name": "JAWA TIMUR",
+          "city_code": "JI16",
+          "city_name": "MOJOKERTO",
+          "district_code": "JI1618",
+          "district_name": "NGORO"
+        },
+        {
+          "provinsi_code": "JI",
+          "provinsi_name": "JAWA TIMUR",
+          "city_code": "JI16",
+          "city_name": "MOJOKERTO",
+          "district_code": "JI1619",
+          "district_name": "PACET"
+        },
+        {
+          "provinsi_code": "JI",
+          "provinsi_name": "JAWA TIMUR",
+          "city_code": "JI16",
+          "city_name": "MOJOKERTO",
+          "district_code": "JI1620",
+          "district_name": "SOOKO"
+        },
+        {
+          "provinsi_code": "JI",
+          "provinsi_name": "JAWA TIMUR",
+          "city_code": "JI16",
+          "city_name": "MOJOKERTO",
+          "district_code": "JI1621",
+          "district_name": "KRANGGAN"
+        }
+      ]
+    },
+    {
+      "endpoint": "GET /v2/master/district/get",
+      "query": {
+        "district_name": "KEMLAGI"
+      },
+      "httpStatus": 200,
+      "status": "success",
+      "msg": "",
+      "count": 1,
+      "sample": [
+        {
+          "provinsi_code": "JI",
+          "provinsi_name": "JAWA TIMUR",
+          "city_code": "JI16",
+          "city_name": "MOJOKERTO",
+          "district_code": "JI1606",
+          "district_name": "KEMLAGI"
+        }
+      ]
+    }
+  ],
+  "rates": [
+    {
+      "endpoint": "POST /v2/master/shipment_cost",
+      "request": {
+        "origin": "JI1606",
+        "destination": "JI1617",
+        "weight": 1,
+        "customer_code": "<SET>",
+        "volumetric": "10x10x10"
+      },
+      "httpStatus": 404,
+      "status": "fail",
+      "msg": "Harga tidak ditemukan",
+      "serviceCount": 0,
+      "services": []
+    },
+    {
+      "endpoint": "POST /v2/master/shipment_cost",
+      "request": {
+        "origin": "JI1606",
+        "destination": "JK00",
+        "weight": 1,
+        "customer_code": "<SET>",
+        "volumetric": "10x10x10"
+      },
+      "httpStatus": 404,
+      "status": "fail",
+      "msg": "Harga tidak ditemukan",
+      "serviceCount": 0,
+      "services": []
+    },
+    {
+      "endpoint": "POST /v2/master/shipment_cost",
+      "request": {
+        "origin": "JK1007",
+        "destination": "JK00",
+        "weight": 1,
+        "customer_code": "<SET>",
+        "volumetric": "10x10x10"
+      },
+      "httpStatus": 200,
+      "status": "success",
+      "msg": "",
+      "serviceCount": 1,
+      "services": [
+        {
+          "service_type_code": "UDRREG",
+          "service_type_name": "SATRIA REG",
+          "total_cost": 9000,
+          "sla": "1 - 3 Hari",
+          "minimum_kilo": 1,
+          "final_weight": 1
+        }
+      ]
+    }
+  ]
+}

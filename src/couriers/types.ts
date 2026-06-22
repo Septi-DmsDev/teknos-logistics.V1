@@ -15,6 +15,7 @@ export interface RateParams {
   originCode: string
   destCode: string
   weightGrams: number
+  isCod?: boolean
 }
 
 export interface CourierRate {

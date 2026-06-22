@@ -1,0 +1,292 @@
+{
+  "generatedAt": "2026-06-22T08:09:14.977Z",
+  "note": "Sanitized SAPX read-only trial with alternative areas.",
+  "coverages": [
+    {
+      "query": {
+        "city_name": "SURABAYA"
+      },
+      "httpStatus": 200,
+      "status": "success",
+      "msg": "",
+      "count": 32,
+      "sample": [
+        {
+          "code": "JI28",
+          "district": "SURABAYA",
+          "city": "SURABAYA",
+          "province": "JAWA TIMUR"
+        },
+        {
+          "code": "JI2806",
+          "district": "GAYUNGAN",
+          "city": "SURABAYA",
+          "province": "JAWA TIMUR"
+        },
+        {
+          "code": "JI2807",
+          "district": "GENTENG",
+          "city": "SURABAYA",
+          "province": "JAWA TIMUR"
+        },
+        {
+          "code": "JI2808",
+          "district": "GUBENG",
+          "city": "SURABAYA",
+          "province": "JAWA TIMUR"
+        },
+        {
+          "code": "JI2809",
+          "district": "GUNUNGANYAR",
+          "city": "SURABAYA",
+          "province": "JAWA TIMUR"
+        },
+        {
+          "code": "JI2810",
+          "district": "JAMBANGAN",
+          "city": "SURABAYA",
+          "province": "JAWA TIMUR"
+        },
+        {
+          "code": "JI2811",
+          "district": "KARANGPILANG",
+          "city": "SURABAYA",
+          "province": "JAWA TIMUR"
+        },
+        {
+          "code": "JI2815",
+          "district": "MULYOREJO",
+          "city": "SURABAYA",
+          "province": "JAWA TIMUR"
+        },
+        {
+          "code": "JI2818",
+          "district": "RUNGKUT",
+          "city": "SURABAYA",
+          "province": "JAWA TIMUR"
+        },
+        {
+          "code": "JI2824",
+          "district": "TENGGILIS MEJOYO",
+          "city": "SURABAYA",
+          "province": "JAWA TIMUR"
+        },
+        {
+          "code": "JI2826",
+          "district": "WONOCOLO",
+          "city": "SURABAYA",
+          "province": "JAWA TIMUR"
+        },
+        {
+          "code": "JI2827",
+          "district": "WONOKROMO",
+          "city": "SURABAYA",
+          "province": "JAWA TIMUR"
+        }
+      ]
+    },
+    {
+      "query": {
+        "district_name": "TEGALSARI"
+      },
+      "httpStatus": 200,
+      "status": "success",
+      "msg": "",
+      "count": 2,
+      "sample": [
+        {
+          "code": "JI3353",
+          "district": "TEGALSARI",
+          "city": "BANYUWANGI",
+          "province": "JAWA TIMUR"
+        },
+        {
+          "code": "JI2831",
+          "district": "TEGALSARI",
+          "city": "SURABAYA",
+          "province": "JAWA TIMUR"
+        }
+      ]
+    },
+    {
+      "query": {
+        "city_name": "JAKARTA"
+      },
+      "httpStatus": 200,
+      "status": "success",
+      "msg": "",
+      "count": 49,
+      "sample": [
+        {
+          "code": "JK00",
+          "district": "JAKARTA",
+          "city": "JAKARTA",
+          "province": "DKI JAKARTA"
+        },
+        {
+          "code": "JK07",
+          "district": "JAKARTA BARAT",
+          "city": "JAKARTA BARAT",
+          "province": "DKI JAKARTA"
+        },
+        {
+          "code": "JK0702",
+          "district": "GROGOL PETAMBURAN",
+          "city": "JAKARTA BARAT",
+          "province": "DKI JAKARTA"
+        },
+        {
+          "code": "JK0704",
+          "district": "KEBON JERUK",
+          "city": "JAKARTA BARAT",
+          "province": "DKI JAKARTA"
+        },
+        {
+          "code": "JK0705",
+          "district": "KEMBANGAN",
+          "city": "JAKARTA BARAT",
+          "province": "DKI JAKARTA"
+        },
+        {
+          "code": "JK0706",
+          "district": "PALMERAH",
+          "city": "JAKARTA BARAT",
+          "province": "DKI JAKARTA"
+        },
+        {
+          "code": "JK08",
+          "district": "JAKARTA PUSAT",
+          "city": "JAKARTA PUSAT",
+          "province": "DKI JAKARTA"
+        },
+        {
+          "code": "JK0801",
+          "district": "CEMPAKA PUTIH",
+          "city": "JAKARTA PUSAT",
+          "province": "DKI JAKARTA"
+        },
+        {
+          "code": "JK0802",
+          "district": "GAMBIR",
+          "city": "JAKARTA PUSAT",
+          "province": "DKI JAKARTA"
+        },
+        {
+          "code": "JK0803",
+          "district": "JOHAR BARU",
+          "city": "JAKARTA PUSAT",
+          "province": "DKI JAKARTA"
+        },
+        {
+          "code": "JK0804",
+          "district": "KEMAYORAN",
+          "city": "JAKARTA PUSAT",
+          "province": "DKI JAKARTA"
+        },
+        {
+          "code": "JK0806",
+          "district": "SAWAH BESAR",
+          "city": "JAKARTA PUSAT",
+          "province": "DKI JAKARTA"
+        }
+      ]
+    },
+    {
+      "query": {
+        "district_name": "MAKASAR"
+      },
+      "httpStatus": 200,
+      "status": "success",
+      "msg": "",
+      "count": 1,
+      "sample": [
+        {
+          "code": "JK1007",
+          "district": "MAKASAR",
+          "city": "JAKARTA TIMUR",
+          "province": "DKI JAKARTA"
+        }
+      ]
+    }
+  ],
+  "rates": [
+    {
+      "route": "JI1606->JI22",
+      "httpStatus": 404,
+      "status": "fail",
+      "msg": "destination district code tidak ditemukan",
+      "serviceCount": 0,
+      "services": []
+    },
+    {
+      "route": "JI1606->JI2201",
+      "httpStatus": 404,
+      "status": "fail",
+      "msg": "destination district code tidak ditemukan",
+      "serviceCount": 0,
+      "services": []
+    },
+    {
+      "route": "JI1606->JI2205",
+      "httpStatus": 404,
+      "status": "fail",
+      "msg": "destination district code tidak ditemukan",
+      "serviceCount": 0,
+      "services": []
+    },
+    {
+      "route": "JI1606->JK00",
+      "httpStatus": 404,
+      "status": "fail",
+      "msg": "Harga tidak ditemukan",
+      "serviceCount": 0,
+      "services": []
+    },
+    {
+      "route": "JI1606->JK1007",
+      "httpStatus": 404,
+      "status": "fail",
+      "msg": "Harga tidak ditemukan",
+      "serviceCount": 0,
+      "services": []
+    },
+    {
+      "route": "JK1007->JI1606",
+      "httpStatus": 200,
+      "status": "success",
+      "msg": "",
+      "serviceCount": 1,
+      "services": [
+        {
+          "code": "UDRREG",
+          "name": "SATRIA REG",
+          "cost": 29000,
+          "sla": "3 - 5 Hari"
+        }
+      ]
+    },
+    {
+      "route": "JK1007->JI22",
+      "httpStatus": 404,
+      "status": "fail",
+      "msg": "destination district code tidak ditemukan",
+      "serviceCount": 0,
+      "services": []
+    },
+    {
+      "route": "JK1007->JK00",
+      "httpStatus": 200,
+      "status": "success",
+      "msg": "",
+      "serviceCount": 1,
+      "services": [
+        {
+          "code": "UDRREG",
+          "name": "SATRIA REG",
+          "cost": 9000,
+          "sla": "1 - 3 Hari"
+        }
+      ]
+    }
+  ]
+}

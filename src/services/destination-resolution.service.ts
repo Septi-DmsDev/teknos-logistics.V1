@@ -40,6 +40,7 @@ export class DestinationResolutionService {
       origin_code: item.originCode,
       dest_code: item.providerCode,
       weight_grams: input.weight_grams,
+      is_cod: input.is_cod,
       couriers: [item.courier],
     } satisfies RateRequest)))
 

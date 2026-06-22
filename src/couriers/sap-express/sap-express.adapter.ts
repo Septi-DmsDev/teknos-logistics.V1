@@ -22,7 +22,7 @@ export class SapExpressAdapter implements LogisticsProvider {
       origin: params.originCode,
       destination: params.destCode,
       weight: toSapKg(params.weightGrams),
-      customer_code: requiredEnv(this.env.SAP_CUSTOMER_CODE, 'SAP_CUSTOMER_CODE'),
+      customer_code: this.getCustomerCode(params.isCod),
       volumetric: DEFAULT_VOLUMETRIC,
     })
     const services = extractRateServices(raw)
@@ -38,7 +38,7 @@ export class SapExpressAdapter implements LogisticsProvider {
 
   async bookShipment(params: BookShipmentParams): Promise<BookShipmentResult> {
     const raw = await this.client.book({
-      customer_code: requiredEnv(this.env.SAP_CUSTOMER_CODE, 'SAP_CUSTOMER_CODE'),
+      customer_code: this.getCustomerCode(params.isCod),
       reference_no: normalizeReference(params.externalOrderId),
       service_type_code: params.serviceCode,
       pickup_place: this.env.SAP_PICKUP_PLACE,
@@ -79,6 +79,13 @@ export class SapExpressAdapter implements LogisticsProvider {
     const event = normalizeWebhookPayload(rawPayload)
     if (!event.awb_no || !event.rowstate_name) return null
     return toTrackingEvent(event, event.awb_no)
+  }
+
+  private getCustomerCode(isCod?: boolean): string {
+    if (isCod) {
+      return requiredEnv(this.env.SAP_CUSTOMER_CODE_COD || this.env.SAP_CUSTOMER_CODE, 'SAP_CUSTOMER_CODE_COD')
+    }
+    return requiredEnv(this.env.SAP_CUSTOMER_CODE_NON_COD || this.env.SAP_CUSTOMER_CODE, 'SAP_CUSTOMER_CODE_NON_COD')
   }
 }
 

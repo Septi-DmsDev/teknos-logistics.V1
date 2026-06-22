@@ -1,0 +1,68 @@
+{
+  "generatedAt": "2026-06-22T08:09:37.305Z",
+  "note": "Sanitized SAPX Surabaya alt-area rate trial.",
+  "rates": [
+    {
+      "route": "JI1606->JI28",
+      "httpStatus": 404,
+      "status": "fail",
+      "msg": "Harga tidak ditemukan",
+      "serviceCount": 0,
+      "services": []
+    },
+    {
+      "route": "JI1606->JI2831",
+      "httpStatus": 404,
+      "status": "fail",
+      "msg": "Harga tidak ditemukan",
+      "serviceCount": 0,
+      "services": []
+    },
+    {
+      "route": "JK1007->JI28",
+      "httpStatus": 200,
+      "status": "success",
+      "msg": "",
+      "serviceCount": 1,
+      "services": [
+        {
+          "code": "UDRREG",
+          "name": "SATRIA REG",
+          "cost": 20000,
+          "sla": "2 - 4 Hari"
+        }
+      ]
+    },
+    {
+      "route": "JK1007->JI2831",
+      "httpStatus": 200,
+      "status": "success",
+      "msg": "",
+      "serviceCount": 1,
+      "services": [
+        {
+          "code": "UDRREG",
+          "name": "SATRIA REG",
+          "cost": 20000,
+          "sla": "2 - 4 Hari"
+        }
+      ]
+    },
+    {
+      "route": "JI28->JK1007",
+      "httpStatus": 404,
+      "status": "fail",
+      "msg": "Harga tidak ditemukan",
+      "serviceCount": 0,
+      "services": []
+    },
+    {
+      "route": "JI2831->JK1007",
+      "httpStatus": 404,
+      "status": "fail",
+      "msg": "Harga tidak ditemukan",
+      "serviceCount": 0,
+      "services": []
+    }
+  ]
+}

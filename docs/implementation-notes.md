@@ -454,7 +454,9 @@ export interface SapTrackResponse {
 ```env
 SAP_API_BASE_URL=             # URL base API SAP
 SAP_API_KEY=                  # API key dari SAP Express
-SAP_CUSTOMER_CODE=            # kode merchant SAP (bukan username)
+SAP_CUSTOMER_CODE=            # legacy fallback jika env COD/non-COD belum diisi
+SAP_CUSTOMER_CODE_NON_COD=    # kode merchant SAP untuk order non-COD
+SAP_CUSTOMER_CODE_COD=        # kode merchant SAP untuk order COD
 SAP_ORIGIN_DISTRICT_CODE=     # kode district kecamatan asal (contoh: JI1606 Kemlagi)
 SAP_SHIPPER_NAME=
 SAP_SHIPPER_ADDRESS=

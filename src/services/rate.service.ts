@@ -17,12 +17,16 @@ export class RateService {
   }
 
   private async getCourierRates(courier: CourierCode, input: RateRequest): Promise<CourierRate[]> {
-    const cached = await this.cache.get({ courier, originCode: input.origin_code, destCode: input.dest_code, weightGrams: input.weight_grams })
+    const cached = !input.is_cod
+      ? await this.cache.get({ courier, originCode: input.origin_code, destCode: input.dest_code, weightGrams: input.weight_grams })
+      : null
     if (cached) return cached
 
     const provider = this.registry.get(courier)
-    const rates = await provider.getRates({ originCode: input.origin_code, destCode: input.dest_code, weightGrams: input.weight_grams })
-    await this.cache.set({ courier, originCode: input.origin_code, destCode: input.dest_code, weightGrams: input.weight_grams, rates, ttlMs: this.ttlMs })
+    const rates = await provider.getRates({ originCode: input.origin_code, destCode: input.dest_code, weightGrams: input.weight_grams, isCod: input.is_cod })
+    if (!input.is_cod) {
+      await this.cache.set({ courier, originCode: input.origin_code, destCode: input.dest_code, weightGrams: input.weight_grams, rates, ttlMs: this.ttlMs })
+    }
     return rates
   }
 }

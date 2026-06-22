@@ -36,6 +36,8 @@ export const envSchema = z.object({
   SAP_TRACKING_BASE_URL: optionalUrl,
   SAP_API_KEY: optionalSecret,
   SAP_CUSTOMER_CODE: optionalSecret,
+  SAP_CUSTOMER_CODE_NON_COD: optionalSecret,
+  SAP_CUSTOMER_CODE_COD: optionalSecret,
   SAP_ORIGIN_DISTRICT_CODE: optionalSecret,
   SAP_PICKUP_PLACE: z.string().optional().default('1'),
   SAP_SHIPMENT_TYPE_CODE: z.string().optional().default('SHTPC'),

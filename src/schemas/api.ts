@@ -7,6 +7,7 @@ export const rateRequestSchema = z.object({
   origin_code: z.string().trim().min(3).max(32),
   dest_code: z.string().trim().min(3).max(32),
   weight_grams: z.number().int().min(1).max(100_000),
+  is_cod: z.boolean().optional(),
   couriers: z.array(courierCodeSchema).min(1).optional(),
 })
 
@@ -25,6 +26,7 @@ export const rateResolveRequestSchema = z.object({
   origin_id: z.string().trim().min(1).max(64),
   destination: destinationInputSchema,
   weight_grams: z.number().int().min(1).max(100_000),
+  is_cod: z.boolean().optional(),
   couriers: z.array(courierCodeSchema).min(1).optional(),
 })
 
