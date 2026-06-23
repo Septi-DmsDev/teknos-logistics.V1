@@ -25,7 +25,7 @@ export class DestinationResolutionService {
   constructor(
     private readonly mappings: DestinationMappingRepository,
     private readonly rates: RateService
-  ) {}
+  ) { }
 
   async resolveRates(merchantId: string, input: RateResolveRequest): Promise<RateResolveResponse> {
     const origin = await this.mappings.findActiveOriginForMerchant(merchantId, input.origin_id)
@@ -41,6 +41,7 @@ export class DestinationResolutionService {
       dest_code: item.providerCode,
       weight_grams: input.weight_grams,
       is_cod: input.is_cod,
+      goods_value_idr: input.goods_value_idr,
       couriers: [item.courier],
     } satisfies RateRequest)))
 

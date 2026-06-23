@@ -16,6 +16,7 @@ export interface RateParams {
   destCode: string
   weightGrams: number
   isCod?: boolean
+  goodsValueIdr?: number
 }
 
 export interface CourierRate {
@@ -25,6 +26,8 @@ export interface CourierRate {
   priceIdr: number
   etd: string
   cached: boolean
+  availableForCod?: boolean
+  codFee?: number
 }
 
 export interface BookShipmentParams {

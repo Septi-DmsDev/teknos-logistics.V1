@@ -8,7 +8,7 @@ export class RateService {
     private readonly registry: ProviderRegistry,
     private readonly cache: RateCacheRepository,
     private readonly ttlMs = 60_000
-  ) {}
+  ) { }
 
   async getRates(input: RateRequest): Promise<CourierRate[]> {
     const couriers = (input.couriers?.length ? input.couriers : ['MOCK']) as CourierCode[]
@@ -23,7 +23,7 @@ export class RateService {
     if (cached) return cached
 
     const provider = this.registry.get(courier)
-    const rates = await provider.getRates({ originCode: input.origin_code, destCode: input.dest_code, weightGrams: input.weight_grams, isCod: input.is_cod })
+    const rates = await provider.getRates({ originCode: input.origin_code, destCode: input.dest_code, weightGrams: input.weight_grams, isCod: input.is_cod, goodsValueIdr: input.goods_value_idr })
     if (!input.is_cod) {
       await this.cache.set({ courier, originCode: input.origin_code, destCode: input.dest_code, weightGrams: input.weight_grams, rates, ttlMs: this.ttlMs })
     }

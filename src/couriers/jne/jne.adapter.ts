@@ -11,21 +11,36 @@ export class JneAdapter implements LogisticsProvider {
   readonly capabilities = courierCapabilities.JNE
   private readonly client: JneClient
 
-  constructor(env: Env, fetcher?: typeof fetch) {
+  constructor(private readonly env: Env, fetcher?: typeof fetch) {
     this.client = new JneClient(env, fetcher)
   }
 
   async getRates(params: RateParams): Promise<CourierRate[]> {
     const raw = await this.client.tariff({ from: params.originCode, thru: params.destCode, weightGrams: params.weightGrams })
     const prices = extractTariffItems(raw)
-    return prices.map((item) => ({
-      courier: 'JNE' as const,
-      serviceCode: item.service_code ?? item.service ?? item.code ?? 'REG',
-      serviceName: item.service_display ?? item.service_name ?? item.service ?? item.code ?? 'JNE Service',
-      priceIdr: toNumber(item.price ?? item.tariff ?? item.amount),
-      etd: item.etd ?? item.estimate ?? item.duration ?? '',
-      cached: false,
-    })).filter((rate) => rate.priceIdr > 0)
+
+    const eligibleCodServices = new Set(
+      this.env.JNE_COD_ELIGIBLE_SERVICES.split(',').map((s) => s.trim().toUpperCase())
+    )
+
+    return prices.map((item) => {
+      const serviceCode = item.service_code ?? item.service ?? item.code ?? 'REG'
+      const availableForCod = params.isCod ? eligibleCodServices.has(serviceCode.toUpperCase()) : undefined
+      const codFee = (params.isCod && availableForCod === true && params.goodsValueIdr != null)
+        ? Math.max(this.env.JNE_COD_MIN_FEE_IDR, Math.ceil(params.goodsValueIdr * this.env.JNE_COD_FEE_PERCENT / 100))
+        : undefined
+
+      return {
+        courier: 'JNE' as const,
+        serviceCode,
+        serviceName: item.service_display ?? item.service_name ?? item.service ?? item.code ?? 'JNE Service',
+        priceIdr: toNumber(item.price ?? item.tariff ?? item.amount),
+        etd: item.etd ?? item.estimate ?? item.duration ?? '',
+        cached: false,
+        availableForCod,
+        codFee,
+      }
+    }).filter((rate) => rate.priceIdr > 0)
   }
 
   async bookShipment(params: BookShipmentParams): Promise<BookShipmentResult> {
