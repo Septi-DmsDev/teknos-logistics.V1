@@ -3,7 +3,7 @@ import { existsSync, readFileSync } from 'node:fs'
 const checks = [
   checkFileIncludes('prisma/schema.prisma', ['sourceKey    String?', '@@unique([merchantId, courier, sourceKey])', '@@index([merchantId, courier, providerCode])']),
   checkFileIncludes('prisma/migrations/20260620152000_make_destination_mappings_importable/migration.sql', ['ADD COLUMN "sourceKey"', 'DROP INDEX IF EXISTS "DestinationMapping_merchantId_courier_providerCode_key"', 'DestinationMapping_merchantId_courier_sourceKey_key']),
-  checkFileIncludes('scripts/import-jne-destinations.ts', ['readJneDestinationRows', 'sourceKey', 'merchantId_courier_sourceKey', '--apply', 'Expand-Archive']),
+  checkFileIncludes('scripts/import-jne-destinations.ts', ['readJneDestinationRows', 'sourceKey', 'ON CONFLICT ("merchantId", "courier", "sourceKey")', '--apply', 'Expand-Archive']),
   checkFileIncludes('package.json', ['import:jne:destinations', 'sprint13:readiness']),
   checkFileIncludes('docs/implementation-notes.md', ['Sprint 13 JNE Destination Import Tooling']),
 ]

@@ -5,6 +5,9 @@
   service_name?: string
   code?: string
   etd?: string
+  etd_from?: string
+  etd_thru?: string
+  times?: string | null
   estimate?: string
   duration?: string
   price?: string | number

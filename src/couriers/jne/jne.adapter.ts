@@ -25,17 +25,25 @@ export class JneAdapter implements LogisticsProvider {
 
     return prices.map((item) => {
       const serviceCode = item.service_code ?? item.service ?? item.code ?? 'REG'
-      const availableForCod = params.isCod ? eligibleCodServices.has(serviceCode.toUpperCase()) : undefined
+      // service_display is the short name (e.g. "REG", "JTR") while service_code may have suffix (e.g. "REG23")
+      const serviceDisplay = item.service_display ?? item.service_name ?? serviceCode
+      const availableForCod = params.isCod
+        ? eligibleCodServices.has(serviceCode.toUpperCase()) || eligibleCodServices.has(serviceDisplay.toUpperCase())
+        : undefined
       const codFee = (params.isCod && availableForCod === true && params.goodsValueIdr != null)
         ? Math.max(this.env.JNE_COD_MIN_FEE_IDR, Math.ceil(params.goodsValueIdr * this.env.JNE_COD_FEE_PERCENT / 100))
         : undefined
 
+      const etdUnit = item.times === 'H' ? 'jam' : 'hari'
+      const etd = item.etd ?? item.estimate ?? item.duration
+        ?? (item.etd_from ? `${item.etd_from}-${item.etd_thru} ${etdUnit}` : '')
+
       return {
         courier: 'JNE' as const,
         serviceCode,
-        serviceName: item.service_display ?? item.service_name ?? item.service ?? item.code ?? 'JNE Service',
+        serviceName: serviceDisplay,
         priceIdr: toNumber(item.price ?? item.tariff ?? item.amount),
-        etd: item.etd ?? item.estimate ?? item.duration ?? '',
+        etd,
         cached: false,
         availableForCod,
         codFee,
