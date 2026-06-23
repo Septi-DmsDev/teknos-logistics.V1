@@ -1,0 +1,14 @@
+{
+  "generated_at": "2026-06-22T10:22:20.520Z",
+  "started_at": "2026-06-22T10:22:20.101Z",
+  "api_base_url": "https://apisanbox.coresyssap.com",
+  "endpoint": "/v2/shipment/tracking",
+  "scenario": "TRACK_NON_COD_SANDBOX_AWB",
+  "note": "Sanitized SAPX sandbox tracking response. API key is intentionally omitted.",
+  "awb_no": "DEV00845560419",
+  "http_status": 200,
+  "http_ok": true,
+  "api_status": "success",
+  "api_msg": "Tidak ada status",
+  "data": []
+}

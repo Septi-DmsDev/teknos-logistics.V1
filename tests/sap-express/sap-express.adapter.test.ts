@@ -174,10 +174,41 @@ test('bookShipment uses SAP COD customer code for COD bookings', async () => {
     recipientPhone: '08123456780',
     recipientAddress: 'Jl Customer',
     isCod: true,
+    goodsValueIdr: 150000,
   })
 
   const body = JSON.parse(String(calls[0]?.body)) as Record<string, unknown>
   assert.equal(body.customer_code, 'CUST-COD')
+  assert.equal(body.cod_value, 150000)
+})
+
+test('bookShipment rejects COD bookings without a positive cod value before calling SAP', async () => {
+  const calls: RequestCall[] = []
+  const adapter = new SapExpressAdapter(baseEnv, mockFetcher(calls, {
+    '/v2/shipment/pickup/create': {
+      status: 'success',
+      msg: 'ok',
+      data: { awb_no: 'SAP123456789', reference_no: 'ORDER-1' },
+    },
+  }))
+
+  await assert.rejects(() => adapter.bookShipment({
+    externalOrderId: 'ORDER-1',
+    serviceCode: 'UDRREG',
+    originCode: 'JI1606',
+    destCode: 'JK00',
+    weightGrams: 1000,
+    recipientName: 'Customer',
+    recipientPhone: '08123456780',
+    recipientAddress: 'Jl Customer',
+    isCod: true,
+  }), (error) => {
+    assert(error instanceof HttpError)
+    assert.equal(error.status, 400)
+    assert.equal(error.code, 'SAP_COD_VALUE_REQUIRED')
+    return true
+  })
+  assert.equal(calls.length, 0)
 })
 
 test('bookShipment throws 502 if response missing waybill', async () => {
@@ -226,6 +257,24 @@ test('normalizeWebhook returns event for valid payload and null for invalid payl
   })
   assert.equal(adapter.normalizeWebhook({}), null)
   assert.equal(adapter.normalizeWebhook(null), null)
+})
+
+test('normalizeWebhook preserves SAP push-status created_at timestamp', () => {
+  const adapter = new SapExpressAdapter(baseEnv, mockFetcher([], {}))
+
+  assert.deepEqual(adapter.normalizeWebhook({
+    awb_no: 'SAP123456789',
+    reference_no: 'ORDER-1',
+    rowstate_name: 'ENTRI (SEDANG DI PICKUP)',
+    description: '[KURIR: JIMMY PRADWITAMA]',
+    created_at: '2023-02-17 14:55:41',
+  }), {
+    waybillId: 'SAP123456789',
+    externalOrderId: 'ORDER-1',
+    status: 'BOOKED',
+    description: '[KURIR: JIMMY PRADWITAMA]',
+    occurredAt: '2023-02-17 14:55:41',
+  })
 })
 
 test('trackShipment throws 404 when SAP returns no events', async () => {

@@ -37,10 +37,12 @@ export class SapExpressAdapter implements LogisticsProvider {
   }
 
   async bookShipment(params: BookShipmentParams): Promise<BookShipmentResult> {
+    const codValue = params.isCod ? resolveCodValue(params.goodsValueIdr) : undefined
     const raw = await this.client.book({
       customer_code: this.getCustomerCode(params.isCod),
       reference_no: normalizeReference(params.externalOrderId),
       service_type_code: params.serviceCode,
+      ...(codValue ? { cod_value: codValue } : {}),
       pickup_place: this.env.SAP_PICKUP_PLACE,
       koli: '1',
       weight: toSapKg(params.weightGrams),
@@ -124,7 +126,7 @@ function normalizeWebhookPayload(payload: Record<string, unknown>): SapTrackEven
     pod_status_code: readString(payload, ['pod_status_code']) ?? null,
     pod_status_name: readString(payload, ['pod_status_name']) ?? null,
     description: readString(payload, ['description', 'status_desc', 'remark']) ?? '',
-    create_date: readString(payload, ['create_date', 'occurred_at', 'event_time', 'updated_at']) ?? new Date().toISOString(),
+    create_date: readString(payload, ['create_date', 'created_at', 'occurred_at', 'event_time', 'updated_at']) ?? new Date().toISOString(),
     current_branch_name: readString(payload, ['current_branch_name']) ?? '',
     origin_code: readString(payload, ['origin_code']) ?? '',
     destination_code: readString(payload, ['destination_code']) ?? '',
@@ -145,6 +147,13 @@ function toNumber(value: number | string | undefined): number {
     return Number.isFinite(parsed) ? parsed : 0
   }
   return 0
+}
+
+function resolveCodValue(value: number | undefined): number {
+  if (typeof value !== 'number' || !Number.isFinite(value) || value <= 0) {
+    throw new HttpError(400, 'SAP Express COD booking requires a positive cod_value', 'SAP_COD_VALUE_REQUIRED')
+  }
+  return Math.round(value)
 }
 
 function normalizeSla(value: string | undefined): string {

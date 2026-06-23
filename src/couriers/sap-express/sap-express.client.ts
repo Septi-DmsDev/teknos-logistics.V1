@@ -16,6 +16,7 @@ export interface SapBookingRequest {
   customer_code: string
   reference_no: string
   service_type_code: string
+  cod_value?: number
   pickup_place: string
   koli: string
   weight: number

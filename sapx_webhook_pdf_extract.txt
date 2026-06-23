@@ -1,0 +1,121 @@
+PUSH DATA ORDER STATUS 
+SAP EXPRESS API  
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+Version  : v.1.2 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+
+1. PROVIDE DATA PUSH STATUS 
+  { 
+    "reference_no": "OID-2508089158", 
+    "awb_no": "KA-OID-2508089158", 
+    "rowstate_name": "ENTRI (SEDANG DI PICKUP)", 
+    "description": "[KURIR: JIMMY PRADWITAMA]”, 
+     
+    "kilo": "1", 
+    "koli": "1", 
+    "volumetric": "8x8x8", 
+    "origin_code": "JB1134", 
+    "destination_code": "JT1801", 
+    "shipping_cost": "8000", 
+    "created_at": "2023-02-17 14:55:41", 
+    "photo_pod": [], 
+    "signature_pod": [], 
+    "photo_pickup": [], 
+    "signature_pickup": [], 
+ 
+ } 
+ 
+ 
+Detail Parameter 
+Parameter Name Sample Values Description 
+reference_no OID-2508089158 Contain any value that is 
+considered unique by 
+B2B/Ecommerce 
+awb_no KA-OID-2508089158 Airwaybill has registered in SAP 
+system 
+rowstate_name ENTRI (SEDANG DI 
+PICKUP) 
+Status/ Checkpoint SAP 
+description "[KURIR: JIMMY 
+PRADWITAMA]” 
+ 
+kilo 1 the number of weight in one 
+shipment 
+koli 1 the number of total pacakage in 
+one shipment 
+
+volumetric 8x8x8 volumetric of goods in one 
+shipment (PxLxT) 
+origin_code JB1134 pickup origin 
+destination_code JT1801 receiver destination 
+shipping_cost 8000 Shipping cost in unit (1 kilo) 
+created_at 2023-02-17 14:55:41 Created date of  proceed 
+checkpoint 
+photo_pod [ 
+https://track.coressya
+p.com/photo/…, 
+] 
+ 
+signature_pod [ 
+https://track.coressya
+p.com/photo/…, 
+] 
+ 
+photo_pickup [ 
+https://track.coressya
+p.com/photo/…, 
+] 
+ 
+signature_pickup [ 
+https://track.coressya
+p.com/photo/…, 
+] 
+ 
+ 
+ 
+2. LIST CHECK POINT 
+The following is a list of check points that we have in every process of shipping goods 
+ 
+CHECKPOINT PENJELASAN 
+ENTRI (SEDANG DI PICKUP) Proses Pickup Paket ke Seller/Origin 
+ENTRI (PENDING PICKUP) Proses Pick Up Ditunda 
+ENTRI (SEDANG PICKUP 
+ULANG) 
+Proses Pick Up Ulang 
+PICKED UP Paket Telah di Pickup / Sukses Pickup 
+VOID_PICKUP Pickup dibatalkan 
+
+VOID Shipment Di Batalkan 
+ENTRI VERIFIED Paket telah di Verifikasi 
+MANIFEST OUTGOING Paket menuju Cabang Tujuan 
+INCOMING Paket sampai di Cabang Tujuan 
+DELIVERY Paket diantarkan oleh kurir ke penerima 
+POD - DELIVERED Paket berhasil di terima oleh penerima 
+POD - UNDELIVERED Paket gagal diterima oleh penerima 
+OUTGOING RETURN Paket keluar dari cabang untuk di kembalikan 
+INCOMING RETURN Paket sampai di cabang origin/alamat return untuk 
+di kembalikan 
+ 
+DELIVERY RETURN Paket diantarkan oleh kuiri untuk di kembalikan 
+SHIPMENT RETURN TO CLIENT Paket berhasil dikembalikan 
+ 
+ 

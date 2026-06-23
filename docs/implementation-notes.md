@@ -789,3 +789,18 @@ Until per-merchant credentials exist, `JNE_*` env remains the global Teknos fall
 ### Parent Boundary
 
 Parent apps such as `teknos.id` or a future client store still only keep `LOGISTICS_API_URL`, `LOGISTICS_API_KEY`, `LOGISTICS_WEBHOOK_SECRET`, `LOGISTICS_ORIGIN_ID`, and `LOGISTICS_ENABLED`. Courier-provider credentials belong only in `teknos-logistics`.
+
+## 2026-06-22 — SAPX Sandbox Webhook and COD Payload Alignment
+
+Context: SAPX confirmed sandbox data is incomplete and requires Teknos to request explicit origin/destination/service enablement before full sandbox testing. SAPX also confirmed sandbox customer codes `DEV000` for NON-COD and `DEV001` for COD, and COD order payloads require `cod_value`.
+
+Implementation notes:
+
+- SAPX webhook push-status document v1.2 uses `created_at` for checkpoint time. `SapExpressAdapter.normalizeWebhook()` now accepts `created_at` as an alias and preserves it as normalized `occurredAt`.
+- SAPX COD booking now sends `cod_value` when `BookShipmentParams.isCod` is true.
+- `cod_value` is sourced from `BookShipmentParams.goodsValueIdr` for the current integration phase.
+- COD booking fails before calling SAPX with `SAP_COD_VALUE_REQUIRED` if the COD amount is missing, not finite, or not positive.
+- NON-COD booking does not send `cod_value`.
+- Full handoff/runbook: `docs/handover/2026-06-22-sapx-sandbox-webhook-progress.md`.
+
+Operational guardrail: do not run real SAPX create/request order, even in sandbox, without explicit operator approval because it can create an order/AWB.
