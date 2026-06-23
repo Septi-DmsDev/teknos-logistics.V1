@@ -49,8 +49,11 @@
     "import:jne:origins": "tsx scripts/import-jne-origins.ts",
     "import:jne:origins:apply": "tsx scripts/import-jne-origins.ts --apply",
     "import:jne:destinations": "tsx scripts/import-jne-destinations.ts",
+    "import:sap:destinations": "tsx scripts/import-sap-destinations.ts",
+    "import:sap:destinations:apply": "tsx scripts/import-sap-destinations.ts --apply",
     "sprint13:readiness": "tsx scripts/sprint13-readiness.ts",
-    "smoke:webhook:signature": "tsx scripts/smoke-webhook-signature.ts"
+    "smoke:webhook:signature": "tsx scripts/smoke-webhook-signature.ts",
+    "seed:sapx:sandbox-shipments": "tsx scripts/seed-sapx-sandbox-shipments.ts"
   },
   "dependencies": {
     "@hono/node-server": "^1.19.6",
