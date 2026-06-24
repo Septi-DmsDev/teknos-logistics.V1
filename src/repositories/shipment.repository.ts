@@ -101,6 +101,23 @@ export class ShipmentRepository {
     })
   }
 
+  async markCancelled(id: string): Promise<ShipmentRecord> {
+    return this.prisma.shipment.update({
+      where: { id },
+      data: {
+        status: 'CANCELLED',
+        tracking: {
+          create: {
+            status: 'CANCELLED',
+            description: 'Pengiriman dibatalkan oleh merchant',
+            occurredAt: new Date(),
+          },
+        },
+      },
+      select: baseSelect,
+    })
+  }
+
   async applyTrackingEvent(shipmentId: string, event: NormalizedTrackingEvent): Promise<ShipmentRecord> {
     const occurredAt = new Date(event.occurredAt)
     return this.prisma.$transaction(async (tx) => {

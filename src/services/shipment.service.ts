@@ -1,4 +1,5 @@
 ﻿import type { ProviderRegistry } from '../couriers/registry.js'
+import type { CancelShipmentResult } from '../couriers/types.js'
 import type { ShipmentRecord, ShipmentRepository, ShipmentWithTracking } from '../repositories/shipment.repository.js'
 import type { WebhookRepository } from '../repositories/webhook.repository.js'
 import type { ShipmentRequest } from '../schemas/api.js'
@@ -86,6 +87,36 @@ export class ShipmentService {
     const shipment = await this.shipments.findByMerchantAndId(merchantId, shipmentId)
     if (!shipment) throw new HttpError(404, 'Shipment not found', 'SHIPMENT_NOT_FOUND')
     return toTrackingDto(shipment)
+  }
+
+  async cancelShipment(merchantId: string, shipmentId: string, reason?: string): Promise<CancelShipmentResult> {
+    const shipment = await this.shipments.findByMerchantAndId(merchantId, shipmentId)
+    if (!shipment) throw new HttpError(404, 'Shipment not found', 'SHIPMENT_NOT_FOUND')
+
+    const terminalStatuses: ReadonlyArray<string> = ['PICKED_UP', 'IN_TRANSIT', 'OUT_FOR_DELIVERY', 'DELIVERED', 'RETURNED']
+    if (terminalStatuses.includes(shipment.status)) {
+      throw new HttpError(
+        409,
+        `Tidak bisa cancel: paket sudah berstatus ${shipment.status}. Hubungi kurir langsung.`,
+        'SHIPMENT_ALREADY_IN_TRANSIT'
+      )
+    }
+
+    const provider = this.registry.get(shipment.courier as import('../couriers/types.js').CourierCode)
+    const waybillId = shipment.waybillId ?? ''
+
+    let result: CancelShipmentResult
+    if (typeof provider.cancelShipment === 'function') {
+      result = await provider.cancelShipment(waybillId, reason)
+    } else {
+      result = { status: 'MANUAL_REQUIRED', waybillId, message: 'Kurir ini tidak mendukung cancel via API.' }
+    }
+
+    if (result.status === 'CANCELLED') {
+      await this.shipments.markCancelled(shipmentId)
+    }
+
+    return result
   }
 }
 
