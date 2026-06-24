@@ -50,6 +50,12 @@ export interface BookShipmentResult {
   status: ShipmentStatus
 }
 
+export interface CancelShipmentResult {
+  status: 'CANCELLED' | 'MANUAL_REQUIRED'
+  waybillId: string
+  message: string
+}
+
 export interface NormalizedTrackingEvent {
   status: ShipmentStatus
   description: string
@@ -65,4 +71,5 @@ export interface LogisticsProvider {
   bookShipment(params: BookShipmentParams): Promise<BookShipmentResult>
   trackShipment(waybillId: string): Promise<NormalizedTrackingEvent[]>
   normalizeWebhook(rawPayload: unknown): NormalizedTrackingEvent | null
+  cancelShipment?(waybillId: string, reason?: string): Promise<CancelShipmentResult>
 }
