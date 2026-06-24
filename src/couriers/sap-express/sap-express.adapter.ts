@@ -1,7 +1,7 @@
 ﻿import type { Env } from '../../config/env.js'
 import { HttpError } from '../../utils/http-error.js'
 import { courierCapabilities } from '../capabilities.js'
-import type { BookShipmentParams, BookShipmentResult, CourierRate, LogisticsProvider, NormalizedTrackingEvent, RateParams } from '../types.js'
+import type { BookShipmentParams, BookShipmentResult, CancelShipmentResult, CourierRate, LogisticsProvider, NormalizedTrackingEvent, RateParams } from '../types.js'
 import { SapExpressClient } from './sap-express.client.js'
 import { mapSapExpressStatus } from './sap-express.normalizer.js'
 import type { SapBookingData, SapRateData, SapRateResponse, SapRateService, SapTrackEvent } from './sap-express.types.js'
@@ -67,6 +67,19 @@ export class SapExpressAdapter implements LogisticsProvider {
     const data = extractBookingData(raw.data)
     if (!data?.awb_no) throw new HttpError(502, 'SAP Express booking did not return an AWB', 'SAP_BOOKING_INVALID_RESPONSE')
     return { courier: 'SAP_EXPRESS', courierOrderId: data.reference_no || data.awb_no, waybillId: data.awb_no, status: 'BOOKED' }
+  }
+
+  async cancelShipment(waybillId: string, reason = 'Order dibatalkan oleh merchant'): Promise<CancelShipmentResult> {
+    await this.client.cancelPickup({
+      awb_no: waybillId,
+      desc: reason,
+      reason_detail_code: 'GLD009',
+    })
+    return {
+      status: 'CANCELLED',
+      waybillId,
+      message: 'Pengiriman SAP Express berhasil dibatalkan',
+    }
   }
 
   async trackShipment(waybillId: string): Promise<NormalizedTrackingEvent[]> {

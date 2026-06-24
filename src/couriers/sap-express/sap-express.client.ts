@@ -39,6 +39,12 @@ export interface SapBookingRequest {
   receiver_contact: string
 }
 
+export interface SapCancelRequest {
+  awb_no: string
+  desc: string
+  reason_detail_code: string
+}
+
 export interface SapClientConfig {
   apiBaseUrl: string
   trackingBaseUrl: string
@@ -63,6 +69,10 @@ export class SapExpressClient {
 
   async book(input: SapBookingRequest): Promise<SapBookingResponse> {
     return this.postJson<SapBookingResponse>(`${this.config.apiBaseUrl}/v2/shipment/pickup/create`, input, 'SAP_BOOKING_FAILED')
+  }
+
+  async cancelPickup(input: SapCancelRequest): Promise<unknown> {
+    return this.postJson<unknown>(`${this.config.apiBaseUrl}/v2/shipment/pickup/cancel`, input, 'SAP_CANCEL_FAILED')
   }
 
   async track(waybillId: string): Promise<SapTrackResponse> {

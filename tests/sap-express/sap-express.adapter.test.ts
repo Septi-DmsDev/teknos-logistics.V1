@@ -293,20 +293,51 @@ test('trackShipment throws 404 when SAP returns no events', async () => {
   })
 })
 
+test('cancelShipment calls v2/shipment/pickup/cancel with correct body', async () => {
+  const calls: RequestCall[] = []
+  const adapter = new SapExpressAdapter(baseEnv, mockFetcher(calls, {
+    '/v2/shipment/pickup/cancel': { status: 'success', msg: '' },
+  }))
+
+  const result = await adapter.cancelShipment('JSA1500127659495')
+
+  assert.equal(result.status, 'CANCELLED')
+  assert.equal(result.waybillId, 'JSA1500127659495')
+  assert.equal(calls.length, 1)
+  const body = JSON.parse(calls[0]!.body as string) as { awb_no: string; reason_detail_code: string }
+  assert.equal(body.awb_no, 'JSA1500127659495')
+  assert.equal(body.reason_detail_code, 'GLD009')
+})
+
+test('cancelShipment throws HttpError when SAP cancel API fails', async () => {
+  const calls: RequestCall[] = []
+  const adapter = new SapExpressAdapter(baseEnv, mockFetcher(calls, {
+    '/v2/shipment/pickup/cancel': { status: 'error', msg: 'AWB not found' },
+  }, 400))
+
+  await assert.rejects(
+    () => adapter.cancelShipment('INVALID-AWB'),
+    (err: unknown) => {
+      assert.ok(err instanceof HttpError)
+      return true
+    }
+  )
+})
+
 interface RequestCall {
   url: string
   body?: RequestInit['body']
   headers: Record<string, string>
 }
 
-function mockFetcher(calls: RequestCall[], responses: Record<string, unknown>): typeof fetch {
+function mockFetcher(calls: RequestCall[], responses: Record<string, unknown>, defaultStatus = 200): typeof fetch {
   return async (input, init = {}) => {
     const url = String(input)
     const headers = init.headers as Record<string, string>
     calls.push({ url, body: init.body, headers })
     const key = Object.keys(responses).find((path) => url.includes(path))
     if (!key) return jsonResponse({ status: 'fail', msg: `Unexpected URL: ${url}`, data: [] }, 404)
-    return jsonResponse(responses[key])
+    return jsonResponse(responses[key], defaultStatus)
   }
 }
 
