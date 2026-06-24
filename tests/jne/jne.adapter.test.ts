@@ -196,3 +196,28 @@ test('getRates throws 503 when JNE credentials are missing', async () => {
     }
   )
 })
+
+interface RequestCall {
+  url: string | URL | Request
+  init?: RequestInit
+}
+
+function mockFetcher(calls: RequestCall[], responses: Record<string, Response>) {
+  return async (url: string | URL | Request, init?: RequestInit): Promise<Response> => {
+    calls.push({ url, init })
+    const urlString = typeof url === 'string' ? url : url instanceof URL ? url.href : url.url
+    return responses[urlString] ?? new Response(JSON.stringify({}), { status: 200 })
+  }
+}
+
+test('cancelShipment returns MANUAL_REQUIRED without making HTTP request', async () => {
+  const calls: RequestCall[] = []
+  const adapter = new JneAdapter(baseEnv, mockFetcher(calls, {}))
+
+  const result = await adapter.cancelShipment('4073272600000045')
+
+  assert.equal(result.status, 'MANUAL_REQUIRED')
+  assert.equal(result.waybillId, '4073272600000045')
+  assert.ok(result.message.length > 0)
+  assert.equal(calls.length, 0, 'JNE cancel must not make any HTTP call')
+})

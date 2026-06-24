@@ -1,6 +1,6 @@
 import type { Env } from '../../config/env.js'
 import { courierCapabilities } from '../capabilities.js'
-import type { BookShipmentParams, BookShipmentResult, CourierRate, LogisticsProvider, NormalizedTrackingEvent, RateParams } from '../types.js'
+import type { BookShipmentParams, BookShipmentResult, CancelShipmentResult, CourierRate, LogisticsProvider, NormalizedTrackingEvent, RateParams } from '../types.js'
 import { HttpError } from '../../utils/http-error.js'
 import { JneClient } from './jne.client.js'
 import { mapJneStatus } from './jne.normalizer.js'
@@ -96,6 +96,14 @@ export class JneAdapter implements LogisticsProvider {
       status: mapJneStatus(readString(rawPayload, ['status', 'pod_status', 'code'])),
       description: readString(rawPayload, ['description', 'desc', 'note']) ?? 'JNE webhook update',
       occurredAt: readString(rawPayload, ['date', 'updated_at', 'created_at']) ?? new Date().toISOString(),
+    }
+  }
+
+  async cancelShipment(waybillId: string): Promise<CancelShipmentResult> {
+    return {
+      status: 'MANUAL_REQUIRED',
+      waybillId,
+      message: 'Batalkan resi JNE secara manual: hubungi JNE pusat. Selama resi belum di-scan di HO JNE, pembatalan masih bisa diproses.',
     }
   }
 }
