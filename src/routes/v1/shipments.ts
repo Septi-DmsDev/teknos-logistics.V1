@@ -16,4 +16,13 @@ export function mountShipmentRoutes(app: Hono, shipmentService: ShipmentService)
     const result = await shipmentService.getTracking(auth.merchantId, c.req.param('id'))
     return c.json(result)
   })
+
+  app.post('/v1/shipments/:id/cancel', async (c) => {
+    const auth = getAuth(c)
+    const shipmentId = c.req.param('id')
+    const body = (await c.req.json().catch(() => ({}))) as { reason?: unknown }
+    const reason = typeof body.reason === 'string' ? body.reason : undefined
+    const result = await shipmentService.cancelShipment(auth.merchantId, shipmentId, reason)
+    return c.json(result)
+  })
 }
