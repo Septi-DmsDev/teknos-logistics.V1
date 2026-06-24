@@ -684,3 +684,80 @@ Result:
 | Event count | `0` |
 
 Conclusion: tracking endpoint is reachable for the COD sandbox AWB, but SAPX has not produced tracking checkpoint events yet for `DEV00845560420`. Both NON-COD and COD AWBs should be sent to SAPX so they can trigger/update sandbox status and webhook events.
+
+## 2026-06-23 — SAPX Sandbox Tracking Recheck After SAPX Status Update
+
+SAPX confirmed both sandbox AWBs were processed up to `POD - DELIVERED`. A read-only tracking recheck was run for both AWBs.
+
+- Endpoint: `GET /v2/shipment/tracking`
+- Sanitized response artifact: `tmp/sapx-sandbox-tracking-recheck-2026-06-23.json`
+
+Result:
+
+| Scenario | AWB | HTTP | API status | Event count | Latest status | Latest time |
+| --- | --- | --- | --- | ---: | --- | --- |
+| NON-COD | `DEV00845560419` | `200` | `success` | 7 | `POD - DELIVERED` | `2026-06-23 09:21:00` |
+| COD | `DEV00845560420` | `200` | `success` | 7 | `POD - DELIVERED` | `2026-06-23 09:21:00` |
+
+Conclusion: SAPX tracking API is now validated end-to-end for both NON-COD and COD sandbox AWBs. The remaining sandbox validation item is inbound webhook/push tracking to `POST /webhooks/sap-express` after SAPX completes endpoint setup.
+
+## 2026-06-23 — SAPX Sandbox Shipment Seed Script
+
+Added an internal-only seed script to create local/deployed `Shipment` rows for the two SAPX sandbox AWBs so inbound webhook retries can resolve the shipment by `courier=SAP_EXPRESS` and `waybillId`.
+
+Script:
+
+```bash
+npm run seed:sapx:sandbox-shipments
+npm run seed:sapx:sandbox-shipments -- --apply
+```
+
+Default behavior is dry-run. `--apply` is required before any database write. Default merchant slug is `teknos`; override with `-- --merchant-slug <slug>` if the deployed merchant slug differs.
+
+Seeded AWBs:
+
+| Scenario | Reference | AWB | Status |
+| --- | --- | --- | --- |
+| NON-COD | `TLG-SBX-202606221018` | `DEV00845560419` | `BOOKED` |
+| COD | `TLG-COD-202606221023` | `DEV00845560420` | `BOOKED` |
+
+Local validation note: typecheck and lint passed. Local dry-run could not query the DB because the current tunnel on `localhost:5434` accepted TCP but PostgreSQL closed the Prisma query connection (`P1017 Server has closed the connection`). Run the script from an environment with a healthy DB connection, or fix the tunnel target before `--apply`.
+
+## 2026-06-23 — SAPX Sandbox Shipment Seed Applied
+
+The SAPX sandbox shipment seed was applied after the DB tunnel was fixed.
+
+Commands run:
+
+```bash
+npm run seed:sapx:sandbox-shipments
+npm run seed:sapx:sandbox-shipments -- --apply
+```
+
+Result:
+
+| Scenario | Shipment id | Reference | AWB | Status | Tracking rows |
+| --- | --- | --- | --- | --- | ---: |
+| NON-COD | `cmqq5baej0001tkv4cjqawk5v` | `TLG-SBX-202606221018` | `DEV00845560419` | `BOOKED` | 1 |
+| COD | `cmqq5bapi0003tkv4txmmb4eh` | `TLG-COD-202606221023` | `DEV00845560420` | `BOOKED` | 1 |
+
+Conclusion: the deployed/tunneled database now contains `SAP_EXPRESS` shipment rows for both sandbox AWBs. SAPX can retry webhook delivery; the previous `SHIPMENT_NOT_FOUND` should be resolved for these AWBs unless the webhook endpoint is connected to a different database than this tunnel.
+
+## 2026-06-23 — SAPX Inbound Webhook Verified
+
+SAPX provided `PUSH TRACKING LOG TEKNOS.pdf`, and DB verification confirmed inbound webhook processing succeeded for both sandbox AWBs.
+
+External SAPX log evidence:
+
+- SAPX posted to `POST /webhooks/sap-express` with `x-sap-token`.
+- Responses returned `ok: true` for status pushes.
+- Earlier `INVALID_WEBHOOK_TOKEN` and `SHIPMENT_NOT_FOUND` issues are resolved for the seeded AWBs.
+
+Database verification result:
+
+| Scenario | AWB | Final status | Delivered at | Tracking rows | Webhook event rows |
+| --- | --- | --- | --- | ---: | ---: |
+| NON-COD | `DEV00845560419` | `DELIVERED` | `2026-06-23T09:21:00.000Z` | 8 | 7 |
+| COD | `DEV00845560420` | `DELIVERED` | `2026-06-23T09:21:00.000Z` | 8 | 7 |
+
+Conclusion: SAPX sandbox integration is now validated for rate, NON-COD booking, COD booking with `cod_value`, tracking API, and inbound webhook/push tracking through delivered status. Remaining production work is live credential/account activation and production-safe rollout using production customer codes.

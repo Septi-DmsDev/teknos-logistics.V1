@@ -1,0 +1,201 @@
+{
+  "generated_at": "2026-06-23T02:51:17.274Z",
+  "api_base_url": "https://apisanbox.coresyssap.com",
+  "note": "Sanitized SAPX sandbox tracking recheck. API key is intentionally omitted.",
+  "results": [
+    {
+      "scenario": "TRACK_NON_COD_SANDBOX_AWB_RECHECK",
+      "type": "NON_COD",
+      "awb_no": "DEV00845560419",
+      "started_at": "2026-06-23T02:51:16.608Z",
+      "http_status": 200,
+      "http_ok": true,
+      "api_status": "success",
+      "api_msg": "",
+      "event_count": 7,
+      "events": [
+        {
+          "awb_no": "DEV00845560419",
+          "reference_no": "TLG-SBX-202606221018",
+          "rowstate_name": "ENTRI (SEDANG DI PICKUP)",
+          "rowstate_web": "Proses Pick Up",
+          "description": "[KURIR: SUNARTO] [ALAMAT PICKUP: \"JL. RAYA KEMLAGI, RT01/RW01, MOJODADI, KEC. KEMLAGI, KAB. MOJOKERTO, JAWA TIMUR\"]",
+          "create_date": "2026-06-23 09:16:54",
+          "origin_code": "JI1606",
+          "destination_code": "JI1617",
+          "pod_status_code": null,
+          "pod_status_name": null
+        },
+        {
+          "awb_no": "DEV00845560419",
+          "reference_no": "TLG-SBX-202606221018",
+          "rowstate_name": "PICKED UP",
+          "rowstate_web": "Paket Telah Dipick Up",
+          "description": "[KURIR: SUNARTO] [ALAMAT PICKUP: \"JL. RAYA KEMLAGI, RT01/RW01, MOJODADI, KEC. KEMLAGI, KAB. MOJOKERTO, JAWA TIMUR\"] [KETERANGAN: TEST]",
+          "create_date": "2026-06-23 09:18:29",
+          "origin_code": "JI1606",
+          "destination_code": "JI1617",
+          "pod_status_code": null,
+          "pod_status_name": null
+        },
+        {
+          "awb_no": "DEV00845560419",
+          "reference_no": "TLG-SBX-202606221018",
+          "rowstate_name": "ENTRI VERIFIED",
+          "rowstate_web": "Verifikasi Paket",
+          "description": "SUDAH DI KONFIRMASI DAN VERIFIKASI OLEH USER: DEV_KACAB",
+          "create_date": "2026-06-23 09:18:45",
+          "origin_code": "JI1606",
+          "destination_code": "JI1617",
+          "pod_status_code": null,
+          "pod_status_name": null
+        },
+        {
+          "awb_no": "DEV00845560419",
+          "reference_no": "TLG-SBX-202606221018",
+          "rowstate_name": "MANIFEST OUTGOING",
+          "rowstate_web": "Keluar Dari KANTOR CABANG MOJOKERTO",
+          "description": "DEV",
+          "create_date": "2026-06-23 09:19:25",
+          "origin_code": "JI1606",
+          "destination_code": "JI1617",
+          "pod_status_code": null,
+          "pod_status_name": null
+        },
+        {
+          "awb_no": "DEV00845560419",
+          "reference_no": "TLG-SBX-202606221018",
+          "rowstate_name": "INCOMING",
+          "rowstate_web": "Sampai Di KANTOR CABANG MOJOKERTO",
+          "description": null,
+          "create_date": "2026-06-23 09:19:45",
+          "origin_code": "JI1606",
+          "destination_code": "JI1617",
+          "pod_status_code": null,
+          "pod_status_name": null
+        },
+        {
+          "awb_no": "DEV00845560419",
+          "reference_no": "TLG-SBX-202606221018",
+          "rowstate_name": "DELIVERY ",
+          "rowstate_web": "Paket Diantar Kurir By SUNARTO",
+          "description": "KURIR: SUNARTO KET: [ KURIR : KOTA ]  ",
+          "create_date": "2026-06-23 09:20:04",
+          "origin_code": "JI1606",
+          "destination_code": "JI1617",
+          "pod_status_code": null,
+          "pod_status_name": null
+        },
+        {
+          "awb_no": "DEV00845560419",
+          "reference_no": "TLG-SBX-202606221018",
+          "rowstate_name": "POD - DELIVERED",
+          "rowstate_web": "Paket Telah Diterima Oleh [SAPX SANDBOX RECEIVER] [ KET : PENERIMA LANGSUNG]",
+          "description": "[KURIR: SUNARTO] [PENERIMA: SAPX SANDBOX RECEIVER] [HUB: PENERIMA LANGSUNG] [STATUS: DELIVERED - DL - DITERIMA OLEH] - KETERANGAN: DEV",
+          "create_date": "2026-06-23 09:21:00",
+          "origin_code": "JI1606",
+          "destination_code": "JI1617",
+          "pod_status_code": "DL",
+          "pod_status_name": "DITERIMA OLEH"
+        }
+      ]
+    },
+    {
+      "scenario": "TRACK_COD_SANDBOX_AWB_RECHECK",
+      "type": "COD",
+      "awb_no": "DEV00845560420",
+      "started_at": "2026-06-23T02:51:17.105Z",
+      "http_status": 200,
+      "http_ok": true,
+      "api_status": "success",
+      "api_msg": "",
+      "event_count": 7,
+      "events": [
+        {
+          "awb_no": "DEV00845560420",
+          "reference_no": "TLG-COD-202606221023",
+          "rowstate_name": "ENTRI (SEDANG DI PICKUP)",
+          "rowstate_web": "Proses Pick Up",
+          "description": "[KURIR: SUNARTO] [ALAMAT PICKUP: \"JL. RAYA KEMLAGI, RT01/RW01, MOJODADI, KEC. KEMLAGI, KAB. MOJOKERTO, JAWA TIMUR\"]",
+          "create_date": "2026-06-23 09:16:54",
+          "origin_code": "JI1606",
+          "destination_code": "JI1617",
+          "pod_status_code": null,
+          "pod_status_name": null
+        },
+        {
+          "awb_no": "DEV00845560420",
+          "reference_no": "TLG-COD-202606221023",
+          "rowstate_name": "PICKED UP",
+          "rowstate_web": "Paket Telah Dipick Up",
+          "description": "[KURIR: SUNARTO] [ALAMAT PICKUP: \"JL. RAYA KEMLAGI, RT01/RW01, MOJODADI, KEC. KEMLAGI, KAB. MOJOKERTO, JAWA TIMUR\"] [KETERANGAN: TEST]",
+          "create_date": "2026-06-23 09:18:29",
+          "origin_code": "JI1606",
+          "destination_code": "JI1617",
+          "pod_status_code": null,
+          "pod_status_name": null
+        },
+        {
+          "awb_no": "DEV00845560420",
+          "reference_no": "TLG-COD-202606221023",
+          "rowstate_name": "ENTRI VERIFIED",
+          "rowstate_web": "Verifikasi Paket",
+          "description": "SUDAH DI KONFIRMASI DAN VERIFIKASI OLEH USER: DEV_KACAB",
+          "create_date": "2026-06-23 09:18:52",
+          "origin_code": "JI1606",
+          "destination_code": "JI1617",
+          "pod_status_code": null,
+          "pod_status_name": null
+        },
+        {
+          "awb_no": "DEV00845560420",
+          "reference_no": "TLG-COD-202606221023",
+          "rowstate_name": "MANIFEST OUTGOING",
+          "rowstate_web": "Keluar Dari KANTOR CABANG MOJOKERTO",
+          "description": "DEV",
+          "create_date": "2026-06-23 09:19:25",
+          "origin_code": "JI1606",
+          "destination_code": "JI1617",
+          "pod_status_code": null,
+          "pod_status_name": null
+        },
+        {
+          "awb_no": "DEV00845560420",
+          "reference_no": "TLG-COD-202606221023",
+          "rowstate_name": "INCOMING",
+          "rowstate_web": "Sampai Di KANTOR CABANG MOJOKERTO",
+          "description": null,
+          "create_date": "2026-06-23 09:19:45",
+          "origin_code": "JI1606",
+          "destination_code": "JI1617",
+          "pod_status_code": null,
+          "pod_status_name": null
+        },
+        {
+          "awb_no": "DEV00845560420",
+          "reference_no": "TLG-COD-202606221023",
+          "rowstate_name": "DELIVERY ",
+          "rowstate_web": "Paket Diantar Kurir By SUNARTO",
+          "description": "KURIR: SUNARTO KET: [ KURIR : KOTA ]  ",
+          "create_date": "2026-06-23 09:20:04",
+          "origin_code": "JI1606",
+          "destination_code": "JI1617",
+          "pod_status_code": null,
+          "pod_status_name": null
+        },
+        {
+          "awb_no": "DEV00845560420",
+          "reference_no": "TLG-COD-202606221023",
+          "rowstate_name": "POD - DELIVERED",
+          "rowstate_web": "Paket Telah Diterima Oleh [SAPX SANDBOX COD RECEIVER] [ KET : PENERIMA LANGSUNG]",
+          "description": "[KURIR: SUNARTO] [PENERIMA: SAPX SANDBOX COD RECEIVER] [HUB: PENERIMA LANGSUNG] [STATUS: DELIVERED - DL - DITERIMA OLEH] - KETERANGAN: DEV",
+          "create_date": "2026-06-23 09:21:00",
+          "origin_code": "JI1606",
+          "destination_code": "JI1617",
+          "pod_status_code": "DL",
+          "pod_status_name": "DITERIMA OLEH"
+        }
+      ]
+    }
+  ]
+}

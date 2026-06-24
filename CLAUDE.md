@@ -166,7 +166,7 @@ src/
 | Sprint 09 | Admin Control Center minimal | Done - `/admin-ui` dashboard, merchant/store/origin/courier config UI, read-only operations pages, `smoke:admin-ui`, and `sprint9:readiness` completed |
 | Sprint 10 | Multi-courier foundation + destination abstraction | In Progress - JNT/SAP skeleton providers, capability matrix, `/v1/couriers/capabilities`, `DestinationMapping`, and `/v1/rates/resolve` slice added |
 | Sprint 11A | Supabase Admin Auth Foundation | In Progress - env placeholders, `AdminOperator`, Supabase JWT verifier, provider-switched admin middleware, audit identity fields, bootstrap script, and readiness gate added |
-| Sprint 11B (SAP Express) | SAP Express full integration | In Progress - offline implementation added: SAP JSON client, active adapter rates/booking/tracking/webhook normalize, `/webhooks/sap-express`, capability ACTIVE, mock smoke, readiness gate, and split COD/non-COD customer code env. Runtime SAP pricing QA for Teknos Mojokerto origin waits for SAPX route enablement. |
+| Sprint 11B (SAP Express) | SAP Express full integration | In Progress - SAP JSON client, active adapter rates/booking/tracking/webhook normalize, `/webhooks/sap-express`, capability ACTIVE, readiness gate, split COD/non-COD customer code env, COD `cod_value`, and webhook `created_at` alias are implemented. Sandbox rate, NON-COD booking, COD booking, and tracking to `POD - DELIVERED` passed for Teknos Mojokerto origin. Remaining validation: inbound SAPX webhook/push tracking after SAPX endpoint setup. |
 
 ---
 
@@ -252,8 +252,8 @@ LOGISTICS_PROVIDER        Legacy provider selector: mock or jne. Multi-courier r
 JNE_*                     Server-only JNE credentials/configuration. Tariff requires base URL/user/key/origin; booking additionally requires shipper/cust/branch values.
 SAP_API_BASE_URL          URL base API SAP Express (ditambahkan Sprint 11B).
 SAP_CUSTOMER_CODE         Legacy fallback customer/merchant code SAP Express; prefer COD/non-COD split below.
-SAP_CUSTOMER_CODE_NON_COD Customer code SAP Express untuk order non-COD, contoh akun Teknos non-COD.
-SAP_CUSTOMER_CODE_COD     Customer code SAP Express untuk order COD, contoh akun Teknos COD.
+SAP_CUSTOMER_CODE_NON_COD Customer code SAP Express untuk order non-COD. Sandbox: DEV000; production Teknos: MJK047496 setelah live aktif.
+SAP_CUSTOMER_CODE_COD     Customer code SAP Express untuk order COD. Sandbox: DEV001; production Teknos: MJK047493 setelah live aktif.
 SAP_API_KEY               API key SAP Express (Sprint 11B).
 SAP_ORIGIN_DISTRICT_CODE  Default pickup district code for direct SAP booking; Sprint 12 OriginMapping will resolve per origin/courier.
 SAP_SHIPPER_*             Data pengirim untuk booking SAP: NAME, ADDRESS, PHONE, CONTACT (Sprint 11B).
@@ -341,9 +341,9 @@ Decision date: 2026-06-20. The current `/admin-ui` raw `ADMIN_JWT_SECRET` token 
 
 Target integrasi parent sengaja berbeda dari env Biteship. Biteship biasanya membutuhkan API key, origin area/postal code, dan courier list di aplikasi pemakai. Di Teknos, parent app hanya boleh menyimpan `LOGISTICS_API_URL`, `LOGISTICS_API_KEY`, `LOGISTICS_WEBHOOK_SECRET`, dan `LOGISTICS_ENABLED`; origin area/postal code, provider destination code, enabled couriers, service mapping, dan konfigurasi operasional logistik harus diatur sekali di `teknos-logistics` Admin Control Center.
 
-### Sprint 11B SAP Express Offline Implementation
+### Sprint 11B SAP Express Sandbox Validation
 
-Decision date: 2026-06-20. SAP Express is now an active registered courier implementation for offline-validated rates, booking payload construction, tracking normalization, and webhook normalization. Added `SapExpressClient`, `SapExpressAdapter`, `/webhooks/sap-express` protected by `SAP_WEBHOOK_TOKEN`, capability matrix `ACTIVE`, `npm run smoke:sap:adapter`, and `npm run sprint11b:readiness`. Do not run real SAP booking/pickup creation without explicit operator approval. Runtime SAP and DB-backed QA remain blocked while server/tunnel infrastructure is down.
+Decision date: 2026-06-23. SAP Express is now an active registered courier implementation with sandbox-validated rates, booking payload construction, COD `cod_value`, tracking normalization, and webhook normalization. `SapExpressClient`, `SapExpressAdapter`, `/webhooks/sap-express` protected by `SAP_WEBHOOK_TOKEN`, capability matrix `ACTIVE`, `npm run smoke:sap:adapter`, and `npm run sprint11b:readiness` are in place. Sandbox customer codes are `DEV000` for NON-COD and `DEV001` for COD; production customer codes remain `MJK047496` and `MJK047493` after live activation. Confirmed sandbox artifacts: rate success for `JI1606` to requested destinations, NON-COD AWB `DEV00845560419`, COD AWB `DEV00845560420`, and tracking for both AWBs to `POD - DELIVERED`. Remaining validation is inbound SAPX webhook/push tracking to `POST /webhooks/sap-express` after SAPX completes endpoint setup. Do not run additional SAP booking/pickup creation without explicit operator approval.
 ### Sprint 12 OriginMapping Offline Implementation
 
 Decision date: 2026-06-20. Real courier rates must not use the internal `Origin.code` directly. Sprint 12 adds `OriginMapping` per `(originId, courier)`, provider origin resolution in `/v1/rates/resolve`, admin origin mapping endpoints, and `npm run origin:mappings:upsert`. Missing mapping returns `ORIGIN_MAPPING_NOT_FOUND`. SAP placeholder mappings must remain inactive until SAP IT confirms the provider origin code.
