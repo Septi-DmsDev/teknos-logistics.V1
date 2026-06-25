@@ -25,15 +25,23 @@ export class SapExpressAdapter implements LogisticsProvider {
       customer_code: this.getCustomerCode(params.isCod),
       volumetric: DEFAULT_VOLUMETRIC,
     })
-    const services = extractRateServices(raw)
-    return services.map((service) => ({
-      courier: 'SAP_EXPRESS' as const,
-      serviceCode: service.service_type_code,
-      serviceName: service.service_type_name,
-      priceIdr: toNumber(service.total_cost),
-      etd: normalizeSla(service.sla),
-      cached: false,
-    })).filter((rate) => rate.serviceCode && rate.priceIdr > 0)
+    const { services, coverageCod } = extractRateResult(raw)
+    return services.map((service) => {
+      const availableForCod = params.isCod ? coverageCod : undefined
+      const codFee = (params.isCod && coverageCod && params.goodsValueIdr != null)
+        ? Math.max(this.env.SAP_COD_MIN_FEE_IDR, Math.ceil(params.goodsValueIdr * this.env.SAP_COD_FEE_PERCENT / 100))
+        : undefined
+      return {
+        courier: 'SAP_EXPRESS' as const,
+        serviceCode: service.service_type_code,
+        serviceName: service.service_type_name,
+        priceIdr: toNumber(service.total_cost),
+        etd: normalizeSla(service.sla),
+        cached: false,
+        availableForCod,
+        codFee,
+      }
+    }).filter((rate) => rate.serviceCode && rate.priceIdr > 0)
   }
 
   async bookShipment(params: BookShipmentParams): Promise<BookShipmentResult> {
@@ -104,10 +112,13 @@ export class SapExpressAdapter implements LogisticsProvider {
   }
 }
 
-function extractRateServices(raw: SapRateResponse): SapRateService[] {
-  if (Array.isArray(raw.data)) return raw.data
+function extractRateResult(raw: SapRateResponse): { services: SapRateService[]; coverageCod: boolean } {
+  if (Array.isArray(raw.data)) return { services: raw.data, coverageCod: false }
   const data = raw.data as SapRateData | undefined
-  return Array.isArray(data?.services) ? data.services : []
+  return {
+    services: Array.isArray(data?.services) ? data.services : [],
+    coverageCod: data?.coverage_cod === true,
+  }
 }
 
 function extractBookingData(data: SapBookingData | []): SapBookingData | null {

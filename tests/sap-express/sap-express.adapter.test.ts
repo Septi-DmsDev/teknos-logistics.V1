@@ -50,6 +50,8 @@ const baseEnv = {
   SAP_SHIPPER_PHONE: '08123456789',
   SAP_SHIPPER_CONTACT: 'Ops',
   SAP_WEBHOOK_TOKEN: 'sap-webhook-token',
+  SAP_COD_FEE_PERCENT: 3,
+  SAP_COD_MIN_FEE_IDR: 5000,
 } satisfies Env
 
 test('getRates returns normalized CourierRate array and filters zero price', async () => {
@@ -77,6 +79,8 @@ test('getRates returns normalized CourierRate array and filters zero price', asy
     priceIdr: 24500,
     etd: '3 - 5 Hari',
     cached: false,
+    availableForCod: undefined,
+    codFee: undefined,
   })
   assert.equal(calls[0]?.url, 'https://sap.example.test/v2/master/shipment_cost')
   assert.equal(calls[0]?.headers.api_key, 'sap-api-key')
@@ -99,6 +103,73 @@ test('getRates uses SAP COD customer code for COD requests', async () => {
 
   const body = JSON.parse(String(calls[0]?.body)) as Record<string, unknown>
   assert.equal(body.customer_code, 'CUST-COD')
+})
+
+test('getRates sets availableForCod=true and computes codFee when coverage_cod=true', async () => {
+  const adapter = new SapExpressAdapter(baseEnv, mockFetcher([], {
+    '/v2/master/shipment_cost': {
+      status: 'success',
+      msg: 'ok',
+      data: {
+        origin: 'JI1606',
+        destination: 'JK00',
+        coverage_cod: true,
+        services: [sapRateService('UDRREG', 24500)],
+      },
+    },
+  }))
+
+  const rates = await adapter.getRates({ originCode: 'JI1606', destCode: 'JK00', weightGrams: 1000, isCod: true, goodsValueIdr: 200_000 })
+
+  assert.equal(rates.length, 1)
+  assert.equal(rates[0]?.availableForCod, true)
+  // max(5000, ceil(200000 * 3/100)) = max(5000, 6000) = 6000
+  assert.equal(rates[0]?.codFee, 6000)
+})
+
+test('getRates applies SAP_COD_MIN_FEE_IDR when computed fee is below minimum', async () => {
+  const adapter = new SapExpressAdapter(baseEnv, mockFetcher([], {
+    '/v2/master/shipment_cost': {
+      status: 'success',
+      msg: 'ok',
+      data: { origin: 'JI1606', destination: 'JK00', coverage_cod: true, services: [sapRateService('UDRREG', 24500)] },
+    },
+  }))
+
+  const rates = await adapter.getRates({ originCode: 'JI1606', destCode: 'JK00', weightGrams: 1000, isCod: true, goodsValueIdr: 50_000 })
+
+  // ceil(50000 * 3/100) = 1500 < SAP_COD_MIN_FEE_IDR (5000) → 5000
+  assert.equal(rates[0]?.codFee, 5000)
+})
+
+test('getRates sets availableForCod=false when coverage_cod=false for COD request', async () => {
+  const adapter = new SapExpressAdapter(baseEnv, mockFetcher([], {
+    '/v2/master/shipment_cost': {
+      status: 'success',
+      msg: 'ok',
+      data: { origin: 'JI1606', destination: 'JK00', coverage_cod: false, services: [sapRateService('UDRREG', 24500)] },
+    },
+  }))
+
+  const rates = await adapter.getRates({ originCode: 'JI1606', destCode: 'JK00', weightGrams: 1000, isCod: true, goodsValueIdr: 200_000 })
+
+  assert.equal(rates[0]?.availableForCod, false)
+  assert.equal(rates[0]?.codFee, undefined)
+})
+
+test('getRates sets codFee=undefined when coverage_cod=true but goodsValueIdr not provided', async () => {
+  const adapter = new SapExpressAdapter(baseEnv, mockFetcher([], {
+    '/v2/master/shipment_cost': {
+      status: 'success',
+      msg: 'ok',
+      data: { origin: 'JI1606', destination: 'JK00', coverage_cod: true, services: [sapRateService('UDRREG', 24500)] },
+    },
+  }))
+
+  const rates = await adapter.getRates({ originCode: 'JI1606', destCode: 'JK00', weightGrams: 1000, isCod: true })
+
+  assert.equal(rates[0]?.availableForCod, true)
+  assert.equal(rates[0]?.codFee, undefined)
 })
 
 test('getRates throws 503 if SAP customer code is missing', async () => {

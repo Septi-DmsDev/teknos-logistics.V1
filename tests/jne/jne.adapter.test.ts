@@ -49,6 +49,8 @@ const baseEnv = {
   SAP_SHIPPER_PHONE: '',
   SAP_SHIPPER_CONTACT: '',
   SAP_WEBHOOK_TOKEN: '',
+  SAP_COD_FEE_PERCENT: 3,
+  SAP_COD_MIN_FEE_IDR: 5000,
 } satisfies Env
 
 const jneResponse = (services: JneRateService[]) => JSON.stringify({ price: services })
