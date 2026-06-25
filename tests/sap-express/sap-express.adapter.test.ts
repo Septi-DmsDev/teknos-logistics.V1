@@ -50,8 +50,8 @@ const baseEnv = {
   SAP_SHIPPER_PHONE: '08123456789',
   SAP_SHIPPER_CONTACT: 'Ops',
   SAP_WEBHOOK_TOKEN: 'sap-webhook-token',
-  SAP_COD_FEE_PERCENT: 3,
-  SAP_COD_MIN_FEE_IDR: 5000,
+  SAP_COD_FEE_PERCENT: 2,
+  SAP_COD_MIN_FEE_IDR: 0,
 } satisfies Env
 
 test('getRates returns normalized CourierRate array and filters zero price', async () => {
@@ -123,11 +123,11 @@ test('getRates sets availableForCod=true and computes codFee when coverage_cod=t
 
   assert.equal(rates.length, 1)
   assert.equal(rates[0]?.availableForCod, true)
-  // max(5000, ceil(200000 * 3/100)) = max(5000, 6000) = 6000
-  assert.equal(rates[0]?.codFee, 6000)
+  // max(0, ceil(200000 * 2/100)) = 4000
+  assert.equal(rates[0]?.codFee, 4000)
 })
 
-test('getRates applies SAP_COD_MIN_FEE_IDR when computed fee is below minimum', async () => {
+test('getRates computes codFee as pure percentage with no minimum (SAP_COD_MIN_FEE_IDR=0)', async () => {
   const adapter = new SapExpressAdapter(baseEnv, mockFetcher([], {
     '/v2/master/shipment_cost': {
       status: 'success',
@@ -138,8 +138,8 @@ test('getRates applies SAP_COD_MIN_FEE_IDR when computed fee is below minimum', 
 
   const rates = await adapter.getRates({ originCode: 'JI1606', destCode: 'JK00', weightGrams: 1000, isCod: true, goodsValueIdr: 50_000 })
 
-  // ceil(50000 * 3/100) = 1500 < SAP_COD_MIN_FEE_IDR (5000) → 5000
-  assert.equal(rates[0]?.codFee, 5000)
+  // ceil(50000 * 2/100) = 1000, min=0 → 1000
+  assert.equal(rates[0]?.codFee, 1000)
 })
 
 test('getRates sets availableForCod=false when coverage_cod=false for COD request', async () => {

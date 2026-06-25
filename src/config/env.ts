@@ -50,8 +50,8 @@ export const envSchema = z.object({
   SAP_SHIPPER_PHONE: optionalSecret,
   SAP_SHIPPER_CONTACT: optionalSecret,
   SAP_WEBHOOK_TOKEN: optionalSecret,
-  SAP_COD_FEE_PERCENT: z.coerce.number().min(0).max(100).default(3),
-  SAP_COD_MIN_FEE_IDR: z.coerce.number().int().nonnegative().default(5000),
+  SAP_COD_FEE_PERCENT: z.coerce.number().min(0).max(100).default(2),
+  SAP_COD_MIN_FEE_IDR: z.coerce.number().int().nonnegative().default(0),
 })
 
 export type Env = z.infer<typeof envSchema>
