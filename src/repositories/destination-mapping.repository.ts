@@ -142,6 +142,12 @@ export class DestinationMappingRepository {
     })
   }
 
+  async count(params: Pick<DestinationMappingListParams, 'merchantId' | 'courier' | 'isActive'> = {}): Promise<number> {
+    return this.prisma.destinationMapping.count({
+      where: { merchantId: params.merchantId, courier: params.courier, isActive: params.isActive },
+    })
+  }
+
   async create(input: DestinationMappingCreateInput): Promise<DestinationMappingRecord> {
     return this.prisma.destinationMapping.create({
       data: {

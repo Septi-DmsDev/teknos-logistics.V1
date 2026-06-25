@@ -455,7 +455,7 @@ a { color: inherit; text-decoration: none; }
 
 .config-summary {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 12px;
 }
 
@@ -468,6 +468,19 @@ a { color: inherit; text-decoration: none; }
   padding: 14px;
 }
 
+.summary-tile-success {
+  border-color: #bbf7d0;
+  background: #f0fdf4;
+}
+
+.summary-tile-warning {
+  border-color: #fde68a;
+  background: #fffbeb;
+}
+
+.summary-tile-success strong { color: #166534; }
+.summary-tile-warning strong { color: #92400e; }
+
 .summary-tile span {
   color: var(--muted);
   font-size: 0.78rem;
@@ -477,6 +490,89 @@ a { color: inherit; text-decoration: none; }
 
 .summary-tile strong {
   overflow-wrap: anywhere;
+}
+
+.courier-health-bar {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.courier-health-card {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: #ffffff;
+  padding: 14px;
+  display: grid;
+  gap: 10px;
+}
+
+.courier-health-success {
+  border-color: #bbf7d0;
+  background: #f0fdf4;
+}
+
+.courier-health-warning {
+  border-color: #fde68a;
+  background: #fffbeb;
+}
+
+.courier-health-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.courier-health-list {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.courier-health-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.86rem;
+}
+
+.courier-health-dot {
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+}
+
+.courier-health-dot-ok { background: #16a34a; }
+.courier-health-dot-warn { background: #d97706; }
+
+.courier-health-label {
+  color: var(--muted);
+  flex-shrink: 0;
+  min-width: 100px;
+}
+
+.courier-health-value {
+  font-family: ui-monospace, monospace;
+  font-size: 0.82rem;
+  background: rgba(0,0,0,0.05);
+  border-radius: 6px;
+  padding: 2px 6px;
+  overflow-wrap: anywhere;
+}
+
+.courier-coverage-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.courier-coverage-grid .metric-card strong {
+  font-size: 1.5rem;
 }
 
 .setup-grid {
@@ -587,4 +683,5 @@ th { color: var(--muted); font-size: 0.82rem; text-transform: uppercase; letter-
   .setup-step a { grid-column: 2; }
   .lookup-option { grid-template-columns: 1fr; }
   .lookup-option strong { grid-row: auto; }
+  .courier-health-bar { grid-template-columns: 1fr; }
 }`

@@ -440,6 +440,7 @@ async function loadSetupPage() {
   let apiKeys = []
   let endpoints = []
   let destinationMappings = []
+  let sapDestinationMappings = []
   let error = ''
 
   try {
@@ -450,18 +451,20 @@ async function loadSetupPage() {
     query.merchantId = selectedMerchant?.id || ''
 
     if (selectedMerchant) {
-      const [storePayload, originPayload, apiKeyPayload, endpointPayload, destinationPayload] = await Promise.all([
+      const [storePayload, originPayload, apiKeyPayload, endpointPayload, jneDestPayload, sapDestPayload] = await Promise.all([
         apiGet('/admin/merchants/' + encodeURIComponent(selectedMerchant.id) + '/stores', { limit: 50 }),
         apiGet('/admin/merchants/' + encodeURIComponent(selectedMerchant.id) + '/origins', { limit: 50 }),
         apiGet('/admin/merchants/' + encodeURIComponent(selectedMerchant.id) + '/api-keys', { limit: 20 }),
         apiGet('/admin/merchants/' + encodeURIComponent(selectedMerchant.id) + '/webhook-endpoints', { limit: 20 }),
         apiGet('/admin/merchants/' + encodeURIComponent(selectedMerchant.id) + '/destination-mappings', { courier: 'JNE', is_active: true, limit: 1 }),
+        apiGet('/admin/merchants/' + encodeURIComponent(selectedMerchant.id) + '/destination-mappings', { courier: 'SAP_EXPRESS', is_active: true, limit: 1 }),
       ])
       stores = Array.isArray(storePayload?.stores) ? storePayload.stores : []
       origins = Array.isArray(originPayload?.origins) ? originPayload.origins : []
       apiKeys = Array.isArray(apiKeyPayload?.apiKeys) ? apiKeyPayload.apiKeys : []
       endpoints = Array.isArray(endpointPayload?.endpoints) ? endpointPayload.endpoints : []
-      destinationMappings = Array.isArray(destinationPayload?.mappings) ? destinationPayload.mappings : []
+      destinationMappings = Array.isArray(jneDestPayload?.mappings) ? jneDestPayload.mappings : []
+      sapDestinationMappings = Array.isArray(sapDestPayload?.mappings) ? sapDestPayload.mappings : []
       const defaultOrigin = origins.find((origin) => origin.isDefault && origin.isActive) || origins.find((origin) => origin.isActive) || origins[0]
       if (defaultOrigin) {
         const mappingPayload = await apiGet('/admin/merchants/' + encodeURIComponent(selectedMerchant.id) + '/origins/' + encodeURIComponent(defaultOrigin.id) + '/mappings')
@@ -474,7 +477,7 @@ async function loadSetupPage() {
 
   if (state.currentRoute !== snapshotRoute || state.currentRoute !== '/setup' || !elements.contentPanel) return
   const route = routeConfig('/setup')
-  const content = renderSetupContent({ merchants, selectedMerchant, stores, origins, originMappings, apiKeys, endpoints, destinationMappings, query, error })
+  const content = renderSetupContent({ merchants, selectedMerchant, stores, origins, originMappings, apiKeys, endpoints, destinationMappings, sapDestinationMappings, query, error })
   elements.contentPanel.innerHTML = renderPageShell({ ...route, content })
 }
 
@@ -490,19 +493,23 @@ function setupHash(query) {
   return '#/setup?' + params.toString()
 }
 
-function renderSetupContent({ merchants, selectedMerchant, stores, origins, originMappings, apiKeys, endpoints, destinationMappings, query, error }) {
+function renderSetupContent({ merchants, selectedMerchant, stores, origins, originMappings, apiKeys, endpoints, destinationMappings, sapDestinationMappings, query, error }) {
   const activeOrigins = origins.filter((origin) => origin.isActive)
   const defaultOrigin = origins.find((origin) => origin.isDefault && origin.isActive) || activeOrigins[0] || origins[0] || null
   const activeApiKeys = apiKeys.filter((key) => key.isActive)
   const activeEndpoints = endpoints.filter((endpoint) => endpoint.isActive)
   const activeJneOriginMapping = originMappings.find((mapping) => mapping.courier === 'JNE' && mapping.isActive)
-  const hasDestinationMapping = destinationMappings.some((mapping) => mapping.courier === 'JNE' && mapping.isActive)
+  const activeSapOriginMapping = originMappings.find((mapping) => mapping.courier === 'SAP_EXPRESS' && mapping.isActive)
+  const hasJneDestinationMapping = destinationMappings.some((mapping) => mapping.courier === 'JNE' && mapping.isActive)
+  const hasSapDestinationMapping = (sapDestinationMappings || []).some((mapping) => mapping.courier === 'SAP_EXPRESS' && mapping.isActive)
 
   const status = {
     merchant: Boolean(selectedMerchant?.isActive),
     origin: Boolean(defaultOrigin),
-    originMapping: Boolean(activeJneOriginMapping),
-    destinationMapping: hasDestinationMapping,
+    jneOriginMapping: Boolean(activeJneOriginMapping),
+    jneDestinationMapping: hasJneDestinationMapping,
+    sapOriginMapping: Boolean(activeSapOriginMapping),
+    sapDestinationMapping: hasSapDestinationMapping,
     apiKey: activeApiKeys.length > 0,
     webhook: activeEndpoints.length > 0,
   }
@@ -510,14 +517,17 @@ function renderSetupContent({ merchants, selectedMerchant, stores, origins, orig
   return '<div id="setup-root" class="setup-layout">'
     + (error ? '<div class="notice is-error">' + escapeHtml(error) + '</div>' : '')
     + renderSetupSummary(status, selectedMerchant, defaultOrigin)
+    + renderCourierHealthBar(status, activeJneOriginMapping, activeSapOriginMapping)
     + '<div class="setup-grid">'
     + '<div class="setup-steps">'
     + renderSetupStep(1, 'Merchant', status.merchant, selectedMerchant ? selectedMerchant.name + ' (' + selectedMerchant.slug + ')' : 'Belum ada merchant aktif', '#/merchants')
-    + renderSetupStep(2, 'Origin pickup', status.origin, defaultOrigin ? defaultOrigin.code + ' - ' + defaultOrigin.name : 'Buat origin gudang/toko', '#/stores-origins')
-    + renderSetupStep(3, 'Origin mapping JNE', status.originMapping, activeJneOriginMapping ? 'JNE -> ' + activeJneOriginMapping.providerCode : 'Set provider code origin JNE', '#/destination-mappings')
-    + renderSetupStep(4, 'Destination mapping', status.destinationMapping, status.destinationMapping ? 'Minimal satu mapping JNE aktif tersedia' : 'Tambah mapping tujuan untuk smoke checkout', '#/destination-mappings')
-    + renderSetupStep(5, 'API key', status.apiKey, status.apiKey ? activeApiKeys.length + ' active key' : 'Generate key untuk aplikasi merchant', selectedMerchant ? '#/merchant/' + encodeURIComponent(selectedMerchant.id) : '#/merchants')
-    + renderSetupStep(6, 'Webhook', status.webhook, status.webhook ? activeEndpoints.length + ' active endpoint' : 'Daftarkan endpoint webhook parent', selectedMerchant ? '#/merchant/' + encodeURIComponent(selectedMerchant.id) : '#/merchants')
+    + renderSetupStep(2, 'Origin pickup', status.origin, defaultOrigin ? defaultOrigin.code + ' — ' + defaultOrigin.name : 'Buat origin gudang/toko', '#/stores-origins')
+    + renderSetupStep(3, 'Origin mapping JNE', status.jneOriginMapping, activeJneOriginMapping ? 'JNE → ' + activeJneOriginMapping.providerCode : 'Set provider code origin JNE', '#/destination-mappings')
+    + renderSetupStep(4, 'Destination mapping JNE', status.jneDestinationMapping, status.jneDestinationMapping ? 'Minimal satu mapping JNE aktif tersedia' : 'Tambah mapping tujuan JNE untuk smoke checkout', '#/destination-mappings')
+    + renderSetupStep(5, 'Origin mapping SAP Express', status.sapOriginMapping, activeSapOriginMapping ? 'SAP_EXPRESS → ' + activeSapOriginMapping.providerCode : 'Set district code origin SAP_EXPRESS', '#/destination-mappings')
+    + renderSetupStep(6, 'Destination mapping SAP Express', status.sapDestinationMapping, status.sapDestinationMapping ? 'Minimal satu mapping SAP_EXPRESS aktif tersedia' : 'Import coverage area SAP ke merchant ini', '#/destination-mappings')
+    + renderSetupStep(7, 'API key', status.apiKey, status.apiKey ? activeApiKeys.length + ' active key' : 'Generate key untuk aplikasi merchant', selectedMerchant ? '#/merchant/' + encodeURIComponent(selectedMerchant.id) : '#/merchants')
+    + renderSetupStep(8, 'Webhook', status.webhook, status.webhook ? activeEndpoints.length + ' active endpoint' : 'Daftarkan endpoint webhook parent', selectedMerchant ? '#/merchant/' + encodeURIComponent(selectedMerchant.id) : '#/merchants')
     + '</div>'
     + renderSetupActions({ merchants, selectedMerchant, stores, origins, defaultOrigin, query })
     + '</div>'
@@ -527,16 +537,57 @@ function renderSetupContent({ merchants, selectedMerchant, stores, origins, orig
 
 function renderSetupSummary(status, selectedMerchant, defaultOrigin) {
   const complete = Object.values(status).filter(Boolean).length
+  const total = Object.keys(status).length
+  const jneReady = status.jneOriginMapping && status.jneDestinationMapping
+  const sapReady = status.sapOriginMapping && status.sapDestinationMapping
   return '<div class="config-summary">'
-    + summaryTile('Merchant', selectedMerchant ? selectedMerchant.slug : 'empty')
-    + summaryTile('Origin', defaultOrigin ? defaultOrigin.code : 'empty')
-    + summaryTile('Ready steps', complete + '/6')
-    + summaryTile('Mode', 'manual')
+    + summaryTile('Merchant', selectedMerchant ? selectedMerchant.slug : '—')
+    + summaryTile('Origin', defaultOrigin ? defaultOrigin.code : '—')
+    + summaryTileStatus('JNE', jneReady ? 'Siap' : 'Belum lengkap', jneReady ? 'success' : 'warning')
+    + summaryTileStatus('SAP Express', sapReady ? 'Siap' : 'Belum lengkap', sapReady ? 'success' : 'warning')
+    + summaryTile('Progress', complete + '/' + total + ' steps')
     + '</div>'
 }
 
 function summaryTile(label, value) {
   return '<article class="summary-tile"><span>' + escapeHtml(label) + '</span><strong>' + escapeHtml(value) + '</strong></article>'
+}
+
+function summaryTileStatus(label, value, tone) {
+  const safeTone = ['success', 'warning', 'danger', 'muted'].includes(tone) ? tone : 'muted'
+  return '<article class="summary-tile summary-tile-' + safeTone + '"><span>' + escapeHtml(label) + '</span><strong>' + escapeHtml(value) + '</strong></article>'
+}
+
+function renderCourierHealthBar(status, jneMapping, sapMapping) {
+  const jneSteps = [
+    { label: 'Origin code', ok: status.jneOriginMapping, detail: jneMapping ? jneMapping.providerCode : 'Belum diset' },
+    { label: 'Destination DB', ok: status.jneDestinationMapping, detail: status.jneDestinationMapping ? 'Tersedia' : 'Belum diimport' },
+  ]
+  const sapSteps = [
+    { label: 'Origin code', ok: status.sapOriginMapping, detail: sapMapping ? sapMapping.providerCode : 'Belum diset' },
+    { label: 'Destination DB', ok: status.sapDestinationMapping, detail: status.sapDestinationMapping ? 'Tersedia' : 'Belum diimport' },
+  ]
+  return '<div class="courier-health-bar">'
+    + renderCourierHealth('JNE', jneSteps)
+    + renderCourierHealth('SAP Express', sapSteps)
+    + '</div>'
+}
+
+function renderCourierHealth(name, steps) {
+  const allReady = steps.every((step) => step.ok)
+  const tone = allReady ? 'success' : 'warning'
+  const items = steps.map((step) => '<li class="courier-health-item">'
+    + '<span class="courier-health-dot courier-health-dot-' + (step.ok ? 'ok' : 'warn') + '"></span>'
+    + '<span class="courier-health-label">' + escapeHtml(step.label) + '</span>'
+    + '<code class="courier-health-value">' + escapeHtml(step.detail) + '</code>'
+    + '</li>').join('')
+  return '<div class="courier-health-card courier-health-' + tone + '">'
+    + '<div class="courier-health-header">'
+    + '<strong>' + escapeHtml(name) + '</strong>'
+    + renderBadge(allReady ? 'Siap' : 'Perlu konfigurasi', allReady ? 'success' : 'warning')
+    + '</div>'
+    + '<ul class="courier-health-list">' + items + '</ul>'
+    + '</div>'
 }
 
 function renderSetupStep(index, title, done, detail, href) {
@@ -1107,6 +1158,8 @@ async function loadDestinationMappingsPage() {
   let origins = []
   let originMappings = []
   let destinationMappings = []
+  let destinationTotal = 0
+  let courierTotals = { JNE: 0, SAP_EXPRESS: 0 }
   let error = ''
 
   try {
@@ -1115,16 +1168,24 @@ async function loadDestinationMappingsPage() {
     query.merchantId = query.merchantId || merchants[0]?.id || ''
 
     if (query.merchantId) {
-      const [originPayload, destinationPayload] = await Promise.all([
-        apiGet('/admin/merchants/' + encodeURIComponent(query.merchantId) + '/origins', { limit: 50 }),
-        apiGet('/admin/merchants/' + encodeURIComponent(query.merchantId) + '/destination-mappings', { courier: query.courier, is_active: query.isActive, limit: 50 }),
+      const mid = encodeURIComponent(query.merchantId)
+      const [originPayload, destinationPayload, jneCountPayload, sapCountPayload] = await Promise.all([
+        apiGet('/admin/merchants/' + mid + '/origins', { limit: 50 }),
+        apiGet('/admin/merchants/' + mid + '/destination-mappings', { courier: query.courier, is_active: query.isActive, limit: 50 }),
+        apiGet('/admin/merchants/' + mid + '/destination-mappings', { courier: 'JNE', is_active: 'true', limit: 1 }),
+        apiGet('/admin/merchants/' + mid + '/destination-mappings', { courier: 'SAP_EXPRESS', is_active: 'true', limit: 1 }),
       ])
       origins = Array.isArray(originPayload?.origins) ? originPayload.origins : []
       destinationMappings = Array.isArray(destinationPayload?.mappings) ? destinationPayload.mappings : []
+      destinationTotal = typeof destinationPayload?.total === 'number' ? destinationPayload.total : destinationMappings.length
+      courierTotals = {
+        JNE: typeof jneCountPayload?.total === 'number' ? jneCountPayload.total : (Array.isArray(jneCountPayload?.mappings) ? jneCountPayload.mappings.length : 0),
+        SAP_EXPRESS: typeof sapCountPayload?.total === 'number' ? sapCountPayload.total : (Array.isArray(sapCountPayload?.mappings) ? sapCountPayload.mappings.length : 0),
+      }
       const selectedOrigin = origins.find((origin) => origin.id === query.originId) || origins.find((origin) => origin.isDefault && origin.isActive) || origins[0]
       query.originId = selectedOrigin?.id || ''
       if (selectedOrigin) {
-        const originMappingPayload = await apiGet('/admin/merchants/' + encodeURIComponent(query.merchantId) + '/origins/' + encodeURIComponent(selectedOrigin.id) + '/mappings')
+        const originMappingPayload = await apiGet('/admin/merchants/' + mid + '/origins/' + encodeURIComponent(selectedOrigin.id) + '/mappings')
         originMappings = Array.isArray(originMappingPayload?.mappings) ? originMappingPayload.mappings : []
       }
     }
@@ -1134,7 +1195,7 @@ async function loadDestinationMappingsPage() {
 
   if (state.currentRoute !== snapshotRoute || state.currentRoute !== '/destination-mappings' || !elements.contentPanel) return
   const route = routeConfig('/destination-mappings')
-  const content = renderDestinationMappingsContent({ merchants, origins, originMappings, destinationMappings, query, error })
+  const content = renderDestinationMappingsContent({ merchants, origins, originMappings, destinationMappings, destinationTotal, courierTotals, query, error })
   elements.contentPanel.innerHTML = renderPageShell({ ...route, content })
 }
 
@@ -1158,14 +1219,29 @@ function destinationMappingHash(query) {
   return '#/destination-mappings?' + params.toString()
 }
 
-function renderDestinationMappingsContent({ merchants, origins, originMappings, destinationMappings, query, error }) {
+function renderDestinationMappingsContent({ merchants, origins, originMappings, destinationMappings, destinationTotal, courierTotals, query, error }) {
   const selectedOrigin = origins.find((origin) => origin.id === query.originId) || origins[0]
   return '<div id="destination-mappings-root" class="management-grid">'
     + renderDestinationMappingFilter(merchants, origins, query)
     + (selectedOrigin ? renderOriginMappingForm(query.merchantId, selectedOrigin) : '<div class="form-card"><h3>Origin mapping</h3><p class="muted">Buat origin terlebih dahulu.</p></div>')
     + renderDestinationMappingCreateForm(query.merchantId)
+    + renderCourierCoverageSummary(courierTotals)
     + renderOriginMappingList(originMappings, error)
-    + renderDestinationMappingList(destinationMappings, error)
+    + renderDestinationMappingList(destinationMappings, destinationTotal, query.courier, error)
+    + '</div>'
+}
+
+function renderCourierCoverageSummary(totals) {
+  const couriers = [
+    { key: 'JNE', label: 'JNE', count: totals.JNE },
+    { key: 'SAP_EXPRESS', label: 'SAP Express', count: totals.SAP_EXPRESS },
+  ]
+  const cards = couriers.map((c) => {
+    const tone = c.count > 0 ? 'success' : 'warning'
+    return metricCard(c.label, c.count.toLocaleString('id-ID') + ' area', 'Destination mapping aktif', tone)
+  }).join('')
+  return '<div class="form-card wide-card"><div class="section-title"><h3>Coverage aktif per kurir</h3><span>Active destination mappings</span></div>'
+    + '<div class="courier-coverage-grid">' + cards + '</div>'
     + '</div>'
 }
 
@@ -1193,7 +1269,12 @@ function renderOriginMappingList(mappings, error) {
     + '</div>'
 }
 
-function renderDestinationMappingList(mappings, error) {
+function renderDestinationMappingList(mappings, total, activeCourier, error) {
+  const shown = mappings.length
+  const isFiltered = shown < total
+  const countLabel = isFiltered
+    ? escapeHtml(shown + ' ditampilkan / ' + total.toLocaleString('id-ID') + ' total' + (activeCourier ? ' (' + activeCourier + ')' : ''))
+    : escapeHtml(total.toLocaleString('id-ID') + ' rows' + (activeCourier ? ' (' + activeCourier + ')' : ''))
   const rows = mappings.map((mapping) => [
     escapeHtml(mapping.courier),
     escapeHtml(mapping.providerCode),
@@ -1202,7 +1283,7 @@ function renderDestinationMappingList(mappings, error) {
     escapeHtml(mapping.isActive ? 'Active' : 'Inactive'),
     '<button class="button button-secondary" data-action="toggle-destination-mapping" data-id="' + escapeHtml(mapping.id) + '" data-active="' + escapeHtml(String(!mapping.isActive)) + '">' + escapeHtml(mapping.isActive ? 'Deactivate' : 'Activate') + '</button>',
   ])
-  return '<div class="form-card wide-card"><div class="section-title"><h3>Destination mappings</h3><span>' + escapeHtml(mappings.length) + ' rows</span></div>'
+  return '<div class="form-card wide-card"><div class="section-title"><h3>Destination mappings</h3><span>' + countLabel + '</span></div>'
     + renderUnsafeTable({ columns: ['Courier', 'Provider dest', 'Postal', 'Area', 'Status', 'Action'], rows, emptyMessage: error || 'Belum ada destination mapping.' })
     + '</div>'
 }

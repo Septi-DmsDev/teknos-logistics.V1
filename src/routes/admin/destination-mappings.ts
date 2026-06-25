@@ -18,14 +18,22 @@ export function mountAdminDestinationMappingRoutes(app: Hono, mappingsRepository
 
   app.get('/admin/merchants/:merchantId/destination-mappings', async (c) => {
     const query = parseQuery(c, adminDestinationMappingListQuerySchema)
-    const result = await mappingsRepository.list({
-      merchantId: c.req.param('merchantId'),
-      courier: query.courier,
-      isActive: query.is_active,
-      limit: query.limit,
-      offset: query.offset,
-    })
-    return c.json({ mappings: result.map(toDto) })
+    const merchantId = c.req.param('merchantId')
+    const [result, total] = await Promise.all([
+      mappingsRepository.list({
+        merchantId,
+        courier: query.courier,
+        isActive: query.is_active,
+        limit: query.limit,
+        offset: query.offset,
+      }),
+      mappingsRepository.count({
+        merchantId,
+        courier: query.courier,
+        isActive: query.is_active,
+      }),
+    ])
+    return c.json({ mappings: result.map(toDto), total })
   })
 
   app.post('/admin/merchants/:merchantId/destination-mappings', async (c) => {
