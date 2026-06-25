@@ -1,0 +1,6 @@
+[allowlist]
+description = "False positives — public URLs and placeholder values"
+regexes = [
+  # JNE public API URL — contains path segment that triggers generic-api-key rule
+  '''apiv2\.jne\.co\.id:\d+/tracing/api''',
+]
