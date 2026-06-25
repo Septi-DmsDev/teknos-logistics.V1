@@ -33,7 +33,7 @@ export const envSchema = z.object({
   JNE_SHIPPER_ZIP: optionalSecret,
   JNE_WEBHOOK_TOKEN: optionalSecret,
   JNE_COD_ELIGIBLE_SERVICES: z.string().default('REG,JTR'),
-  JNE_COD_FEE_PERCENT: z.coerce.number().min(0).max(100).default(3),
+  JNE_COD_FEE_PERCENT: z.coerce.number().int().min(0).max(100).default(3),
   JNE_COD_MIN_FEE_IDR: z.coerce.number().int().nonnegative().default(0),
   SAP_API_BASE_URL: optionalUrl,
   SAP_TRACKING_BASE_URL: optionalUrl,
@@ -50,7 +50,7 @@ export const envSchema = z.object({
   SAP_SHIPPER_PHONE: optionalSecret,
   SAP_SHIPPER_CONTACT: optionalSecret,
   SAP_WEBHOOK_TOKEN: optionalSecret,
-  SAP_COD_FEE_PERCENT: z.coerce.number().min(0).max(100).default(2),
+  SAP_COD_FEE_PERCENT: z.coerce.number().int().min(0).max(100).default(2),
   SAP_COD_MIN_FEE_IDR: z.coerce.number().int().nonnegative().default(0),
 })
 

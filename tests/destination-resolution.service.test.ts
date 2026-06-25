@@ -83,7 +83,8 @@ test('returns JNE rates and SAP error when SAP destination mapping not found', a
 test('returns SAP rates and JNE error when JNE origin mapping not found', async () => {
   const sapRates = [{ courier: 'SAP_EXPRESS', serviceCode: 'UDRREG', serviceName: 'SATRIA REG', priceIdr: 18000, etd: '3-5 hari', cached: false }]
 
-  const service = new DestinationResolutionService(
+  // Initial service unused — test overrides with custom repo below to simulate missing JNE origin
+  void new DestinationResolutionService(
     makeMappingRepo({ jne: destMappingJne, sap: destMappingJne, originCode: '' as never, sapOriginCode: 'JI1608' }),
     makeRateService({ JI1608: sapRates })
   )

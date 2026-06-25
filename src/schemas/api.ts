@@ -8,7 +8,7 @@ export const rateRequestSchema = z.object({
   dest_code: z.string().trim().min(3).max(32),
   weight_grams: z.number().int().min(1).max(100_000),
   is_cod: z.boolean().optional(),
-  goods_value_idr: z.number().int().min(0).optional(),
+  goods_value_idr: z.number().int().min(0).max(1_000_000_000).optional(),
   couriers: z.array(courierCodeSchema).min(1).optional(),
 })
 
@@ -28,7 +28,7 @@ export const rateResolveRequestSchema = z.object({
   destination: destinationInputSchema,
   weight_grams: z.number().int().min(1).max(100_000),
   is_cod: z.boolean().optional(),
-  goods_value_idr: z.number().int().min(0).optional(),
+  goods_value_idr: z.number().int().min(0).max(1_000_000_000).optional(),
   couriers: z.array(courierCodeSchema).min(1).optional(),
 })
 
@@ -46,7 +46,7 @@ export const shipmentRequestSchema = z.object({
     phone: z.string().trim().min(6).max(32),
     address: z.string().trim().min(5).max(500),
   }),
-  goods_value_idr: z.number().int().min(0).optional(),
+  goods_value_idr: z.number().int().min(0).max(1_000_000_000).optional(),
   is_cod: z.boolean().optional(),
 })
 
