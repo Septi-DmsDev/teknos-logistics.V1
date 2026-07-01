@@ -18,7 +18,7 @@ export const envSchema = z.object({
   RATE_LIMIT_WINDOW_MS: z.coerce.number().int().positive().default(60_000),
   RATE_LIMIT_PUBLIC_MAX: z.coerce.number().int().nonnegative().default(120),
   RATE_LIMIT_ADMIN_MAX: z.coerce.number().int().nonnegative().default(60),
-  LOGISTICS_PROVIDER: z.enum(['mock', 'jne']).default('mock'),
+  LOGISTICS_PROVIDER: z.enum(['mock', 'jne', 'sap-express']).default('mock'),
   JNE_MODE: z.enum(['sandbox', 'production']).default('sandbox'),
   JNE_API_BASE_URL: optionalSecret,
   JNE_USERNAME: optionalSecret,
